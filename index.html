@@ -492,7 +492,7 @@ a.btn svg{width:18px;height:18px}
 .goal-pick{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
 .goal-pick button{min-height:48px;border:1px solid var(--line);border-radius:10px;background:var(--sunk);font-size:18px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
 .goal-pick button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(140px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top,0px));bottom:auto;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
 table.sess{width:100%;border-collapse:collapse;font-size:14px}
 table.sess th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
 table.sess td{padding:8px 4px;border-bottom:1px solid var(--line);vertical-align:top}
@@ -2099,8 +2099,8 @@ function setSkillStage(skId, i){
   return r;
 }
 function sheetSummary(){
-  const w=sheet.w;
-  return `<div class="stats">
+  const w=sheet.w; const dr=sheet.dropped||0;
+  return `${dr?`<div class="warn"><span>${dr} set${dr>1?'s':''} with a weight but no reps ${dr>1?'were':'was'} not saved. Edit the workout in History to add the reps.</span></div>`:''}<div class="stats">
     <div class="stat"><b class="num">${fmtMin(w.endedAt-w.startedAt)}</b><small>duration</small></div>
     <div class="stat"><b class="num">${fmtVol(workoutVolume(w))}</b><small>kg volume</small></div>
     <div class="stat"><b class="num">${w.exercises.reduce((a,e)=>a+e.sets.length,0)}</b><small>sets</small></div>
@@ -2226,9 +2226,8 @@ async function finishWorkout(){
   const skObj=w.src&&w.src.skill?SKILLS.find(x=>x.id===w.src.skill):null; const skPre=skObj?{wasMastered:skillMastery(skObj).done}:null;
   S.active=null; saveActive(); stopRest();
   await putWorkout(done); recomputePRs();
-  if(mode){ S.openHist=done.id; location.hash='#history'; render(); toast(mode==='edit'?'Changes saved':'Workout logged'); return; }
-  render(); openSheet({kind:'summary',w:done,skill:skPre});
-  if(dropped) toast(`${dropped} set${dropped>1?'s':''} with a weight but no reps ${dropped>1?'were':'was'} left out.`);
+  if(mode){ S.openHist=done.id; location.hash='#history'; render(); return; }
+  render(); openSheet({kind:'summary',w:done,skill:skPre,dropped});
 }
 
 /* rest timer */
@@ -2282,7 +2281,7 @@ document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==
 
 /* toast + two-tap confirm */
 let toastT=null;
-function toast(msg){ const r=document.getElementById('toast-root'); r.innerHTML=`<div class="toast" role="status">${esc(msg)}</div>`; clearTimeout(toastT); toastT=setTimeout(()=>{r.innerHTML='';},3200); }
+function toast(msg, ms){ const r=document.getElementById('toast-root'); r.innerHTML=`<div class="toast" role="status">${esc(msg)}</div>`; clearTimeout(toastT); toastT=setTimeout(()=>{r.innerHTML='';},ms||2000); }
 function armed(btn, label){
   if(btn.classList.contains('armed')) return true;
   const orig=btn.innerHTML; btn.classList.add('armed'); btn.textContent=label;
@@ -2297,7 +2296,7 @@ function applyPicked(ex){
   const arts=document.querySelectorAll('.ex'); arts[arts.length-1]?.scrollIntoView({block:'center'});
 }
 function applySwap(sw, ex){
-  if(sw.ctx==='workout'){ const en=S.active&&S.active.exercises[sw.idx]; if(en){ swapEntry(en, ex); touch(); } closeSheet(); render(); toast(`Swapped to ${ex.name}`); return; }
+  if(sw.ctx==='workout'){ const en=S.active&&S.active.exercises[sw.idx]; if(en){ swapEntry(en, ex); touch(); } closeSheet(); render(); return; }
   const back=sw.back; const it=back.r.exercises[sw.idx];
   if(it){ ensurePlan(it); const n=it.plan.length; const sameType=it.type===ex.type; const old=it.plan;
     Object.assign(it, routineItem(ex));
@@ -2464,7 +2463,7 @@ document.addEventListener('click', async ev=>{
     case 'rt-rest': { const r=sheet.r; r.rest=Math.max(15,Math.min(600,(r.rest||S.settings.rest||90)+(+b.dataset.d))); renderSheet(); break; }
     case 'rt-rest-reset': { delete sheet.r.rest; renderSheet(); break; }
     case 'bar-mode': setBarPref(b.closest('.bar-ctl').dataset.exid, {mode:b.dataset.v}); break;
-    case 'begin': if(S.active && !S.active.startedAt){ S.active.startedAt=Date.now(); touch(); render(); window.scrollTo(0,0); toast('Workout started'); } break;
+    case 'begin': if(S.active && !S.active.startedAt){ S.active.startedAt=Date.now(); touch(); render(); window.scrollTo(0,0); } break;
     case 'done': {
       if(!S.active.startedAt && !S.active.mode){ toast('Press Start workout first.'); break; }
       try{ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); else if(audioCtx.state==='suspended') audioCtx.resume(); }catch(_){}
@@ -2490,7 +2489,7 @@ document.addEventListener('click', async ev=>{
     case 'ex-del': { if(!armed(b,'Remove?')) break; S.active.exercises.splice(+art.dataset.ex,1); touch(); render(); break; }
     case 'ex-up': { const i=+art.dataset.ex; if(i>0){ const a=S.active.exercises; [a[i-1],a[i]]=[a[i],a[i-1]]; touch(); render(); } break; }
     case 'finish': await finishWorkout(); break;
-    case 'discard': { const ready=!S.active.startedAt||!!S.active.mode; if(!ready && !armed(b,'Confirm?')) break; S.active=null; saveActive(); stopRest(); render(); toast(ready?'Cancelled':'Workout discarded'); break; }
+    case 'discard': { const ready=!S.active.startedAt||!!S.active.mode; if(!ready && !armed(b,'Confirm?')) break; S.active=null; saveActive(); stopRest(); render(); break; }
     case 'rest-minus': if(rest){ rest.end-=15000; rest.total=Math.max(15,rest.total-15); rest.beeped=false; tick(); } break;
     case 'rest-plus': if(rest){ if(rest.end<Date.now()) rest.end=Date.now(); rest.end+=15000; rest.total+=15; rest.beeped=false; tick(); } break;
     case 'rest-skip': stopRest(); break;
@@ -2536,7 +2535,7 @@ document.addEventListener('click', async ev=>{
         if(cur===''||!num(cur)||from===''||num(cur)===num(from)) { st.w=nw; if(st.t1!==undefined) st.t1=nw; } }
       touch(); render(); toast(`Working sets set to ${fmtKg(num(nw))} kg`); break;
     }
-    case 'hint-swap': { const ex=exById(b.dataset.id); if(ex){ swapEntry(e, ex); touch(); render(); toast(`Swapped to ${ex.name}`); } break; }
+    case 'hint-swap': { const ex=exById(b.dataset.id); if(ex){ swapEntry(e, ex); touch(); render(); } break; }
     case 'rt-wu': { const x=sheet.r.exercises[+b.closest('.rt-ex').dataset.i]; const p=x.plan[+b.closest('.plan-row').dataset.j]; if(p.wu) delete p.wu; else p.wu=true; renderSheet(); break; }
     case 'rt-ss-link': linkNext(sheet.r.exercises, +b.closest('.rt-ex').dataset.i); renderSheet(); break;
     case 'rt-ss-leave': unlink(sheet.r.exercises, +b.closest('.rt-ex').dataset.i); renderSheet(); break;
