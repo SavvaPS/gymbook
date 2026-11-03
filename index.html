@@ -448,6 +448,25 @@ input[type="date"]::-webkit-calendar-picker-indicator,input[type="datetime-local
 .pr-item{display:flex;justify-content:space-between;gap:8px;padding:10px 12px;border-radius:10px;background:var(--pr-soft);color:var(--pr);font-weight:600}
 .big-num{font-family:var(--f-display);font-size:40px;line-height:1}
 button,a,input,select,label,textarea{touch-action:manipulation}
+.how-i{all:unset;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;margin:-6px -4px -6px 2px;color:var(--accent);vertical-align:middle;flex:none}
+.how-i svg{width:18px;height:18px}
+.how-link{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--accent);min-height:32px;margin:-4px 0 4px}
+.how-link svg{width:16px;height:16px}
+.nm-links{display:flex;gap:16px;margin-left:26px}
+.rt-ex .nm-links .swap-link,.rt-ex .nm-links .warn-link,.rt-ex .nm-links .how-link{margin:0}
+.pl-head{display:flex;align-items:center;min-width:0}
+.how-works{margin:0;display:flex;flex-direction:column;gap:2px;font-size:15px}
+.how-cues{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px;font-size:16px;line-height:1.45}
+.how-ladder{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.how-step{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--sunk);min-width:0}
+.how-step small{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.how-step b{font-size:14px;overflow-wrap:break-word}
+.how-step:only-child{grid-column:1/-1}
+a.btn{text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px}
+a.btn svg{width:18px;height:18px}
+.wk-btns{display:grid;grid-template-columns:2fr 1fr;gap:10px;align-items:stretch}
+.wk-btns .btn{width:100%;min-height:54px;min-width:0;padding:0 10px}
+.btn.danger.outline{border-color:var(--pr);font-size:17px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(140px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
 table.sess{width:100%;border-collapse:collapse;font-size:14px}
 table.sess th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
@@ -802,13 +821,171 @@ function adaptList(list){
   return {items, swaps};
 }
 const cleanItems = items => items.map(it=>{ const c=Object.assign({},it); delete c._orig; delete c._amt; return c; });
+/* how-to notes for calisthenics: [muscles worked, form cues split by |, the most common mistake] */
+const HOWTO = {
+ 'wrist-prep':['Wrists and forearms','On hands and knees, circle your wrists 10 times each way|Palms flat, fingers forward: rock your weight gently forwards and back 10 times|Turn fingers to point back at your knees and rock again, gently|Backs of hands on the floor for a light stretch, then lift palms off the floor 10 times with fingertips down','Forcing the stretch. It should feel warm and loose, never sharp'],
+ 'band-dislocate':['Shoulders and upper back','Hold a band or towel wide, arms straight, in front of your hips|Lift it overhead and behind you in one slow arc, then bring it back|Widen your grip if your elbows bend or it pinches','Bending the elbows to get through. Go wider instead'],
+ 'scap-pushup':['Serratus and the muscles around the shoulder blades','Start in a push-up position with arms locked|Let your chest sink between your shoulders so the blades pinch together|Push the floor away so your upper back rounds and the blades spread|Arms stay straight the whole time: only the shoulder blades move','Bending the elbows, which turns it into a small push-up'],
+ 'scap-pull':['Lower traps and lats','Hang from a bar with straight arms|Pull your shoulders down away from your ears so your body rises a few centimetres|Pause, then lower back to a full hang|Elbows stay locked: no bend at all','Bending the arms. The lift comes only from the shoulder blades'],
+ 'wall-pushup':['Chest, shoulders and triceps','Hands on a wall at shoulder height, a little wider than shoulders|Step back so your body is a straight line on a lean|Lower your chest to the wall, elbows about 45° from your body|Push back to straight arms','Letting the hips sag or pike instead of moving as one plank'],
+ 'incline-pushup':['Chest, shoulders and triceps','Hands on a bench, box or bar, slightly wider than shoulders|Body straight from head to heels, glutes squeezed|Lower until your chest touches the edge, then press away|The lower the surface, the harder it gets','Flaring the elbows straight out to the sides'],
+ 'knee-pushup':['Chest, shoulders and triceps','Knees on the floor, hands just wider than shoulders|Keep a straight line from knees to head, hips not bent|Lower your chest to a fist-height above the floor|Press back up to locked arms','Bending at the hips so only the head and shoulders move'],
+ 'pushup':['Chest, shoulders and triceps','Hands under or just wider than shoulders, fingers forward|Squeeze glutes and brace your stomach so your body is a rigid plank|Lower until your chest nearly touches, elbows about 45° from your body|Press until arms lock and shoulder blades spread','Sagging hips or a half-range rep that stops short of the floor'],
+ 'wide-pushup':['Chest, with less triceps','Hands about one and a half shoulder widths apart|Keep the body in one line, glutes tight|Lower your chest between your hands under control|Press back up to straight arms','Going so wide the shoulders feel pinched. Bring the hands in a little'],
+ 'diamond-pushup':['Triceps and inner chest','Hands together under your chest, thumbs and index fingers forming a diamond|Elbows track back along your ribs, not out|Lower until your chest touches your hands|Press back up to locked arms','Letting the elbows flare wide, which strains the elbows and shoulders'],
+ 'decline-pushup':['Upper chest and shoulders','Feet on a bench or box, hands on the floor|Brace so your hips stay in line with your shoulders|Lower your face and chest towards the floor in front of your hands|Press to straight arms','Hips sagging towards the floor as you tire'],
+ 'ring-pushup':['Chest, shoulders, triceps and stabilisers','Set the rings a few centimetres off the floor and grip them neutral|Start with arms locked and rings close to your body|Lower with elbows tucked until the rings reach your chest|Press up and turn the rings out at the top','Letting the rings drift wide, which is hard on the shoulders'],
+ 'archer-pushup':['Chest, shoulders and triceps, one side at a time','Hands about twice shoulder width, fingers turned slightly out|Lower towards one hand while the other arm stays nearly straight|Most of your weight goes on the bent arm|Press back to the centre and alternate sides','Bending both arms equally, which makes it just a wide push-up'],
+ 'clap-pushup':['Chest and triceps, power','Start in a strong push-up position|Lower under control, then push the floor away as hard as you can|Clap quickly and get your hands back under your shoulders|Land with soft, slightly bent elbows and go into the next rep','Landing on locked arms or with hands too wide'],
+ 'incline-oap':['Chest, shoulders, triceps and core, one side','One hand on a bench or bar, feet wide for balance|Free hand behind your back, hips square to the floor|Lower your chest to the edge with the elbow close to your side|Press up without twisting your torso','Rotating the hips and chest open to make it easier'],
+ 'oap-negative':['Chest, shoulders, triceps and core, one side','Get into the top of a one-arm push-up, feet wide|Lower slowly for 3 to 5 seconds, staying square|At the bottom, put the other hand down and push back up with both|Reset and repeat','Dropping the last part instead of controlling it all the way'],
+ 'pseudo-planche':['Front shoulders, chest and wrists, for planche','Hands by your waist, fingers turned out or back|Lean your shoulders well forward of your hands before you start|Keep the lean as you lower and press|Protract (spread) your shoulder blades at the top','Losing the lean and drifting back into a normal push-up'],
+ 'one-arm-pushup':['Chest, shoulders, triceps and core, one side','Feet wide, working hand under your chest, free hand behind your back|Brace hard so hips stay level and square|Lower until your chest is a fist from the floor, elbow close to your side|Press up without twisting','Twisting the torso open or letting the hips sag'],
+ 'bench-dip':['Triceps and front shoulders','Hands on a bench edge behind you, fingers forward|Feet out in front, knees bent to make it easier|Lower until upper arms are about level with the floor|Press back up to straight arms','Going too deep, which strains the front of the shoulder'],
+ 'dips':['Chest, triceps and front shoulders','Start supported on parallel bars, arms locked, shoulders down|Lean slightly forward and lower until shoulders are just below elbows|Keep elbows pointing back, not out|Press to locked arms and push the shoulders down','Shrugging the shoulders up to the ears at the bottom'],
+ 'straight-bar-dip':['Chest, triceps and front shoulders, for muscle-ups','Support on top of a straight bar, hands shoulder width|Lean forward and let your legs come slightly in front of the bar|Lower until the bar is near your chest|Press back up to straight arms','Hanging back from the bar, which makes the rep stall halfway'],
+ 'ring-dip':['Chest, triceps and shoulder stabilisers','Start in a ring support, arms locked, rings by your hips|Lower with the rings close to your body until shoulders are below elbows|Press up and turn the rings out at the top|Keep the rings from drifting forward','Letting the rings wander out to the sides'],
+ 'pike-pushup':['Shoulders and triceps, for handstand push-ups','Hands on the floor, hips high in an upside-down V|Walk your feet in so your hips are over your hands as much as you can|Lower the top of your head to a spot in front of your hands|Press back to straight arms','Lowering straight down, which turns it into a push-up. Head goes forward of the hands'],
+ 'elevated-pike':['Shoulders and triceps, for handstand push-ups','Feet on a box or bench, hips stacked over your hands|Make a tripod: head lands a little in front of your hands|Elbows stay over the wrists, not flaring wide|Press until arms lock and shoulders reach the ears','Letting the hips drift back so the shoulders do less work'],
+ 'wall-hspu':['Shoulders and triceps','Kick up into a handstand facing away from the wall, hands a palm from it|Lower your head to a point forming a triangle with your hands|Keep your elbows from flaring past 45°|Press back to locked arms','Arching the lower back against the wall'],
+ 'hspu':['Shoulders, triceps and balance','Hold a freestanding handstand|Lower your head forward in a tripod, keeping balance with your fingers|Press back up while the legs stay stacked|Bail with a cartwheel if you tip over','Losing the line by piking or arching as you lower'],
+ 'ring-y':['Lower traps and rear shoulders','Hold the rings or straps, lean back with straight arms|Raise your arms up and out into a Y, keeping them straight|Pull your body up to the rings with that motion|Lower slowly','Bending the arms to turn it into a row'],
+ 'prone-ytw':['Upper back and rear shoulders','Lie face down, forehead on a towel|Lift straight arms up into a Y, thumbs up, then lower|Repeat out to the sides as a T, then bend elbows and pull back into a W|Keep the neck relaxed and ribs down','Shrugging or lifting the head'],
+ 'wall-walk':['Shoulders, core and handstand confidence','Start in a push-up with feet against the wall|Walk your feet up the wall while walking your hands back|Go as close to the wall as you can control|Walk back down the same way','Letting the lower back sag. Keep the ribs pulled in'],
+ 'wall-handstand':['Shoulders, core and balance','Chest to the wall: walk up until your nose is near the wall|Push the floor away so your shoulders are by your ears|Squeeze glutes and point toes so your body is one straight line|Breathe and hold; walk down when your form slips','A banana-shaped back. Tuck the ribs and squeeze the glutes'],
+ 'handstand':['Shoulders, core and balance','Kick up with straight arms, hands shoulder width, fingers spread|Push tall through your shoulders and stack hips over hands|Balance with your fingertips (falling forward) and the heels of your hands (falling back)|Bail by turning one hand and cartwheeling out','Looking far forward and arching the back'],
+ 'crow':['Wrists, shoulders and balance','Squat with hands flat, shoulder width, fingers spread|Rest your knees on the backs of your upper arms|Lean forward until your feet float|Look slightly ahead and hold','Not leaning far enough, so the feet never leave the floor'],
+ 'planche-lean':['Front shoulders, wrists and straight-arm strength','Push-up position with fingers turned out or back|Lock your elbows and spread your shoulder blades|Lean your shoulders forward past your hands as far as you can hold|Keep the body straight and hold','Bending the arms or letting the shoulder blades pinch together'],
+ 'tuck-planche':['Front shoulders, wrists and core','Hands by your hips, arms locked, fingers turned slightly out|Lean forward and pull your knees tight into your chest|Round your upper back and push the floor away|Hips up at about shoulder height and hold','Bent elbows. Locked arms are the whole point'],
+ 'adv-tuck-planche':['Front shoulders, wrists and core','From a tuck planche, open your hips so your back is flat|Knees stay bent and below the hips|Lean further forward to balance the longer lever|Keep shoulders spread and arms locked','Leaving the back rounded, which keeps it a normal tuck'],
+ 'straddle-planche':['Front shoulders, wrists, core and glutes','From an advanced tuck, extend your legs wide apart|Hips at shoulder height, legs straight and toes pointed|Lean further forward to stay balanced|Push the floor away the whole hold','Hips dropping below the shoulders'],
+ 'full-planche':['Front shoulders, wrists and full-body tension','Legs together and straight, body parallel to the floor|Lean far enough forward that your hips balance over your hands|Arms locked, shoulder blades spread, glutes squeezed|Hold the line from head to heels','Piking the hips up or bending the arms'],
+ 'superman':['Lower back, glutes and upper back','Lie face down, arms overhead|Lift arms, chest and legs a few centimetres off the floor|Squeeze glutes and keep the neck long|Hold briefly, then lower','Cranking the head up to look forward'],
+ 'arch-hold':['Lower back, glutes and upper back','Lie face down, arms overhead|Lift arms, chest and legs, squeezing glutes|Keep your arms straight and by your ears|Hold the shape and breathe','Bending the knees to get the legs higher'],
+ 'ring-row':['Upper back, lats and biceps','Hold the rings, walk your feet forward and lean back|Body straight from head to heels|Pull your chest to your hands, elbows close to your body|Lower to straight arms','Hips sagging so only the arms move'],
+ 'archer-row':['Upper back and lats, one side at a time','Lean back holding the rings or a bar, arms wide|Pull towards one hand while the other arm stays straight and out|Squeeze that shoulder blade back|Lower and alternate','Bending both arms evenly'],
+ 'fl-row':['Lats, upper back and core','Hold a tuck front lever under the bar|Pull the bar towards your hips while staying horizontal|Keep the arms close and the back flat|Lower under control to straight arms','Dropping the hips as you pull'],
+ 'neg-pullup':['Lats, upper back and biceps','Jump or step up so your chin is over the bar|Lower yourself slowly for 3 to 5 seconds|Keep the shoulders down and the body still|Go all the way to straight arms','Dropping fast through the bottom half'],
+ 'pullup':['Lats, upper back and biceps','Overhand grip just wider than shoulders, start from a dead hang|Pull the shoulders down first, then drive the elbows towards your ribs|Bring your chin over the bar|Lower all the way to straight arms','Kipping or half reps that never reach full hang'],
+ 'chinup':['Lats and biceps','Underhand grip about shoulder width|Start from straight arms, shoulders pulled down|Pull until your chin passes the bar|Lower under control to a full hang','Craning the neck to get the chin over'],
+ 'wide-pullup':['Lats and upper back','Overhand grip about one and a half shoulder widths|Pull your chest towards the bar, elbows down and out|Keep shoulders away from your ears|Lower fully each rep','Going so wide the range becomes tiny'],
+ 'ring-pullup':['Lats, biceps and grip','Start from a dead hang, palms facing forward|Pull and let the rings turn so your palms face you at the top|Bring the rings to your chest|Lower to straight arms','Swinging. Keep the body still'],
+ 'c2b-pullup':['Lats and upper back, for muscle-ups','Grip just wider than shoulders|Pull with your elbows driving down and back|Touch your chest (not chin) to the bar|Lower to a full hang','Leaning back so far it turns into a row'],
+ 'lsit-pullup':['Lats, biceps and core','Hang and lift your straight legs to hip height|Hold the L as you pull up to the bar|Lower without letting the legs drop|Bend the knees if straight legs are too hard','Legs sinking as you pull'],
+ 'typewriter':['Lats and biceps, one side biased','Pull up with a wide grip until your chin is over the bar|Slide across towards one hand, straightening the other arm|Slide back to the other side|Lower from the centre','Dropping below the bar while moving across'],
+ 'archer-pullup':['Lats and biceps, one side at a time','Wide grip, pull towards one hand|Keep the other arm nearly straight along the bar|Chin over that hand at the top|Lower and alternate','Pulling with both arms equally'],
+ 'one-arm-pullup':['Lats, biceps and grip, one side','Start from a dead hang on one arm, other hand by your side|Pull your shoulder down first, then pull up with the elbow tight to you|Keep the body from spinning|Lower all the way under control','Swinging or kipping to get the chin up'],
+ 'explosive-pullup':['Lats and upper back, power, for muscle-ups','From a dead hang, pull as fast and high as you can|Aim to get your chest or waist to the bar|Keep the body hollow and legs together|Lower under control','Swinging the legs to make up the height'],
+ 'jump-muscle-up':['Pulling and pushing, transition practice','Stand under a low bar and jump into a high pull|Lean your chest over the bar and turn the wrists over|Press up to straight arms on top|Step down, do not drop','Not leaning far enough over the bar to get through'],
+ 'neg-muscle-up':['Lats, chest and triceps, through the transition','Start on top of the bar with straight arms|Lower slowly into the bottom of a dip|Roll back through the transition, keeping the bar close|Finish in a dead hang','Dropping through the transition instead of controlling it'],
+ 'muscle-up':['Lats, chest and triceps','Use a slightly false grip, hands shoulder width|Pull explosively to your waist, leaning your chest over the bar|Turn the wrists over fast and press out of the dip|Lower under control','Chicken-winging, getting one elbow over before the other'],
+ 'ring-muscle-up':['Lats, chest, triceps and stabilisers','Use a false grip (wrist on top of the ring)|Pull rings to your ribs, keeping them close|Lean forward and roll through into a deep dip|Press out to a ring support','Losing the false grip, which makes the transition near impossible'],
+ 'tuck-fl':['Lats, core and straight-arm strength','Hang with straight arms, then pull the bar down towards your hips|Tuck knees to chest and lift until your back is level with the floor|Arms stay locked, shoulders pulled down|Hold, then lower','Bent arms or hips sitting below the shoulders'],
+ 'adv-tuck-fl':['Lats, core and straight-arm strength','From a tuck front lever, open your hips so your back is flat|Knees bent at about 90°|Press the bar towards your hips to stay level|Hold with locked arms','Back rounding up again as you tire'],
+ 'one-leg-fl':['Lats, core and straight-arm strength','From an advanced tuck, extend one leg straight|Keep the other knee tucked|Hips stay level with your shoulders|Alternate the straight leg each set','Hips dropping when the leg straightens'],
+ 'straddle-fl':['Lats, core and straight-arm strength','Straight legs spread wide, body level with the floor|Arms locked, pressing the bar towards your hips|Squeeze glutes and point toes|Hold, then lower','Piking at the hips'],
+ 'front-lever':['Lats, core and full-body tension','Legs together and straight, body level with the floor|Arms locked, shoulders pulled down and back|Squeeze glutes and brace your stomach|Hold the straight line','Bent arms or sagging hips'],
+ 'skin-cat':['Shoulders, lats and core','Hang from rings or a bar, tuck your knees|Roll backwards through your arms until your feet point at the floor|Go only as far as your shoulders allow|Roll back slowly the same way','Dropping into the bottom too quickly. Control it'],
+ 'german-hang':['Shoulder mobility for back lever and skin the cat','From a skin the cat, lower until your feet point down behind you|Relax into the stretch in the front of your shoulders|Hold briefly, then roll back up|Build time slowly','Jumping into a long hold before the shoulders are ready'],
+ 'tuck-bl':['Biceps, chest, shoulders and core','From a German hang, tuck tight and lift until your back is level|Arms locked, hands just wider than shoulders|Keep the knees pulled in|Hold, then roll back out','Bent arms, which strains the elbows'],
+ 'adv-tuck-bl':['Biceps, chest, shoulders and core','From a tuck back lever, open your hips so your back is flat|Knees bent|Stay level with the floor|Hold with locked arms','Hips piking upwards'],
+ 'straddle-bl':['Biceps, chest, shoulders and core','Straight legs spread wide, body level|Arms locked, shoulders pressing down|Squeeze glutes and point toes|Hold, then roll out','Letting the hips drop'],
+ 'back-lever':['Biceps, chest, shoulders and full-body tension','Body straight and level, face down, under the bar|Arms locked, hands just wider than shoulders|Squeeze glutes and keep the hips flat|Hold, then roll out through a German hang','Bending the arms, a common cause of biceps strain'],
+ 'dead-hang':['Grip, forearms and shoulder health','Grip the bar about shoulder width|Let your body hang fully, arms straight|Breathe and relax the shoulders|Drop off when your grip starts to slip','Holding the breath'],
+ 'active-hang':['Lats, lower traps and grip','Hang from the bar with straight arms|Pull your shoulders down away from your ears|Keep the arms straight and body still|Hold that position','Bending the elbows'],
+ 'ring-curl':['Biceps','Hold the rings, palms up, and lean back|Keep elbows pointing forward and still|Curl your hands towards your forehead|Lower slowly to straight arms','Letting the elbows drop, which turns it into a row'],
+ 'ring-tri-ext':['Triceps','Hold the rings, lean forward, arms straight|Bend only at the elbows, lowering your head between the rings|Keep the body straight|Press back to straight arms','Hips piking up during the press'],
+ 'air-squat':['Quads, glutes and hamstrings','Feet shoulder width, toes slightly out|Sit hips back and down, knees following the toes|Go as deep as you can with a flat back|Drive up through the whole foot','Knees caving in'],
+ 'cossack':['Quads, glutes, adductors and hip mobility','Stand with a very wide stance, toes slightly out|Sit down into one hip, the other leg straight with toes up|Keep the heel of the bent leg down|Shift across to the other side','Lifting the working heel off the floor'],
+ 'jump-squat':['Quads and glutes, power','Squat to about parallel|Jump as high as you can|Land softly, knees bent, and sink straight into the next rep|Keep knees in line with toes','Landing stiff-legged'],
+ 'assisted-pistol':['Quads and glutes, one leg','Hold a post, ring or door frame|Stand on one leg, other leg straight out in front|Squat as deep as you can, using the hands only as needed|Stand back up','Pulling with the arms more than you need'],
+ 'box-pistol':['Quads and glutes, one leg','Stand on one leg in front of a box or bench|Lower slowly until you sit on it|Stand back up without rocking|Lower the box over time','Plopping down onto the box'],
+ 'shrimp':['Quads and glutes, one leg','Stand on one leg, hold the other foot behind you|Lower the back knee towards the floor|Lean forward a little to balance|Drive back up through the front foot','Letting the knee crash into the floor'],
+ 'pistol':['Quads, glutes and balance','Stand on one leg, other leg straight out in front|Reach arms forward to counterbalance|Squat all the way down with the heel flat|Stand back up without bouncing','Heel lifting or the knee collapsing in'],
+ 'wall-sit':['Quads','Back flat against a wall, feet out in front|Slide down until knees are at about 90°|Knees over ankles, weight in the heels|Hold','Hands pushing on the thighs'],
+ 'bw-lunge':['Quads and glutes','Step forward into a long stride|Lower until the back knee nearly touches the floor|Front knee tracks over the toes|Push back to standing','Front heel lifting'],
+ 'step-up':['Quads and glutes','Put your whole foot on a box or bench|Drive through that foot to stand up tall|Avoid pushing off the back foot|Lower slowly','Bouncing off the bottom leg'],
+ 'bw-bulgarian':['Quads and glutes, one leg','Back foot on a bench, front foot about a stride ahead|Lower until the back knee nearly touches the floor|Keep your chest up and front heel down|Drive up through the front foot','Front foot too close, so the knee shoots far forward'],
+ 'jump-lunge':['Quads and glutes, power','Start in a lunge|Jump and switch legs in the air|Land softly straight into the next lunge|Keep your torso upright','Landing hard on the back knee'],
+ 'sl-rdl':['Hamstrings and glutes, balance','Stand on one leg with a soft knee|Hinge forward, back leg lifting behind you|Keep hips square and back flat|Stand up by squeezing the glute','Opening the hip to the side'],
+ 'slider-curl':['Hamstrings','Lie on your back, heels on sliders or a towel|Lift your hips into a bridge|Pull your heels towards your bum, keeping hips up|Slide them back out slowly','Hips dropping during the curl'],
+ 'nordic':['Hamstrings','Kneel with your ankles anchored|Body straight from knees to head|Lower forward as slowly as you can|Catch yourself with your hands and push back up','Bending at the hips to make it easier'],
+ 'sissy':['Quads','Hold a support, rise onto your toes|Lean back and bend the knees forward|Keep a straight line from knees to shoulders|Lower as far as comfortable, then return','Bending at the hips'],
+ 'reverse-nordic':['Quads and hip flexors','Kneel upright with a straight line from knees to head|Lean back slowly, keeping hips extended|Go as far as you can control|Come back up the same way','Bending at the hips'],
+ 'bw-calf':['Calves','Stand on one foot on a step edge|Lower your heel below the step|Rise as high as you can onto your toes|Pause at the top','Bouncing out of the bottom'],
+ 'glute-bridge':['Glutes and hamstrings','Lie on your back, knees bent, feet flat|Push through your heels to lift your hips|Squeeze glutes hard at the top|Lower slowly','Arching the lower back instead of using the glutes'],
+ 'sl-glute-bridge':['Glutes and hamstrings, one side','Lie on your back, one foot flat, other leg raised|Push through the heel to lift your hips|Keep the pelvis level|Lower slowly','Hips tilting to one side'],
+ 'box-jump':['Legs, power','Stand a short step from the box|Swing your arms and jump onto it|Land softly in a squat|Step down, do not jump down','Choosing a box so high you land in a deep squat'],
+ 'broad-jump':['Legs, power','Feet hip width, swing your arms back|Jump forward as far as you can|Land softly with knees bent|Reset each rep','Landing with straight legs'],
+ 'plank':['Core and shoulders','Forearms under shoulders, legs straight|Squeeze glutes and brace your stomach|Keep a straight line from head to heels|Breathe and hold','Hips sagging or piking up'],
+ 'side-plank':['Obliques and hips','Forearm under shoulder, legs stacked|Lift your hips so your body is straight|Keep hips forward, not rolling back|Hold, then switch sides','Hips sinking towards the floor'],
+ 'dead-bug':['Deep core','Lie on your back, arms up, knees at 90°|Press your lower back into the floor|Lower the opposite arm and leg slowly|Return and switch sides','Lower back lifting off the floor'],
+ 'hollow':['Core, for almost every calisthenics skill','Lie on your back, arms overhead|Press your lower back into the floor|Lift arms, shoulders and legs a little off the floor|Bend knees or bring arms in to make it easier','Lower back lifting off the floor'],
+ 'mountain':['Core and conditioning','High plank with hands under shoulders|Drive one knee towards your chest|Switch legs quickly|Keep hips low and steady','Hips bouncing up'],
+ 'ab-wheel':['Core and lats','Kneel and hold the wheel under your shoulders|Roll forward slowly, keeping your back rounded slightly|Go only as far as you can without the lower back sagging|Pull back with your stomach','Lower back arching at the far point'],
+ 'body-saw':['Core','Forearm plank, feet on sliders or a towel|Rock your body back and forth from the shoulders|Keep the plank line|Small range first','Hips sagging'],
+ 'russian':['Obliques','Sit with knees bent, lean back slightly|Keep your chest up and back straight|Turn your shoulders side to side|Lift the feet to make it harder','Just moving the arms instead of rotating the torso'],
+ 'crunch':['Abs','Lie on your back, knees bent|Hands lightly by your head|Curl your shoulders off the floor|Lower slowly','Pulling on the neck'],
+ 'leg-raise':['Lower abs and hip flexors','Lie on your back, hands under your hips|Keep the lower back pressed down|Raise straight legs to vertical|Lower slowly without arching','Lower back arching as the legs drop'],
+ 'hanging-knee':['Abs and hip flexors','Hang from a bar, shoulders engaged|Raise your knees towards your chest|Curl the pelvis up at the top|Lower without swinging','Swinging for momentum'],
+ 'hanging-leg':['Abs and hip flexors','Hang with shoulders engaged|Lift straight legs to hip height or higher|Control the descent|Avoid swinging','Using momentum'],
+ 'toes-to-bar':['Abs, hip flexors and lats','Hang from a bar|Press down on the bar with straight arms as you lift|Bring your toes up to touch the bar|Lower under control','Kipping without control'],
+ 'dragon-flag':['Core','Lie on a bench, hold it behind your head|Lift your body to vertical on your upper back|Lower slowly as one straight line|Bend the knees to make it easier','Bending at the hips'],
+ 'clutch-flag':['Obliques and lats, flag foundation','Hold a pole with both hands, clamp it against your side|Lift your legs off the floor|Keep the body as straight and level as you can|Hold','Hips dropping'],
+ 'tuck-flag':['Obliques, lats and shoulders','Top hand pulls, bottom hand pushes, arms straight|Tuck your knees and lift until your body is level|Keep the top shoulder pulled down|Hold, then lower','Bending the bottom arm'],
+ 'vertical-flag':['Obliques, lats and shoulders, flag entry','Grip the pole with the usual flag grip|Kick up to a vertical position with legs straight up|Hold with straight arms|Lower slowly','Bending the arms'],
+ 'flag-negative':['Obliques, lats and shoulders','Start in a vertical flag|Lower your tucked legs slowly towards horizontal|Control the descent for 3 to 5 seconds|Step down and reset','Dropping instead of lowering under control'],
+ 'straddle-flag':['Obliques, lats and shoulders','Flag grip, arms straight|Legs straight and wide apart|Push the bottom hand, pull the top|Keep the body level and hold','Hips sinking'],
+ 'human-flag':['Obliques, lats, shoulders and full-body tension','Flag grip with both arms straight|Body horizontal, legs together|Top arm pulls, bottom arm pushes hard|Keep the hips up and hold','Bending the bottom arm or hips dropping'],
+ 'windshield':['Obliques and core','Hang from a bar, legs raised to the bar|Swing your legs side to side like wipers|Keep the shoulders engaged|Control both ways','Momentum instead of control'],
+ 'support-hold':['Shoulders, triceps and stabilisers','Support yourself on parallel bars or rings, arms locked|Push your shoulders down away from your ears|Keep your body straight and still|Turn the rings out if using rings','Shrugging the shoulders up'],
+ 'tuck-lsit':['Core, hip flexors and triceps','Hands on the floor or parallettes by your hips|Push down hard so your bum lifts|Pull your knees towards your chest|Hold with straight arms','Shoulders shrugging up'],
+ 'lsit':['Core, hip flexors and triceps','From a tuck L-sit, straighten your legs|Keep legs level and together|Push the shoulders down hard|Point the toes and hold','Legs dropping'],
+ 'v-sit':['Core, hip flexors and shoulders','From an L-sit, push higher|Lift the legs above horizontal|Lean the shoulders back|Hold with straight arms','Bending the knees'],
+ 'burpee':['Full body conditioning','Squat down and put your hands on the floor|Jump your feet back into a plank|Bring your feet back in|Jump up with your arms overhead','Sagging hips in the plank'],
+ 'bear-crawl':['Shoulders, core and coordination','On hands and feet with knees just off the floor|Move opposite hand and foot together|Keep the back flat and hips low|Small, controlled steps','Hips rising high'],
+ 'kick-up':['Handstand entry and balance','Lunge forward with arms overhead|Place your hands and kick the back leg up|Bring the other leg to meet it|Practise bailing safely','Kicking too hard and falling over'],
+ 'ring-fly':['Chest and shoulder stabilisers','Hold the rings, lean forward in a plank|Let the arms open wide with a slight bend in the elbows|Go only as far as you can control|Squeeze the rings back together','Going so wide you lose control']
+};
+
+SKILLS.forEach(sk=>sk.stages.forEach(st=>{ st.sk=sk.id; }));
+function howBtn(id, name){ return HOWTO[id]?`<button type="button" class="how-i" data-act="howto" data-id="${esc(id)}" aria-label="How to do ${esc(name||'')}">${ICON.info}</button>`:''; }
+/* nearest easier and harder bodyweight versions of the same movement */
+function howLadder(ex){
+  if(!ex||ex.pattern==='prep'||!ex.lvl) return {};
+  const same=LIB.filter(x=>x.pattern===ex.pattern&&x.id!==ex.id&&x.bw&&HOWTO[x.id]&&x.lvl);
+  const lo=same.filter(x=>x.lvl<ex.lvl).sort((a,b)=>b.lvl-a.lvl)[0];
+  const hi=same.filter(x=>x.lvl>ex.lvl).sort((a,b)=>a.lvl-b.lvl)[0];
+  return {lo,hi};
+}
+function sheetHowto(ex){
+  const h=ex&&HOWTO[ex.id]; if(!h) return '<p class="muted">No notes for this exercise yet.</p>';
+  const [works,cues,mistake]=h; const {lo,hi}=howLadder(ex);
+  const step=(x,l)=>x?`<button type="button" class="how-step" data-act="howto" data-id="${esc(x.id)}"><small>${l}</small><b>${esc(x.name)}</b></button>`:'';
+  return `<p class="how-works"><span class="label">Works</span>${esc(works)}</p>
+  <ol class="how-cues">${cues.split('|').map(c=>`<li>${esc(c)}</li>`).join('')}</ol>
+  <div class="callout safety"><b>Common mistake</b><span>${esc(mistake)}</span></div>
+  ${lo||hi?`<div class="how-ladder">${step(lo,'Easier')}${step(hi,'Harder')}</div>`:''}
+  <a class="btn block" href="https://www.youtube.com/results?search_query=${encodeURIComponent(ex.name+' tutorial')}" target="_blank" rel="noopener">${ICON.play}<span>Find a video</span></a>
+  ${sheet&&sheet.back?`<button type="button" class="btn ghost block" data-act="how-back">Back</button>`:''}`;
+}
+function resetSkill(sk){
+  const drop=(o)=>{ const d=Object.assign({},o||{}); delete d[sk.id]; return d; };
+  S.settings.skills=drop(S.settings.skills); S.settings.skillsDone=drop(S.settings.skillsDone);
+  const pd=Object.assign({},S.settings.preDone||{}); Object.keys(pd).forEach(k=>{ if(k.startsWith(sk.id+':')) delete pd[k]; }); S.settings.preDone=pd;
+  S.settings.skillReset=Object.assign({},S.settings.skillReset||{},{[sk.id]:Date.now()});
+  putSettings();
+  return S.routines.filter(r=>r.src&&r.src.skill===sk.id).map(r=>r.id);
+}
+function skillStarted(sk){ return skillStage(sk.id)>=0 || skillMastery(sk).done || sk.stages.some(st=>stageProgress(st).best>0) || S.routines.some(r=>r.src&&r.src.skill===sk.id); }
 function skillStage(id){ const v=(S.settings.skills||{})[id]; return v==null?-1:v; }
 function bestReps(exId){ let m=0; for(const w of S.workouts) for(const e of (w.exercises||[])) if(e.exId===exId) for(const s of working(e.sets)) m=Math.max(m,num(s.r)); return m; }
 /* a stage is passed when its goal is hit in a working set in two separate sessions */
 function stageProgress(st){
   const val=x=>st.goal.sec?num(x.sec):num(x.r); const goal=st.goal.sec||st.goal.r;
   let best=0; const hits=[];
-  for(const w of [...S.workouts].sort((a,b)=>a.startedAt-b.startedAt)){ let wb=0;
+  const since=st.sk?((S.settings.skillReset||{})[st.sk]||0):0;
+  for(const w of [...S.workouts].sort((a,b)=>a.startedAt-b.startedAt)){ if(w.startedAt<since) continue; let wb=0;
     for(const e of (w.exercises||[])) if(e.exId===st.key) for(const x of working(e.sets)) wb=Math.max(wb,val(x));
     best=Math.max(best,wb); if(wb>=goal) hits.push(w.startedAt); }
   const unit=st.goal.sec?' s':' reps';
@@ -1075,6 +1252,8 @@ function render(){
 }
 
 const ICON = {
+  info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg>',
+  play:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>',
   check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
   x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
   plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
@@ -1146,8 +1325,7 @@ function vActive(){
   <button type="button" class="btn block" data-act="add-ex">${ICON.plus} Add exercise</button>
   <div class="field"><label class="label" for="wk-note">Workout notes</label><textarea id="wk-note" rows="2" placeholder="Sleep, energy, anything to remember next time">${esc(w.note||'')}</textarea></div>
   <div class="stack" style="margin-top:8px">
-    ${primary}
-    <div class="row" style="justify-content:center"><button type="button" class="btn danger" data-act="discard" id="discard-btn">${ready||w.mode?'Cancel':'Discard workout'}</button></div>
+    <div class="wk-btns">${primary}<button type="button" class="btn danger outline" data-act="discard" id="discard-btn">${ready||w.mode?'Cancel':'Discard'}</button></div>
   </div>`;
 }
 /* supersets: exercises sharing an "ss" id are done back to back; rest comes after the last one */
@@ -1282,7 +1460,7 @@ function vExercise(e,i,ssi,total){
     ${ssi?`<div class="ss-tag">Superset ${ssi.L} · ${ssi.pos} of ${ssi.size} · ${ssi.nextSame?'straight on to the next':'rest after this one'}</div>`:''}
     <header>
       <div style="min-width:0"><button type="button" class="ex-toggle" data-act="ex-toggle" aria-expanded="${!e.collapsed}" aria-label="${e.collapsed?'Expand':'Collapse'} ${esc(e.name)}">${ICON.down}<span class="ex-name">${esc(e.name)}</span></button>
-      ${e.collapsed?`<p class="ex-sum num ${e.type!=='cardio'&&workN&&doneN===workN?'all-done':''}">${e.type!=='cardio'&&workN&&doneN===workN?ICON.check:''}${e.type==='cardio'?`${e.sets.length} entr${e.sets.length===1?'y':'ies'}`:`${doneN} of ${workN} sets done`}${e.sets.some(x=>x.wu)?` · ${e.sets.filter(x=>x.wu).length} warm-up`:''}</p>`:`<p class="last">${prev?`Last (${shortDate(prev.w.startedAt)}): ${esc(setsSummary(prev.e))}`:'First time logging this'}</p>
+      ${e.collapsed?`<p class="ex-sum num ${e.type!=='cardio'&&workN&&doneN===workN?'all-done':''}">${e.type!=='cardio'&&workN&&doneN===workN?ICON.check:''}${e.type==='cardio'?`${e.sets.length} entr${e.sets.length===1?'y':'ies'}`:`${doneN} of ${workN} sets done`}${e.sets.some(x=>x.wu)?` · ${e.sets.filter(x=>x.wu).length} warm-up`:''}</p>`:`<p class="last">${prev?`Last (${shortDate(prev.w.startedAt)}): ${esc(setsSummary(prev.e))}`:'First time logging this'}</p>${HOWTO[e.exId]?`<button type="button" class="how-link" data-act="howto" data-id="${esc(e.exId)}">${ICON.info}How to do it</button>`:''}
       ${prev&&prev.e.note?`<p class="last"><i>Note: ${esc(prev.e.note)}</i></p>`:''}`}</div>
       <div class="row" style="flex-wrap:nowrap;gap:0">
         ${ex&&ex.pattern?`<button type="button" class="icon-btn" data-act="ex-swap" aria-label="Swap ${esc(e.name)} for a variation">${ICON.swap}</button>`:''}
@@ -1629,6 +1807,7 @@ function renderSheet(){
   if(sheet.kind==='equip'){ title='My equipment'; body=sheetEquip(); }
   if(sheet.kind==='program'){ const p=PROGRAMS.find(x=>x.id===sheet.id); title=p?p.title:'Programme'; body=sheetProgram(p); }
   if(sheet.kind==='skill'){ const sk=SKILLS.find(x=>x.id===sheet.id); title=sk?sk.title:'Skill'; body=sheetSkill(sk); }
+  if(sheet.kind==='howto'){ const ex=exById(sheet.id); title=ex?ex.name:'How to'; body=sheetHowto(ex); }
   if(sheet.kind==='bw-all'){ title='Bodyweight'; body=sheetBwAll(); }
   if(sheet.kind==='export'){ title='Your export'; body=sheetExport(); }
   if(sheet.kind==='install'){ title='Add to home screen'; body=sheetInstall(); }
@@ -1713,7 +1892,7 @@ function sheetRoutine(){
     const bcx=barCfg(x.exId); const si=ssR[i]; return `<div class="rt-ex ${bcx&&bcx.mode!=='total'?'has-tot':''} ${coll?'collapsed':''}" data-i="${i}">
       ${si?`<div class="ss-tag">Superset ${si.L} · ${si.pos} of ${si.size}</div>`:''}
       <div class="spread" style="align-items:flex-start">
-        <div class="nm"><button type="button" class="ex-toggle" data-act="rt-toggle" aria-expanded="${!coll}" aria-label="${coll?'Expand':'Collapse'} ${esc(x.name)}">${ICON.down}<span>${esc(x.name)}</span></button>${coll?`<span class="ex-sum num">${esc(planSummary(x))}${x.plan.some(p=>p.wu)?` · ${x.plan.filter(p=>p.wu).length} warm-up`:''}</span>`:''}${bad?`<button type="button" class="warn-link" data-act="rt-ex-swap">Needs ${esc(missing(ex).join(', '))}: swap</button>`:(ex&&ex.pattern?`<button type="button" class="swap-link" data-act="rt-ex-swap">Swap</button>`:'')}</div>
+        <div class="nm"><button type="button" class="ex-toggle" data-act="rt-toggle" aria-expanded="${!coll}" aria-label="${coll?'Expand':'Collapse'} ${esc(x.name)}">${ICON.down}<span>${esc(x.name)}</span></button>${coll?`<span class="ex-sum num">${esc(planSummary(x))}${x.plan.some(p=>p.wu)?` · ${x.plan.filter(p=>p.wu).length} warm-up`:''}</span>`:''}<div class="nm-links">${bad?`<button type="button" class="warn-link" data-act="rt-ex-swap">Needs ${esc(missing(ex).join(', '))}: swap</button>`:(ex&&ex.pattern?`<button type="button" class="swap-link" data-act="rt-ex-swap">Swap</button>`:'')}${HOWTO[x.exId]?`<button type="button" class="how-link" data-act="howto" data-id="${esc(x.exId)}">${ICON.info}How to</button>`:''}</div></div>
         <button type="button" class="icon-btn" data-act="rt-ex-del" aria-label="Remove ${esc(x.name)}">${ICON.x}</button>
       </div>
       ${coll?'':`
@@ -1759,7 +1938,7 @@ function sheetExport(){
   <button type="button" class="btn primary block" data-act="copy-export">Copy to clipboard</button>`;
 }
 function planList(items){
-  return `<ol class="plist">${items.map(it=>`<li><span class="pl-name">${esc(it.name)}${it.plan[0]&&it.plan[0].wu?'<small>Warm-up and prep</small>':''}${it._orig?`<small>instead of ${esc(it._orig)}</small>`:''}</span><span class="pl-amt num">${it.type==='cardio'?'':`${it.plan.length} × ${it._amt}${it.type==='hold'?' s':''}`}</span></li>`).join('')}</ol>`;
+  return `<ol class="plist">${items.map(it=>`<li><span class="pl-name"><span class="pl-head">${esc(it.name)}${howBtn(it.exId,it.name)}</span>${it.plan[0]&&it.plan[0].wu?'<small>Warm-up and prep</small>':''}${it._orig?`<small>instead of ${esc(it._orig)}</small>`:''}</span><span class="pl-amt num">${it.type==='cardio'?'':`${it.plan.length} × ${it._amt}${it.type==='hold'?' s':''}`}</span></li>`).join('')}</ol>`;
 }
 function sheetProgram(p){
   if(!p) return '';
@@ -1800,6 +1979,7 @@ function sheetSkill(sk){
       </div>`:''}
     </li>`; }).join('')}</ol>
   <p class="muted" style="margin:0;font-size:12px">Train a skill 2–3 times a week at the start of a session, while you are fresh. Rest ${fmtDur(sk.rest*1000)} between hard sets. Prep sets show as W and don't count towards volume.</p>
+  ${skillStarted(sk)?`<button type="button" class="btn ghost block quiet" data-act="skill-reset" data-id="${esc(sk.id)}">Reset progress</button>`:''}
   ${!m.done?`<button type="button" class="btn ghost block" data-act="skill-master" data-id="${esc(sk.id)}">I can already do this</button>`:m.how==='manual'?`<button type="button" class="btn ghost block quiet" data-act="skill-unmaster" data-id="${esc(sk.id)}">Undo mastered</button>`:''}
   ${sourcesBlock(sk.refs, sk.own)}`;
 }
@@ -2203,7 +2383,7 @@ document.addEventListener('click', async ev=>{
     case 'ex-del': { if(!armed(b,'Remove?')) break; S.active.exercises.splice(+art.dataset.ex,1); touch(); render(); break; }
     case 'ex-up': { const i=+art.dataset.ex; if(i>0){ const a=S.active.exercises; [a[i-1],a[i]]=[a[i],a[i-1]]; touch(); render(); } break; }
     case 'finish': await finishWorkout(); break;
-    case 'discard': { const ready=!S.active.startedAt||!!S.active.mode; if(!ready && !armed(b,'Tap again to discard')) break; S.active=null; saveActive(); stopRest(); render(); toast(ready?'Cancelled':'Workout discarded'); break; }
+    case 'discard': { const ready=!S.active.startedAt||!!S.active.mode; if(!ready && !armed(b,'Confirm?')) break; S.active=null; saveActive(); stopRest(); render(); toast(ready?'Cancelled':'Workout discarded'); break; }
     case 'rest-minus': if(rest){ rest.end-=15000; rest.total=Math.max(15,rest.total-15); rest.beeped=false; tick(); } break;
     case 'rest-plus': if(rest){ if(rest.end<Date.now()) rest.end=Date.now(); rest.end+=15000; rest.total+=15; rest.beeped=false; tick(); } break;
     case 'rest-skip': stopRest(); break;
@@ -2265,6 +2445,14 @@ document.addEventListener('click', async ev=>{
     case 'prog-kind': S.progKind=b.dataset.v; render(); break;
     case 'prog-view': openSheet({kind:'program', id:b.dataset.id}); break;
     case 'skill-view': openSheet({kind:'skill', id:b.dataset.id}); break;
+    case 'howto': { const sb=document.querySelector('#sheet-root .sheet-b');
+      let back=sheet; if(back&&back.kind==='howto') back=back.back; if(back&&sb) back._top=sb.scrollTop;
+      openSheet({kind:'howto', id:b.dataset.id, back:back||null}); const nb=document.querySelector('#sheet-root .sheet-b'); if(nb) nb.scrollTop=0; break; }
+    case 'how-back': { const back=sheet.back; openSheet(back); const nb=document.querySelector('#sheet-root .sheet-b'); if(nb&&back._top) nb.scrollTop=back._top; break; }
+    case 'skill-reset': { const sk=SKILLS.find(x=>x.id===b.dataset.id); if(!sk) break;
+      if(!armed(b,'Tap again: clears stages, passes and its routine')) break;
+      const ids=resetSkill(sk); for(const id of ids) await delRoutine(id);
+      sheet.open=null; renderSheet(); render(); toast(`${sk.title} reset to the start`); break; }
     case 'stage-toggle': { const i=+b.dataset.i; sheet.open = (sheet.open!=null?sheet.open:Math.max(0,skillStage(sheet.id)))===i ? -1 : i; renderSheet(); break; }
     case 'stage-start': {
       const sk=SKILLS.find(x=>x.id===b.dataset.skill); const i=+b.dataset.i;
