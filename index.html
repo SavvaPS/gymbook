@@ -467,6 +467,11 @@ a.btn svg{width:18px;height:18px}
 .wk-btns{display:grid;grid-template-columns:2fr 1fr;gap:10px;align-items:stretch}
 .wk-btns .btn{width:100%;min-height:54px;min-width:0;padding:0 10px}
 .btn.danger.outline{border-color:var(--pr);font-size:17px}
+.dt{position:relative;display:flex;align-items:center;gap:8px;box-sizing:border-box;height:46px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--sunk);color:var(--ink);min-width:0;overflow:hidden}
+.dt:focus-within{outline:2px solid var(--accent);outline-offset:1px}
+.dt-show{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:16px;line-height:1}
+.dt-ic{width:18px;height:18px;flex:none;color:var(--muted)}
+.dt input,.bw-form .dt input,.field .dt input{position:absolute;inset:0;width:100%;height:100%;min-height:0;opacity:0;margin:0;padding:0;border:0;font-size:16px;cursor:pointer;-webkit-appearance:none;appearance:none}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(140px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
 table.sess{width:100%;border-collapse:collapse;font-size:14px}
 table.sess th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
@@ -1252,6 +1257,7 @@ function render(){
 }
 
 const ICON = {
+  cal:'<svg class="dt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
   info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg>',
   play:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>',
   check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
@@ -1302,7 +1308,7 @@ function vActive(){
     <label class="label" for="wk-name">${w.mode==='edit'?'Editing workout':'Log a past workout'}</label>
     <input id="wk-name" class="wk-name" value="${esc(w.name)}" autocomplete="off">
     <div class="when">
-      <div class="field"><label class="label" for="wk-date">Date and start time</label><input id="wk-date" type="datetime-local" value="${toLocalInput(w.startedAt)}"></div>
+      <div class="field"><label class="label" for="wk-date">Date and start time</label><span class="dt"><span class="dt-show num">${dtLabel(toLocalInput(w.startedAt))}</span>${ICON.cal}<input id="wk-date" type="datetime-local" value="${toLocalInput(w.startedAt)}"></span></div>
       <div class="field"><label class="label" for="wk-dur">Minutes</label><input id="wk-dur" inputmode="numeric" value="${esc(w.durMin??'')}"></div>
     </div>
     ${fromRt}
@@ -1609,6 +1615,13 @@ function weeksChart(){
   return `<svg viewBox="0 0 ${cw} ${ch}" role="img" aria-label="Workouts per week, last 12 weeks">${bars}</svg>`;
 }
 /* ---------- bodyweight ---------- */
+/* date boxes: iOS won't centre its own date text, so we show our own label and lay the real picker invisibly on top */
+function dtLabel(v){ if(!v) return 'Choose…'; const [d,t]=String(v).split('T'); const [y,m,dd]=d.split('-').map(Number); if(!y||!m||!dd) return 'Choose…';
+  return `${dd} ${MON[m-1]} ${y}${t?`, ${t.slice(0,5)}`:''}`; }
+function dtSync(inp){ const w=inp.closest('.dt'); if(!w) return; const s=w.querySelector('.dt-show'); if(s) s.textContent=dtLabel(inp.value); }
+document.addEventListener('input', ev=>{ if(ev.target.closest&&ev.target.closest('.dt')) dtSync(ev.target); }, true);
+document.addEventListener('change', ev=>{ if(ev.target.closest&&ev.target.closest('.dt')) dtSync(ev.target); }, true);
+document.addEventListener('click', ev=>{ const inp=ev.target.closest&&ev.target.closest('.dt input'); if(!inp||matchMedia('(pointer:coarse)').matches) return; try{ inp.showPicker&&inp.showPicker(); }catch(e){} });
 function todayISO(t){ const d=new Date(t||Date.now()); const z=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`; }
 function bwAt(t){ let v=null; for(const x of S.bw){ if(x.t<=t+12*3600e3) v=x.kg; else break; } return v; }
 function bwNear(t){ const v=bwAt(t); return v!=null ? num(v) : (S.bw.length ? num(S.bw[0].kg) : 0); }
@@ -1640,7 +1653,7 @@ function vBodyweight(){
     ${bwChart()}
     <form class="bw-form" data-form="bw">
       <div class="field"><label class="label" for="bw-kg">Kg</label><input id="bw-kg" inputmode="decimal" placeholder="${last?esc(r2(num(last.kg))):'e.g. 80.5'}" autocomplete="off"></div>
-      <div class="field"><label class="label" for="bw-date">Date</label><input id="bw-date" type="date" value="${todayISO()}"></div>
+      <div class="field"><label class="label" for="bw-date">Date</label><span class="dt"><span class="dt-show num">${dtLabel(todayISO())}</span>${ICON.cal}<input id="bw-date" type="date" value="${todayISO()}"></span></div>
       <button type="submit" class="btn primary">Log weight</button>
     </form>
   </div>`;
