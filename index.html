@@ -2039,7 +2039,7 @@ function sheetRoutine(){
     <div style="min-width:0"><b>Rest between sets</b><div class="muted" style="font-size:13px">${r.rest?`Custom for this routine · <button type="button" class="swap-link" style="display:inline" data-act="rt-rest-reset">Use default (${fmtDur((S.settings.rest||90)*1000)})</button>`:'Using your default. Change it for this routine:'}</div></div>
     <div class="stepper"><button type="button" data-act="rt-rest" data-d="-15" aria-label="Less rest">−</button><span class="num">${fmtDur((r.rest||S.settings.rest||90)*1000)}</span><button type="button" data-act="rt-rest" data-d="15" aria-label="More rest">+</button></div>
   </div>
-  <div class="spread rt-rest"><b>Estimated time</b><span class="big-est num" id="rt-est">${estText(r)||'Add exercises to see it'}</span></div>
+  ${r.exercises.length?`<div class="spread rt-rest"><b>Estimated time</b><span class="big-est num" id="rt-est">${estText(r)||'—'}</span></div>`:''}
   ${r.exercises.length>1?(()=>{ const c=sheet.coll||{}; const all=r.exercises.every((_,k)=>c[k]); return `<div class="collapse-row"><button type="button" class="btn ghost small" data-act="rt-all" data-v="${all?'open':'close'}">${all?ICON.down+' Expand all':ICON.up+' Collapse all'}</button></div>`; })():''}
   <div class="stack" style="gap:10px">${r.exercises.length?r.exercises.map((x,i,arr)=>{ const coll=!!(sheet.coll||{})[i]; const ex=exById(x.exId); const bad=ex&&!canDo(ex); const ssR=ssInfo(arr);
     ensurePlan(x); const [f1,l1,f2,l2]=fieldsFor(x);
@@ -2461,7 +2461,7 @@ document.addEventListener('input', ev=>{
     const v=t.value.replace(/[^\d.,-]/g,'').replace(',','.'); const bc=t.dataset.pf==='w'?barCfg(x.exId):null;
     x.plan[j][t.dataset.pf]= bc ? fromDisplay(bc, v) : v;
     const tt=t.parentElement.querySelector('[data-tot]'); if(tt) tt.textContent=totText(bc, x.plan[j].w);
-    const est=document.getElementById('rt-est'); if(est) est.textContent=estText(sheet.r)||'Add exercises to see it'; return; }
+    const est=document.getElementById('rt-est'); if(est) est.textContent=estText(sheet.r)||'—'; return; }
   if(t.dataset.f && S.active){
     const art=t.closest('.ex'), row=t.closest('.set-row'); const e=S.active.exercises[+art.dataset.ex]; const s=e.sets[+row.dataset.set];
     setField(e, s, t.dataset.f, t.value, row); touch(); updMeta();
