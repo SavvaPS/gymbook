@@ -320,6 +320,53 @@ textarea{font:inherit;color:var(--ink);width:100%;min-width:0;border:1px solid v
 .pc-pre svg{width:13px;height:13px}
 .download{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .dl-title{font-family:var(--f-display);font-weight:700;font-size:24px;text-transform:uppercase;letter-spacing:.02em}
+.wk-meta{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:4px}
+.wk-meta span{display:flex;flex-direction:column;gap:1px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.wk-meta b{font-size:17px;letter-spacing:0;text-transform:none;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hint{flex-direction:column;align-items:stretch!important}
+.hint span{flex:none!important}
+.hint-actions{display:flex;gap:8px;flex-wrap:wrap}
+.hint-actions:empty{display:none}
+.plates{margin:8px 0 0;font-size:13px;color:var(--muted)}
+.ex-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.ex-actions .act{flex:1 1 0;min-width:0}
+.ex-actions .act-main{flex-basis:100%}
+.act{display:flex;align-items:center;justify-content:center;gap:5px;min-height:42px;padding:0 6px;border:1px solid var(--line);border-radius:10px;background:var(--sunk);color:var(--muted);font-size:13px;font-weight:600;white-space:nowrap}
+.act svg{width:16px;height:16px;flex:none}
+.act-main{background:var(--accent-soft);border-color:transparent;color:var(--accent)}
+.spread{flex-wrap:wrap;row-gap:4px}
+.ex header .icon-btn{min-width:38px}
+.ex header h3{overflow-wrap:anywhere}
+.set-row select{-webkit-appearance:none;appearance:none}
+@media (max-width:430px){
+  .ex{padding:12px 12px 10px}
+  .ex h3{font-size:20px}
+  .set-h,.set-row{grid-template-columns:30px minmax(0,1fr) minmax(0,1fr) 46px;gap:6px}
+  .set-h.has-rpe,.set-row.has-rpe{grid-template-columns:30px minmax(0,1fr) minmax(0,1fr) 50px 44px;gap:5px}
+  .set-row input{padding:0 4px;font-size:17px}
+  .set-row select{font-size:14px;padding:0}
+  .tick{min-height:44px}
+  .bar-ctl{gap:6px}
+  .bar-ctl .seg{flex:1 1 100%}
+  .bar-ctl .seg button{flex:1;padding:0 6px}
+  .wk-meta span{padding:6px 8px}
+  .wk-meta b{font-size:15px}
+  .mrow{grid-template-columns:70px 1fr 24px}
+  .rest-in{padding-left:12px;gap:6px}
+  .rest-in button{min-width:44px;padding:0 4px}
+  .rest-t{min-width:64px;font-size:26px}
+}
+.stat b{font-size:28px}
+.stat small{display:block;line-height:1.25;margin-top:4px}
+.btn.small{min-height:36px;font-size:14px;padding:0 8px}
+.prog{grid-template-columns:minmax(0,1fr) 72px!important;gap:10px!important}
+.prog svg{width:72px!important;height:32px!important}
+.prog-txt{min-width:0;display:flex;flex-direction:column;gap:2px}
+.prog h3{font-size:18px!important}
+.prog-main{font-size:15px;font-weight:600;color:var(--ink)}
+.prog .sub{font-size:12.5px;line-height:1.35}
+.bw-form{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr) auto}
+@media (max-width:430px){ .bw-form{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)} .stat{padding:10px 12px} .stat b{font-size:26px} .stat small{font-size:12px} }
 .relrow{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:minmax(96px,38%) 1fr 48px;gap:8px;align-items:center;font-size:13px;min-height:32px;border-radius:6px}
 .relrow:focus-visible{outline:2px solid var(--accent)}
 .relrow .mname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -999,6 +1046,10 @@ const ICON = {
   x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
   plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
   swap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4L4 7l3 3M4 7h13M17 20l3-3-3-3M20 17H7"/></svg>',
+  minus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>',
+  note:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14v12l-4 4H5z"/><path d="M15 20v-4h4M8 9h8M8 13h5"/></svg>',
+  link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>',
+  unlink:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7M4 4l16 16"/></svg>',
   play:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>',
   up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>',
   down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>'
@@ -1050,7 +1101,7 @@ function vActive(){
     <input id="wk-name" class="wk-name" value="${esc(w.name)}" autocomplete="off">
     ${ready?`<p class="muted" style="margin:0;font-size:14px">Check the exercises, swap or add any, then press Start. The timer begins when you do.</p>
       <button type="button" class="btn primary big block" data-act="begin" style="margin-top:8px">${ICON.play} Start workout</button>`
-    :`<div class="wk-meta"><span>Time <b class="num" id="elapsed">0:00</b></span><span>Volume <b class="num" id="vol">${fmtVol(workoutVolume(w))} kg</b></span><span>Sets <b class="num" id="setcount">${doneCount(w)}</b></span><span>Rest <b class="num">${fmtDur(restFor()*1000)}</b></span></div>`}
+    :`<div class="wk-meta"><span>Time<b class="num" id="elapsed">0:00</b></span><span>Volume<b class="num" id="vol">${fmtVol(workoutVolume(w))} kg</b></span><span>Sets<b class="num" id="setcount">${doneCount(w)}</b></span><span>Rest<b class="num">${fmtDur(restFor()*1000)}</b></span></div>`}
   </section>`;
   const ss=ssInfo(w.exercises);
   const primary = w.mode ? `<button type="button" class="btn primary big block" data-act="finish">${w.mode==='edit'?'Save changes':'Save workout'}</button>`
@@ -1193,7 +1244,7 @@ function vExercise(e,i,ssi,total){
   const miss=ex?missing(ex):[];
   const hint = A.mode ? null : hintFor(e, prev&&prev.e);
   return `<article class="ex ${ssi?'in-ss':''} ${ssi&&ssi.nextSame?'ss-joined':''}" data-ex="${i}">
-    ${ssi?`<div class="ss-tag">Superset ${ssi.L} · ${ssi.pos} of ${ssi.size}${ssi.nextSame?' · no rest before the next exercise':' · rest after this one'}</div>`:''}
+    ${ssi?`<div class="ss-tag">Superset ${ssi.L} · ${ssi.pos} of ${ssi.size} · ${ssi.nextSame?'straight on to the next':'rest after this one'}</div>`:''}
     <header>
       <div style="min-width:0"><h3>${esc(e.name)}</h3>
       <p class="last">${prev?`Last (${shortDate(prev.w.startedAt)}): ${esc(setsSummary(prev.e))}`:'First time logging this'}</p>
@@ -1204,7 +1255,7 @@ function vExercise(e,i,ssi,total){
         <button type="button" class="icon-btn" data-act="ex-del" aria-label="Remove ${esc(e.name)}">${ICON.x}</button>
       </div>
     </header>
-    ${hint?`<div class="hint"><span>${esc(hint.text)}</span>${hint.w?`<button type="button" class="btn" data-act="hint-apply" data-w="${esc(hint.w)}" data-from="${esc(hint.from??'')}">Use ${esc(fmtKg(num(hint.w)))} kg</button>`:''}${hint.swap?`<button type="button" class="btn" data-act="hint-swap" data-id="${esc(hint.swap)}">Try it</button>`:''}</div>`:''}
+    ${hint?`<div class="hint"><span>${esc(hint.text)}</span><div class="hint-actions">${hint.w?`<button type="button" class="btn" data-act="hint-apply" data-w="${esc(hint.w)}" data-from="${esc(hint.from??'')}">Use ${esc(fmtKg(num(hint.w)))} kg</button>`:''}${hint.swap?`<button type="button" class="btn" data-act="hint-swap" data-id="${esc(hint.swap)}">Try ${esc((exById(hint.swap)||{}).name||'it')}</button>`:''}</div></div>`:''}
     ${miss.length?`<div class="warn"><span>Needs ${esc(miss.join(', '))}, which isn't in your equipment.</span><button type="button" class="btn" data-act="ex-swap">Swap</button></div>`:''}
     ${barControl(e.exId)}${vestControl(e.exId)}
     <div class="sets ${bc&&bc.mode!=='total'?'has-tot':''}">
@@ -1212,15 +1263,13 @@ function vExercise(e,i,ssi,total){
       ${rows}
     </div>
     ${e.note!=null?`<textarea class="ex-note" data-note rows="2" placeholder="Note for ${esc(e.name)}, e.g. seat height 4, left shoulder tight" aria-label="Note for ${esc(e.name)}">${esc(e.note)}</textarea>`:''}
-    <div class="ex-foot">
-      <div class="row" style="gap:2px">
-        <button type="button" class="btn ghost" data-act="add-set">${ICON.plus} Set</button>
-        ${e.sets.length>1?`<button type="button" class="btn ghost quiet" data-act="del-set">Remove last</button>`:''}
-        ${e.note==null?`<button type="button" class="btn ghost quiet" data-act="ex-note">Note</button>`:''}
-        ${ssi?`<button type="button" class="btn ghost quiet" data-act="ss-leave">Leave superset</button>`:''}
-        ${(!ssi||!ssi.nextSame)&&i<total-1?`<button type="button" class="btn ghost quiet" data-act="ss-link">Superset with next</button>`:''}
-      </div>
-      ${bc?`<span class="plates" data-plates>${platesText(e)}</span>`:''}
+    ${bc?`<p class="plates" data-plates>${platesText(e)}</p>`:''}
+    <div class="ex-actions">
+      <button type="button" class="act act-main" data-act="add-set">${ICON.plus}<span>Add set</span></button>
+      ${e.sets.length>1?`<button type="button" class="act" data-act="del-set">${ICON.minus}<span>Remove</span></button>`:''}
+      ${e.note==null?`<button type="button" class="act" data-act="ex-note">${ICON.note}<span>Note</span></button>`:''}
+      ${ssi?`<button type="button" class="act" data-act="ss-leave" aria-label="Leave superset">${ICON.unlink}<span>Unlink</span></button>`:''}
+      ${(!ssi||!ssi.nextSame)&&i<total-1?`<button type="button" class="act" data-act="ss-link" aria-label="Superset with the next exercise">${ICON.link}<span>Superset</span></button>`:''}
     </div>
   </article>`;
 }
@@ -1370,12 +1419,12 @@ function vBodyweight(){
   const ref=last? [...S.bw].reverse().find(x=>x.t<=last.t-28*864e5) : null;
   const diff= last&&ref ? num(last.kg)-num(ref.kg) : null;
   return `<div class="card stack" style="gap:10px">
-    <div class="spread"><span class="label">Bodyweight</span>${S.bw.length?`<button type="button" class="btn ghost" data-act="bw-all">All entries</button>`:''}</div>
+    <div class="spread"><span class="label">Bodyweight</span>${S.bw.length?`<button type="button" class="btn ghost small" data-act="bw-all">All entries</button>`:''}</div>
     ${last?`<div class="row" style="align-items:baseline;gap:10px"><b class="big-num num">${fmtKg(num(last.kg))}</b><span class="muted">kg on ${shortDate(last.t)}</span>${diff!=null?`<span class="chip num">${diff>0?'+':''}${fmtKg(Math.round(diff*10)/10)} kg in 4 weeks</span>`:''}</div>`
       :`<p class="muted" style="margin:0;font-size:14px">Log your weight now and then. Bodyweight exercises show it next to each session, so a pull-up at 80 kg and at 75 kg aren't treated as the same.</p>`}
     ${bwChart()}
     <form class="bw-form" data-form="bw">
-      <div class="field"><label class="label" for="bw-kg">Weight (kg)</label><input id="bw-kg" inputmode="decimal" placeholder="${last?esc(r2(num(last.kg))):'e.g. 80.5'}" autocomplete="off"></div>
+      <div class="field"><label class="label" for="bw-kg">Kg</label><input id="bw-kg" inputmode="decimal" placeholder="${last?esc(r2(num(last.kg))):'e.g. 80.5'}" autocomplete="off"></div>
       <div class="field"><label class="label" for="bw-date">Date</label><input id="bw-date" type="date" value="${todayISO()}"></div>
       <button type="submit" class="btn primary">Log weight</button>
     </form>
@@ -1436,17 +1485,15 @@ function vProgress(){
   const stats=exerciseStats().filter(m=>S.progTab==='cardio'?m.type==='cardio':m.type!=='cardio');
   const list=stats.length? stats.map(m=>{
     const last=m.sessions[m.sessions.length-1];
-    let sub;
+    let main, extra; const n=`${m.sessions.length} session${m.sessions.length===1?'':'s'}`, when=`last ${shortDate(last.t)}`;
     if(m.type==='cardio'){ const bestKm=Math.max(...m.sessions.map(s=>s.km)); const paces=m.sessions.filter(s=>s.pace).map(s=>s.pace); const bp=paces.length?Math.min(...paces):0;
-      sub=`Longest ${fmtKg(bestKm)} km${bp?` · best pace ${Math.floor(bp)}:${String(Math.round(bp%1*60)).padStart(2,'0')}/km`:''} · ${m.sessions.length} sessions`; }
-    else if(m.kind==='hold'){ sub=`Longest hold ${Math.max(...m.sessions.map(s=>s.sec))} s · ${m.sessions.length} sessions`; }
-    else if(m.kind==='bw'){ const r0=Math.max(...m.sessions.map(s=>s.reps0)); const heavy=Math.max(...m.sessions.map(s=>s.heavy));
-      const rx=Math.max(...m.sessions.map(s=>s.rel||0));
-      sub=[r0?`Best ${r0} reps`:'', heavy?`heaviest +${fmtKg(heavy)} kg`:'', rx?`${fmtX(rx)} bodyweight`:'', `${m.sessions.length} sessions`].filter(Boolean).join(' · '); }
-    else { const best=Math.max(...m.sessions.map(s=>s.e1)); const heavy=Math.max(...m.sessions.map(s=>s.heavy));
-      const rx=Math.max(...m.sessions.map(s=>s.rel||0));
-      sub=best?`e1RM ${fmtKg(Math.round(best*2)/2)} kg${rx?` (${fmtX(rx)} bodyweight)`:''} · heaviest ${fmtKg(heavy)} kg · ${m.sessions.length} sessions`:`${m.sessions.length} sessions`; }
-    return `<button type="button" class="prog" data-act="prog-open" data-id="${esc(m.exId)}"><div style="min-width:0"><h3>${esc(m.name)}</h3><div class="sub num">${sub}</div><div class="sub">Last: ${shortDate(last.t)}</div></div>${spark(m.sessions.map(s=>s.val))}</button>`;
+      main=bestKm?`Longest ${fmtKg(bestKm)} km`:`${Math.max(...m.sessions.map(s=>s.min))} min best`; extra=[bp?`best pace ${Math.floor(bp)}:${String(Math.round(bp%1*60)).padStart(2,'0')}/km`:'', n, when].filter(Boolean).join(' · '); }
+    else if(m.kind==='hold'){ main=`Longest hold ${Math.max(...m.sessions.map(s=>s.sec))} s`; extra=`${n} · ${when}`; }
+    else if(m.kind==='bw'){ const r0=Math.max(...m.sessions.map(s=>s.reps0)); const heavy=Math.max(...m.sessions.map(s=>s.heavy)); const rx=Math.max(...m.sessions.map(s=>s.rel||0));
+      main=[r0?`Best ${r0} reps`:'', rx?`${fmtX(rx)} BW`:''].filter(Boolean).join(' · ')||n; extra=[heavy?`heaviest +${fmtKg(heavy)} kg`:'', n, when].filter(Boolean).join(' · '); }
+    else { const best=Math.max(...m.sessions.map(s=>s.e1)); const heavy=Math.max(...m.sessions.map(s=>s.heavy)); const rx=Math.max(...m.sessions.map(s=>s.rel||0));
+      main=best?`e1RM ${fmtKg(Math.round(best*2)/2)} kg${rx?` · ${fmtX(rx)} BW`:''}`:n; extra=[heavy?`heaviest ${fmtKg(heavy)} kg`:'', n, when].filter(Boolean).join(' · '); }
+    return `<button type="button" class="prog" data-act="prog-open" data-id="${esc(m.exId)}"><div class="prog-txt"><h3>${esc(m.name)}</h3><div class="prog-main num">${main}</div><div class="sub num">${extra}</div></div>${spark(m.sessions.map(s=>s.val),72,32)}</button>`;
   }).join('') : `<p class="note">No ${S.progTab} exercises logged yet.</p>`;
   return `${head}
   <div class="stats">
