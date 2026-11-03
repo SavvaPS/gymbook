@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>GymBook</title>
+<script>try{var _t=localStorage.getItem('gymbook.theme');if(_t==='light'||_t==='dark')document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
 <meta name="description" content="Log workouts, routines, calisthenics and progress. Works offline.">
 <meta name="theme-color" content="#ECEEF1" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0E1115" media="(prefers-color-scheme: dark)">
@@ -39,6 +40,7 @@ input,select,textarea{font-size:16px}
   --bg:#0E1115; --surface:#171B21; --sunk:#12161B; --ink:#E8EBF0; --muted:#A0A8B4; --line:#2A3039;
   --accent:#7B9BFF; --accent-ink:#0A1024; --accent-soft:#1C2647;
   --pr:#FF7A7F; --pr-soft:#3A1B1E; --ok:#5ACB8A; --ok-soft:#15301F; --warn:#F2B35E; --warn-soft:#33240F; color-scheme:dark }}
+:root[data-theme="light"]{color-scheme:light}
 :root[data-theme="dark"]{
   --bg:#0E1115; --surface:#171B21; --sunk:#12161B; --ink:#E8EBF0; --muted:#A0A8B4; --line:#2A3039;
   --accent:#7B9BFF; --accent-ink:#0A1024; --accent-soft:#1C2647;
@@ -492,6 +494,19 @@ a.btn svg{width:18px;height:18px}
 .goal-pick{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
 .goal-pick button{min-height:48px;border:1px solid var(--line);border-radius:10px;background:var(--sunk);font-size:18px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
 .goal-pick button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.tip{display:flex;align-items:flex-start;gap:8px;padding:8px 6px 8px 12px;border-radius:10px;background:var(--accent-soft);color:var(--ink);font-size:14px;line-height:1.4}
+.tip span{flex:1;min-width:0;padding-top:2px}
+.tip-x{all:unset;cursor:pointer;flex:none;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;color:var(--muted)}
+.tip-x svg{width:16px;height:16px}
+.more{font-size:14px}
+.more summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:6px;min-height:32px;color:var(--accent);font-weight:600;font-size:13px}
+.more summary::-webkit-details-marker{display:none}
+.more summary svg{width:16px;height:16px}
+.more-b{display:flex;flex-direction:column;gap:8px;padding:4px 0 2px;color:var(--muted);font-size:14px;line-height:1.45}
+.more-b p{margin:0}
+.callout .more summary{color:var(--warn)}
+.callout .more-b{color:var(--ink);padding-top:0}
+.wk-btns.pinned{position:sticky;bottom:calc(74px + env(safe-area-inset-bottom,0px));z-index:5;margin-top:8px;padding:8px;border-radius:16px;background:var(--surface);border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.14)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top,0px));bottom:auto;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
 table.sess{width:100%;border-collapse:collapse;font-size:14px}
 table.sess th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
@@ -1045,7 +1060,7 @@ function preBlock(sk){
         <span class="pq-txt"><b>${esc(p.label)}</b><small>${st.manual?'Ticked by you':st.best>=(p.goal.sec||p.goal.r)?`Your best: ${esc(st.txt)}`:st.via?`Passed in ${esc(st.via.title)}`:st.txt?`Your best so far: ${esc(st.txt)}`:'Not logged yet'}${fs&&!st.met?` · <button type="button" class="link" data-act="skill-view" data-id="${esc(fs.id)}">train it in ${esc(fs.title)}</button>`:''}</small></span>
         ${st.met&&!st.manual?'':`<button type="button" class="btn ghost quiet" data-act="pre-tick" data-id="${esc(st.id)}" aria-label="${st.manual?'Undo':'I can do this'}: ${esc(p.label)}">${st.manual?'Undo':'I can do this'}</button>`}
       </li>`; }).join('')}</ul>
-    ${ps.all?'':`<p class="muted" style="margin:0;font-size:13px">You can still start, but these build the strength the first stage relies on and protect your joints. Logging them in any workout ticks them off automatically.</p>`}
+    ${ps.all?'':`<p class="muted" style="margin:0;font-size:13px">Optional, but they protect your joints. Logging them ticks them off.</p>`}
   </div>`;
 }
 function fullDate(t){ const d=new Date(t); return `${d.getDate()} ${MON[d.getMonth()]} ${d.getFullYear()}`; }
@@ -1265,7 +1280,16 @@ function platesFor(total, bar=20){
 const view=document.getElementById('view');
 function tab(){ const h=(location.hash||'#workout').slice(1); return ['workout','history','progress','routines'].includes(h)?h:'workout'; }
 
+/* appearance: follow the phone, or always light / always dark */
+function applyTheme(){
+  const t=S.settings.theme==='light'||S.settings.theme==='dark'?S.settings.theme:'auto'; const root=document.documentElement;
+  if(t==='auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme',t);
+  try{ if(t==='auto') localStorage.removeItem('gymbook.theme'); else localStorage.setItem('gymbook.theme',t); }catch(e){}
+  const metas=document.querySelectorAll('meta[name="theme-color"]');
+  metas.forEach(m=>{ if(!m.dataset.orig) m.dataset.orig=m.getAttribute('content'); m.setAttribute('content', t==='auto'?m.dataset.orig:(t==='dark'?'#0E1115':'#ECEEF1')); });
+}
 function render(){
+  applyTheme();
   const t=tab();
   document.querySelectorAll('.tabs a').forEach(a=>a.setAttribute('aria-current', a.dataset.tab===t?'page':'false'));
   if(t==='workout') view.innerHTML = S.active ? vActive() : vStart();
@@ -1363,6 +1387,10 @@ function recomputePRs(){
     if(JSON.stringify(prs)!==JSON.stringify(w.prs||[])){ w.prs=prs; const {id,...body}=w; queueWrite('workouts/'+id, body); }
   }
 }
+
+/* tips show until you hide them; reference text folds away behind a link */
+function tip(key, text){ if((S.settings.tips||{})[key]) return ''; return `<div class="tip"><span>${text}</span><button type="button" class="tip-x" data-act="tip-hide" data-k="${esc(key)}" aria-label="Hide this tip">${ICON.x}</button></div>`; }
+function more(label, inner){ return `<details class="more"><summary>${ICON.info}<span>${label}</span></summary><div class="more-b">${inner}</div></details>`; }
 function vStart(){
   const now=Date.now(), ws=weekStart(now);
   const days=[0,1,2,3,4,5,6].map(i=>{ const s=ws+i*864e5, e=s+864e5; const on=S.workouts.some(w=>w.startedAt>=s&&w.startedAt<e);
@@ -1384,7 +1412,7 @@ function vStart(){
     ${nu}
     <button type="button" class="btn ${nu?'':'primary big'} block" data-act="start-empty">${nu?ICON.plus:ICON.play} Start empty workout</button>
   </section>
-  ${Array.isArray(S.settings.equipment)?'':`<div class="card stack" style="gap:8px"><b style="font-size:17px">What equipment do you have?</b><p class="muted" style="margin:0;font-size:14px">Tell the app what's in your gym, home setup or local bar park. Exercises you can't do are hidden, and routines suggest variations that work with your kit.</p><div><button type="button" class="btn" data-act="equip-open">Choose equipment</button></div></div>`}
+  ${Array.isArray(S.settings.equipment)?'':`<div class="card stack" style="gap:8px"><b style="font-size:17px">What equipment do you have?</b><p class="muted" style="margin:0;font-size:14px">Hide what you can't do and get swaps that fit your kit.</p><div><button type="button" class="btn" data-act="equip-open">Choose equipment</button></div></div>`}
   ${S.workouts.length>=3&&(backupAge()==null||backupAge()>=30)?`<div class="hint"><span>${backupAge()==null?"You haven't backed up your log yet.":`Last backup was ${backupAge()} days ago.`} It only lives on this phone.</span><button type="button" class="btn" data-act="export-json">Back up</button></div>`:''}
   <div class="section-h"><h2>Start a routine</h2><a class="btn ghost" href="#routines">Manage</a></div>
   ${routines}`;
@@ -1404,13 +1432,12 @@ function vActive(){
       <div class="field"><label class="label" for="wk-dur">Minutes</label><input id="wk-dur" inputmode="numeric" value="${esc(w.durMin??'')}"></div>
     </div>
     ${fromRt}
-    <p class="muted" style="margin:0;font-size:14px">Every set with reps (or time) is saved. Tick a set to use the grey numbers shown in it.</p>
+    ${tip('log','Sets with reps (or time) are saved. Tick a set to use its grey numbers.')}
   </section>` : `
   <section class="wk-head">
     <label class="label" for="wk-name">${ready?'Ready to start':'Workout in progress'}</label>
     <input id="wk-name" class="wk-name" value="${esc(w.name)}" autocomplete="off">
-    ${ready?`<p class="muted" style="margin:0;font-size:14px">Check the exercises, swap or add any, then press Start. The timer begins when you do.</p>
-      <button type="button" class="btn primary big block" data-act="begin" style="margin-top:8px">${ICON.play} Start workout</button>`
+    ${ready?`${tip('ready','Swap or add exercises, then press Start. The timer begins when you do.')}`
     :`<div class="wk-meta"><span>Time<b class="num" id="elapsed">0:00</b></span><span>Volume<b class="num" id="vol">${fmtVol(workoutVolume(w))} kg</b></span><span>Sets<b class="num" id="setcount">${doneCount(w)}</b></span><span>Rest<b class="num">${fmtDur(restFor()*1000)}</b></span></div>`}
   </section>`;
   const ss=ssInfo(w.exercises);
@@ -1422,9 +1449,10 @@ function vActive(){
   ${w.exercises.map((e,i)=>vExercise(e,i,ss[i],w.exercises.length)).join('')}
   <button type="button" class="btn block" data-act="add-ex">${ICON.plus} Add exercise</button>
   <div class="field"><label class="label" for="wk-note">Workout notes</label><textarea id="wk-note" rows="2" placeholder="Sleep, energy, anything to remember next time">${esc(w.note||'')}</textarea></div>
-  <div class="stack" style="margin-top:8px">
+  ${ready&&!w.mode?`<div class="wk-btns pinned">${primary}<button type="button" class="btn danger outline" data-act="discard" id="discard-btn">Cancel</button></div>`
+  :`<div class="stack" style="margin-top:8px">
     <div class="wk-btns">${primary}<button type="button" class="btn danger outline" data-act="discard" id="discard-btn">${ready||w.mode?'Cancel':'Discard'}</button></div>
-  </div>`;
+  </div>`}`;
 }
 /* supersets: exercises sharing an "ss" id are done back to back; rest comes after the last one */
 function ssInfo(list){
@@ -1741,7 +1769,7 @@ function vBodyweight(){
   return `<div class="card stack" style="gap:10px">
     <div class="spread"><span class="label">Bodyweight</span>${S.bw.length?`<button type="button" class="btn ghost small" data-act="bw-all">All entries</button>`:''}</div>
     ${last?`<div class="row" style="align-items:baseline;gap:10px"><b class="big-num num">${fmtKg(num(last.kg))}</b><span class="muted">kg on ${shortDate(last.t)}</span>${diff!=null?`<span class="chip num">${diff>0?'+':''}${fmtKg(Math.round(diff*10)/10)} kg in 4 weeks</span>`:''}</div>`
-      :`<p class="muted" style="margin:0;font-size:14px">Log your weight now and then. Bodyweight exercises show it next to each session, so a pull-up at 80 kg and at 75 kg aren't treated as the same.</p>`}
+      :`<p class="muted" style="margin:0;font-size:14px">Log it now and then so bodyweight exercises compare fairly.</p>`}
     ${bwChart()}
     <form class="bw-form" data-form="bw">
       <div class="field"><label class="label" for="bw-kg">Kg</label><input id="bw-kg" inputmode="decimal" placeholder="${last?esc(r2(num(last.kg))):'e.g. 80.5'}" autocomplete="off"></div>
@@ -1764,7 +1792,7 @@ function muscleCard(){
   return `<div class="card stack" style="gap:8px">
     <div class="spread"><span class="label">Working sets this week</span><span class="legend"><i class="lg-fill"></i>This week <i class="lg-avg"></i>4-week average</span></div>
     <div class="mlist" role="table" aria-label="Working sets per muscle group this week">${rows}</div>
-    <p class="muted" style="margin:0;font-size:12px">Warm-ups aren't counted. Many programmes aim for roughly 10–20 hard sets per muscle group each week.</p>
+    ${more('How this works','<p>Working sets only; warm-ups aren\'t counted. Many programmes aim for roughly 10–20 hard sets per muscle group each week.</p>')}
   </div>`;
 }
 function skillsCard(){
@@ -1778,7 +1806,7 @@ function skillsCard(){
 }
 function relCard(){
   const list=exerciseStats().filter(m=>m.type==='strength'||(!m.type&&m.kind!=='hold')).filter(m=>m.kind!=='hold'&&m.type!=='cardio');
-  if(!S.bw.length) return `<div class="card stack" style="gap:6px"><span class="label">Strength vs bodyweight</span><p class="muted" style="margin:0;font-size:14px">Log your bodyweight below and each lift will show as a multiple of it, e.g. bench 1.1× bodyweight. Bodyweight moves like pull-ups count your body plus any vest.</p></div>`;
+  if(!S.bw.length) return `<div class="card stack" style="gap:6px"><span class="label">Strength vs bodyweight</span><p class="muted" style="margin:0;font-size:14px">Log your bodyweight to see each lift as a multiple of it.</p></div>`;
   const cut=Date.now()-90*864e5;
   const rows=list.map(m=>{ const rec=m.sessions.filter(s=>s.t>=cut&&s.rel); if(!rec.length) return null;
       const top=rec.reduce((a,b)=>b.rel>a.rel?b:a); const first=rec[0];
@@ -1792,7 +1820,7 @@ function relCard(){
       <span class="mname">${esc(r.name)}</span>
       <div class="mbar" aria-hidden="true"><div class="mfill" style="width:${(r.rel/max*100).toFixed(1)}%"></div><div class="mavg" style="left:${(1/max*100).toFixed(1)}%" title="1× bodyweight"></div></div>
       <span class="mnum num">${fmtX(r.rel)}</span></button>`).join('')}</div>
-    <p class="muted" style="margin:0;font-size:12px">Estimated one-rep max ÷ your bodyweight at the time. The line marks 1× bodyweight. Pull-ups, dips and other bodyweight moves include your body plus any added kg.</p>
+    ${more('How this works','<p>Estimated one-rep max ÷ your bodyweight at the time. The line marks 1× bodyweight. Pull-ups, dips and other bodyweight moves include your body plus any added kg.</p>')}
   </div>`;
 }
 function vProgress(){
@@ -1862,7 +1890,7 @@ function vPrograms(){
   }
   return `<div class="section-h"><h2>Programmes</h2></div>
   <div class="seg seg-wide" role="group" aria-label="Programme type"><button type="button" data-act="prog-kind" data-v="goals" aria-pressed="${kind!=='skills'}">By goal</button><button type="button" data-act="prog-kind" data-v="skills" aria-pressed="${kind==='skills'}">Calisthenics skills</button></div>
-  <p class="muted" style="margin:0;font-size:13px">${kind==='skills'?'Step-by-step progressions. Pick your stage and GymBook builds the session, then tells you when you have hit the target to move on.':'Ready-made routines for a goal, adjusted to your equipment. Add them, then edit anything you like.'}</p>
+  ${kind==='skills'?tip('skills','Pick your stage and GymBook builds the session, then tells you when to move on.'):tip('goals','Ready-made routines, adjusted to your equipment. Add one, then edit anything.')}
   ${body}`;
 }
 function vRoutines(){
@@ -1886,8 +1914,12 @@ function vRoutines(){
     <div><b>Default rest</b><div class="muted" style="font-size:13px">Starts when you tick a set</div></div>
     <div class="stepper"><button type="button" data-act="rest-def" data-d="-15" aria-label="Less rest">−</button><span class="num" id="rest-def">${fmtDur(rest*1000)}</span><button type="button" data-act="rest-def" data-d="15" aria-label="More rest">+</button></div>
   </div>
+  <div class="card spread appearance">
+    <div style="min-width:0"><b>Appearance</b></div>
+    <div class="seg" role="group" aria-label="Appearance">${[['auto','Auto'],['light','Light'],['dark','Dark']].map(([v,l])=>`<button type="button" data-act="theme" data-v="${v}" aria-pressed="${(S.settings.theme||'auto')===v}">${l}</button>`).join('')}</div>
+  </div>
   <div class="card spread">
-    <div style="min-width:0"><b>Track effort (RPE)</b><div class="muted" style="font-size:13px">Rate each set from 6 (easy) to 10 (nothing left)</div></div>
+    <div style="min-width:0"><b>Track effort (RPE)</b><div class="muted" style="font-size:13px">Rate sets 6 (easy) to 10 (max)</div></div>
     <label class="switch"><input type="checkbox" id="set-rpe" ${S.settings.rpe!==false?'checked':''}><span class="sr">Track effort</span></label>
   </div>
   <div class="card stack" style="gap:10px">
@@ -2018,7 +2050,7 @@ function sheetRoutine(){
       </div>
       `}
     </div>`; }).join(''):`<p class="note">No exercises yet.</p>`}</div>
-  ${r.exercises.length?`<p class="muted" style="margin:0;font-size:12px">Tap a set number to mark it as a warm-up (W). Warm-ups don't count towards volume or personal bests.</p>`:''}
+  ${r.exercises.length?tip('warmup',"Tap a set number to mark it as a warm-up (W). Warm-ups don't count towards volume or bests."):''}
   <button type="button" class="btn block" data-act="rt-add-ex">${ICON.plus} Add exercise</button>
   <div class="row" style="justify-content:space-between">
     ${S.routines.some(x=>x.id===r.id)?`<button type="button" class="btn danger" data-act="rt-del">Delete routine</button>`:'<span></span>'}
@@ -2067,10 +2099,9 @@ function sheetSkill(sk){
   const miss=skillNeeds(sk);
   return `${m.done?`<div class="mastered-banner">${ICON.check}<div><b>Mastered${m.at?` · ${fullDate(m.at)}`:''}</b><span>${m.how==='earned'?`You passed the final target twice (best ${esc(m.best)}). Keep it with one or two short sessions a week.`:'You marked this skill as mastered.'}</span></div></div>`:''}
   <p class="lead">${esc(sk.blurb)}</p>
-  ${sk.safety?`<div class="callout safety"><b>Look after your joints</b><span>${esc(sk.safety)}</span></div>`:''}
+  ${sk.safety?(()=>{ const parts=sk.safety.split(/(?<=\.)\s+/); const first=parts.shift(); return `<div class="callout safety"><b>Look after your joints</b><span>${esc(first)}</span>${parts.length?more('More',`<p>${esc(parts.join(' '))}</p>`):''}</div>`; })():''}
   ${!m.done&&miss.length?`<div class="warn"><span>Needs ${esc(miss.join(', ').toLowerCase())}. Add it in My equipment if you have access to one.</span></div>`:''}
   ${m.done?'':preBlock(sk)}
-  <p class="muted" style="margin:0;font-size:13px">A stage is passed when you hit its target in a working set in two separate sessions, so one lucky attempt doesn't count.</p>
   <ol class="ladder-v">${sk.stages.map((st,i)=>{ const p=stageProgress(st); const passed=p.hit||m.done; const isOpen=i===open; const a=isOpen?adaptList(st.ex):null;
     return `<li class="lv ${passed||i<cur?'done':''} ${i===cur&&!m.done?'cur':''}">
       <button type="button" class="lv-head" data-act="stage-toggle" data-i="${i}" aria-expanded="${isOpen}">
@@ -2084,7 +2115,7 @@ function sheetSkill(sk){
         <button type="button" class="btn ${i===cur?'':'primary'} block" data-act="stage-start" data-skill="${esc(sk.id)}" data-i="${i}">${i===cur?'Rebuild this routine':cur<0?'Start at this stage':m.done&&i===last?'Keep it up: use this routine':'Switch to this stage'}</button>
       </div>`:''}
     </li>`; }).join('')}</ol>
-  <p class="muted" style="margin:0;font-size:12px">Train a skill 2–3 times a week at the start of a session, while you are fresh. Rest ${fmtDur(sk.rest*1000)} between hard sets. Prep sets show as W and don't count towards volume.</p>
+  ${more('How this works',`<p>A stage is passed when you hit its target in a working set in two separate sessions, so one lucky attempt doesn't count.</p><p>Train a skill 2–3 times a week at the start of a session, while you are fresh. Rest ${fmtDur(sk.rest*1000)} between hard sets. Prep sets show as W and don't count towards volume.</p>`)}
   ${skillStarted(sk)?`<button type="button" class="btn ghost block quiet" data-act="skill-reset" data-id="${esc(sk.id)}">Reset progress</button>`:''}
   ${!m.done?`<button type="button" class="btn ghost block" data-act="skill-master" data-id="${esc(sk.id)}">I can already do this</button>`:m.how==='manual'?`<button type="button" class="btn ghost block quiet" data-act="skill-unmaster" data-id="${esc(sk.id)}">Undo mastered</button>`:''}
   ${sourcesBlock(sk.refs, sk.own)}`;
@@ -2126,15 +2157,15 @@ function sheetExercise(m){
       <div class="stat"><b class="num">${Math.max(...m.sessions.map(s=>s.reps0))||'—'}</b><small>best reps (bodyweight)</small></div>
       <div class="stat"><b class="num">${fmtKg(Math.max(...m.sessions.map(s=>s.heavy)))||'—'}</b><small>most added kg</small></div>
       <div class="stat"><b class="num">${fmtX(Math.max(...m.sessions.map(s=>s.rel||0)))}</b><small>bodyweight, best</small></div></div>
-    ${S.bw.length?'<p class="muted" style="margin:0;font-size:13px">Relative strength counts your bodyweight plus any added kg, as an estimated one-rep max divided by bodyweight.</p>':''}
+    ${S.bw.length?more('How this works','<p>Relative strength counts your bodyweight plus any added kg, as an estimated one-rep max divided by bodyweight.</p>'):''}
     <div style="overflow-x:auto"><table class="sess"><thead><tr><th>Date</th><th>Best set</th><th>Total reps</th><th>Bodyweight</th><th>× BW</th></tr></thead><tbody>${rows.map(s=>{ const b=bwAt(s.t); return `<tr><td>${shortDate(s.t)}</td><td class="num">${s.bestSet&&num(s.bestSet.w)?`+${fmtKg(num(s.bestSet.w))}×${s.bestSet.r}`:`${s.reps0} reps`}</td><td class="num">${s.totalReps}</td><td class="num">${b!=null?fmtKg(num(b))+' kg':'—'}</td><td class="num">${fmtX(s.rel)}</td></tr>`; }).join('')}</tbody></table></div>
-    ${S.bw.length?'':'<p class="muted" style="margin:0;font-size:13px">Log your bodyweight in Progress to see it beside each session.</p>'}`;
+    ${S.bw.length?'':'<p class="muted" style="margin:0;font-size:13px">Log your bodyweight in Progress to see it here.</p>'}`;
   const best=Math.max(...m.sessions.map(s=>s.e1));
   return `<div class="stats">
       <div class="stat"><b class="num">${fmtKg(Math.round(best*2)/2)}</b><small>est. 1RM kg</small></div>
       <div class="stat"><b class="num">${fmtKg(Math.max(...m.sessions.map(s=>s.heavy)))}</b><small>heaviest kg</small></div>
       <div class="stat"><b class="num">${fmtX(Math.max(...m.sessions.map(s=>s.rel||0)))}</b><small>bodyweight, best</small></div></div>
-    <p class="muted" style="margin:0;font-size:13px">Estimated 1RM uses the Epley formula: weight × (1 + reps ÷ 30). × BW is that estimate divided by your bodyweight at the time${S.bw.length?'':' (log your bodyweight in Progress to see it)'}.</p>
+    ${more('How this works',`<p>Estimated 1RM uses the Epley formula: weight × (1 + reps ÷ 30). × BW is that estimate divided by your bodyweight at the time${S.bw.length?'':' (log your bodyweight in Progress to see it)'}.</p>`)}
     <div style="overflow-x:auto"><table class="sess"><thead><tr><th>Date</th><th>Best set</th><th>e1RM</th><th>× BW</th><th>Volume</th></tr></thead><tbody>${rows.map(s=>`<tr><td>${shortDate(s.t)}</td><td class="num">${s.bestSet?`${fmtKg(num(s.bestSet.w))}×${s.bestSet.r}`:'—'}</td><td class="num">${s.e1?fmtKg(Math.round(s.e1*2)/2):'—'}</td><td class="num">${fmtX(s.rel)}</td><td class="num">${fmtVol(s.vol)} kg</td></tr>`).join('')}</tbody></table></div>`;
 }
 
@@ -2551,6 +2582,8 @@ document.addEventListener('click', async ev=>{
     case 'prog-kind': S.progKind=b.dataset.v; render(); break;
     case 'prog-view': openSheet({kind:'program', id:b.dataset.id}); break;
     case 'skill-view': openSheet({kind:'skill', id:b.dataset.id}); break;
+    case 'theme': { const v=b.dataset.v; const st=Object.assign({},S.settings); if(v==='auto') delete st.theme; else st.theme=v; S.settings=st; putSettings(); render(); break; }
+    case 'tip-hide': { const st=Object.assign({},S.settings); st.tips=Object.assign({},st.tips||{},{[b.dataset.k]:1}); S.settings=st; putSettings(); if(sheet) renderSheet(); render(); break; }
     case 'goal-open': openSheet({kind:'goal'}); break;
     case 'goal-pick': { const v=+b.dataset.v; const st=Object.assign({},S.settings); if(v) st.weekGoal=v; else delete st.weekGoal; S.settings=st; putSettings(); closeSheet(); render(); break; }
     case 'howto': { const sb=document.querySelector('#sheet-root .sheet-b');
