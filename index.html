@@ -2680,6 +2680,9 @@ if('serviceWorker' in navigator && location.protocol!=='file:'){
       reg.addEventListener('updatefound', ()=>{ const nw=reg.installing; if(!nw) return;
         nw.addEventListener('statechange', ()=>{ if(nw.state==='installed' && navigator.serviceWorker.controller){ swWaiting=nw; showUpdate(); } }); });
       setInterval(()=>reg.update().catch(()=>{}), 60*60*1000);
+      /* iPhone home-screen apps usually resume rather than reload, so also check for updates each time GymBook comes back on screen */
+      let lastCheck=Date.now();
+      document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible' && Date.now()-lastCheck>30000){ lastCheck=Date.now(); reg.update().catch(()=>{}); } });
     }).catch(e=>console.warn('Offline support unavailable', e));
     let reloaded=false;
     navigator.serviceWorker.addEventListener('controllerchange', ()=>{ if(reloaded) return; reloaded=true; location.reload(); });
