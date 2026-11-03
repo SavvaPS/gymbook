@@ -128,6 +128,7 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:.01em;margi
 .ex-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:6px}
 .plates{font-size:13px;color:var(--muted)}
 .plates b{color:var(--ink)}
+.plates:empty{display:none}
 .icon-btn{min-width:44px;min-height:44px;border:0;background:transparent;color:var(--muted);border-radius:8px;display:inline-flex;align-items:center;justify-content:center}
 .icon-btn svg{width:20px;height:20px}
 
@@ -203,15 +204,15 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:.01em;margi
 .plan-row input{width:100%;min-width:0;min-height:42px;border:1px solid var(--line);border-radius:8px;background:var(--surface);text-align:center;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
 .plan-row input::placeholder{color:var(--muted);opacity:.6;font-weight:500;font-size:14px}
 .set-h.has-rpe,.set-row.has-rpe{grid-template-columns:34px 1fr 1fr 58px 48px;gap:6px}
-.set-row select{width:100%;min-width:0;min-height:44px;border:1px solid var(--line);border-radius:8px;background:var(--sunk);font-size:15px;font-weight:600;text-align:center;text-align-last:center;color:var(--ink);padding:0 2px;font-variant-numeric:tabular-nums}
+.set-row select{width:100%;min-width:0;min-height:44px;border:1px solid var(--line);border-radius:8px;background:var(--sunk);font-size:16px;font-weight:600;text-align:center;text-align-last:center;color:var(--ink);padding:0 2px;font-variant-numeric:tabular-nums}
 button.n{all:unset;box-sizing:border-box;cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-family:var(--f-display);font-weight:700;font-size:18px;color:var(--muted)}
 button.n:focus-visible{outline:2px solid var(--accent)}
 .set-row.wu button.n,button.n.is-wu{background:var(--warn-soft);color:var(--warn)}
 .set-row.wu input{border-style:dashed}
 .set-row.done select{background:var(--ok-soft);border-color:transparent}
 textarea{font:inherit;color:var(--ink);width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;background:var(--sunk);padding:10px 12px;resize:vertical}
-.ex-note{margin-top:8px;font-size:15px}
-.export-text{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;white-space:pre;overflow:auto}
+.ex-note{margin-top:8px;font-size:16px}
+.export-text{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:16px;white-space:pre;overflow:auto}
 .hint{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:8px 8px 8px 12px;border-radius:10px;background:var(--accent-soft);color:var(--ink);font-size:14px;margin-bottom:8px}
 .hint span{flex:1 1 180px;min-width:0}
 .hint .btn{min-height:40px;flex:none}
@@ -226,7 +227,7 @@ textarea{font:inherit;color:var(--ink);width:100%;min-width:0;border:1px solid v
 .bw-form input{min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--sunk);padding:0 10px;width:100%;min-width:0}
 @media (max-width:420px){ .bw-form{grid-template-columns:1fr 1fr} .bw-form .btn{grid-column:1/-1} }
 .steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:15px}
-.toast.update{display:flex;align-items:center;gap:12px;pointer-events:auto}
+.toast.update{display:flex;align-items:center;gap:12px;pointer-events:auto;top:calc(10px + env(safe-area-inset-top,0px));bottom:auto;width:max-content;z-index:60}
 .toast.update .btn{min-height:36px;background:var(--surface);color:var(--ink)}
 .seg-wide{display:flex;width:100%}.seg-wide button{flex:1}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:10px}
@@ -344,7 +345,7 @@ textarea{font:inherit;color:var(--ink);width:100%;min-width:0;border:1px solid v
   .set-h,.set-row{grid-template-columns:30px minmax(0,1fr) minmax(0,1fr) 46px;gap:6px}
   .set-h.has-rpe,.set-row.has-rpe{grid-template-columns:30px minmax(0,1fr) minmax(0,1fr) 50px 44px;gap:5px}
   .set-row input{padding:0 4px;font-size:17px}
-  .set-row select{font-size:14px;padding:0}
+  .set-row select{font-size:16px;padding:0}
   .tick{min-height:44px}
   .bar-ctl{gap:6px}
   .bar-ctl .seg{flex:1 1 100%}
@@ -420,7 +421,7 @@ input[type="date"]::-webkit-calendar-picker-indicator,input[type="datetime-local
 .bar-ctl{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:0 0 8px}
 .bar-ctl .seg button{min-height:36px;padding:0 10px;font-size:13px}
 .bar-kg{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--muted)}
-.bar-kg input{width:56px;min-height:36px;border:1px solid var(--line);border-radius:8px;background:var(--sunk);text-align:center;font-size:15px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.bar-kg input{width:56px;min-height:36px;border:1px solid var(--line);border-radius:8px;background:var(--sunk);text-align:center;font-size:16px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
 .wcell{position:relative;min-width:0}
 .wcell input{display:block}
 .wcell .tot{position:absolute;left:0;right:0;top:100%;margin-top:2px;font-size:11px;font-weight:600;color:var(--muted);text-align:center;line-height:14px;white-space:nowrap}
@@ -446,6 +447,7 @@ input[type="date"]::-webkit-calendar-picker-indicator,input[type="datetime-local
 .pr-list{display:flex;flex-direction:column;gap:8px}
 .pr-item{display:flex;justify-content:space-between;gap:8px;padding:10px 12px;border-radius:10px;background:var(--pr-soft);color:var(--pr);font-weight:600}
 .big-num{font-family:var(--f-display);font-size:40px;line-height:1}
+button,a,input,select,label,textarea{touch-action:manipulation}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(140px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
 table.sess{width:100%;border-collapse:collapse;font-size:14px}
 table.sess th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
@@ -485,6 +487,7 @@ table.sess td{padding:8px 4px;border-bottom:1px solid var(--line);vertical-align
 <input type="file" id="import-file" accept="application/json,.json" hidden>
 <div id="sheet-root"></div>
 <div id="toast-root"></div>
+<div id="update-root"></div>
 
 <script>
 (function(){
@@ -1342,7 +1345,7 @@ function swapCount(r){ return (r.exercises||[]).filter(x=>{ const ex=exById(x.ex
 function platesText(e){
   const bc=barCfg(e.exId); const bar=bc?bc.bar:20;
   let top=0; for(const s of e.sets) top=Math.max(top,num(s.w));
-  if(!top) return 'Plates per side show here';
+  if(!top) return '';
   const p=platesFor(top, bar); if(!p) return `${fmtKg(top)} kg: empty bar`;
   return `${fmtKg(top)} kg = ${fmtKg(bar)} kg bar + <b>${p.out.map(fmtKg).join(' · ')}</b> a side${p.rem?` (+${p.rem})`:''}`;
 }
@@ -1864,8 +1867,13 @@ function newExerciseEntry(ex, opts={}){
 function blankSet(type, prev){ prev=prev||{}; return type==='cardio'?{min:'',km:'',done:false}:type==='hold'?{w:prev.w||'',sec:'',done:false}:{w:prev.w||'',r:'',done:false}; }
 function swapEntry(entry, ex){
   const n=entry.sets.length||(ex.type==='cardio'?1:3);
+  const old=exById(entry.exId), sameType=entry.type===ex.type;
+  const kit=x=>x?(x.bw?'bw':String((x.needs||[])[0]||'')):'';
   entry.exId=ex.id; entry.name=ex.name;
-  entry.type=ex.type; entry.sets=Array.from({length:n},()=>blankSet(ex.type));
+  entry.type=ex.type;
+  /* same kind of exercise: keep reps, ticks and notes; weights only carry over when the kit is the same (barbell to barbell, say) */
+  if(sameType && entry.sets.length){ const keepW=kit(old)===kit(ex); entry.sets=entry.sets.map(s=>keepW?s:Object.assign({},s,{w:''})); }
+  else entry.sets=Array.from({length:n},()=>blankSet(ex.type));
   const vc=vestCfg(ex.id); entry.vest=vc&&vc.on?vc.kg:null;
 }
 function blankPlan(type, prev){ prev=prev||{}; return type==='cardio'?{min:prev.min||'',km:prev.km||''}:type==='hold'?{w:prev.w||'',sec:prev.sec||'30'}:{w:prev.w||'',r:prev.r||'8'}; }
@@ -1913,6 +1921,7 @@ async function finishWorkout(){
     return out;
   }).filter(e=>e.sets.length);
   if(!exercises.length){ toast('Log at least one set with reps (or time) before saving.'); return; }
+  const dropped=w.exercises.reduce((a,e)=>a+e.sets.filter(s=>e.type==='cardio'?false:e.type==='hold'?(num(s.w)&&!(num(s.sec)>0)):(num(s.w)&&!(Math.round(num(s.r))>0))).length,0);
   { const cnt={}; exercises.forEach(e=>{ if(e.ss) cnt[e.ss]=(cnt[e.ss]||0)+1; }); exercises.forEach(e=>{ if(e.ss&&cnt[e.ss]<2) delete e.ss; }); }
   const prs=[];
   for(const e of exercises){ if(e.type==='cardio') continue;
@@ -1933,6 +1942,7 @@ async function finishWorkout(){
   await putWorkout(done);
   if(mode){ S.openHist=done.id; location.hash='#history'; render(); toast(mode==='edit'?'Changes saved':'Workout logged'); return; }
   render(); openSheet({kind:'summary',w:done,skill:skPre});
+  if(dropped) toast(`${dropped} set${dropped>1?'s':''} with a weight but no reps ${dropped>1?'were':'was'} left out.`);
 }
 
 /* rest timer */
@@ -1989,8 +1999,8 @@ let toastT=null;
 function toast(msg){ const r=document.getElementById('toast-root'); r.innerHTML=`<div class="toast" role="status">${esc(msg)}</div>`; clearTimeout(toastT); toastT=setTimeout(()=>{r.innerHTML='';},3200); }
 function armed(btn, label){
   if(btn.classList.contains('armed')) return true;
-  const orig=btn.textContent; btn.classList.add('armed'); btn.textContent=label;
-  setTimeout(()=>{ if(btn.isConnected){ btn.classList.remove('armed'); btn.textContent=orig; } },3500);
+  const orig=btn.innerHTML; btn.classList.add('armed'); btn.textContent=label;
+  setTimeout(()=>{ if(btn.isConnected && btn.classList.contains('armed')){ btn.classList.remove('armed'); btn.innerHTML=orig; } },3500);
   return false;
 }
 
@@ -2317,7 +2327,7 @@ document.addEventListener('change', ev=>{
   if(ev.target.id!=='import-file') return; const f=ev.target.files&&ev.target.files[0]; ev.target.value='';
   if(!f) return; const rd=new FileReader(); rd.onload=()=>importBackup(String(rd.result)); rd.onerror=()=>toast("Couldn't read that file."); rd.readAsText(f);
 });
-function showUpdate(){ const r=document.getElementById('toast-root'); r.innerHTML=`<div class="toast update" role="status"><span>A new version of GymBook is ready.</span><button type="button" class="btn" data-act="sw-reload">Reload</button></div>`; }
+function showUpdate(){ const r=document.getElementById('update-root'); r.innerHTML=`<div class="toast update" role="status"><span>A new version of GymBook is ready.</span><button type="button" class="btn" data-act="sw-reload">Reload</button></div>`; }
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('sw.js').then(reg=>{
