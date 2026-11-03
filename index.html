@@ -366,7 +366,37 @@ textarea{font:inherit;color:var(--ink);width:100%;min-width:0;border:1px solid v
 .prog-main{font-size:15px;font-weight:600;color:var(--ink)}
 .prog .sub{font-size:12.5px;line-height:1.35}
 .bw-form{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr) auto}
-@media (max-width:430px){ .bw-form{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)} .stat{padding:10px 12px} .stat b{font-size:26px} .stat small{font-size:12px} }
+@media (max-width:430px){ .bw-form{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)} .bw-form .btn{grid-column:1/-1} .stat{padding:10px 12px} .stat b{font-size:26px} .stat small{font-size:12px} }
+.ex-toggle{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:flex-start;gap:6px;min-height:36px;border-radius:8px;max-width:100%}
+.ex-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ex-toggle svg{width:20px;height:20px;flex:none;margin-top:4px;color:var(--muted);transition:transform .15s}
+.ex-toggle[aria-expanded="false"] svg{transform:rotate(-90deg)}
+.ex-name{font-family:var(--f-display);font-weight:700;font-size:22px;line-height:1.2;text-transform:uppercase;letter-spacing:.02em;overflow-wrap:break-word;hyphens:auto}
+.ex.collapsed{padding-bottom:12px}
+.ex.collapsed header{align-items:center}
+.ex-sum{display:flex;align-items:center;gap:5px;margin:2px 0 0 26px;font-size:13px;font-weight:600;color:var(--muted)}
+.ex-sum svg{width:15px;height:15px}
+.ex-sum.all-done{color:var(--ok)}
+.rt-ex .nm{display:flex;flex-direction:column;gap:2px;padding-top:4px}
+.rt-ex .nm .ex-toggle span{font-weight:600;font-size:16px}
+.rt-ex .ex-sum{margin-left:26px}
+.rt-ex .swap-link,.rt-ex .warn-link{margin-left:26px}
+.rt-ex.collapsed{gap:0}
+.rt-ex>.spread{flex-wrap:nowrap}
+.rt-ex .nm{flex:1;min-width:0}
+.wk-meta b{white-space:normal!important;overflow:visible!important}
+.collapse-row{display:flex;justify-content:flex-end;margin:-4px 0 -6px}
+@media (max-width:430px){ .ex-name{font-size:19px} .wk-meta b{font-size:14px!important} }
+/* iPhone Safari draws date pickers at their own size and ignores width; make them behave like the other fields */
+input[type="date"],input[type="datetime-local"]{-webkit-appearance:none;appearance:none;display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;min-height:44px;line-height:normal;text-align:left;font-variant-numeric:tabular-nums}
+input[type="date"]::-webkit-date-and-time-value,input[type="datetime-local"]::-webkit-date-and-time-value{text-align:left;margin:0}
+input[type="date"]::-webkit-calendar-picker-indicator,input[type="datetime-local"]::-webkit-calendar-picker-indicator{margin-left:auto}
+.bw-form{align-items:end}
+.bw-form .field{min-width:0}
+.bw-form input{box-sizing:border-box;height:46px;font-size:16px}
+.bw-form .btn{min-height:46px}
+.when .field{min-width:0}
+.when input{box-sizing:border-box;height:46px}
 .relrow{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:minmax(96px,38%) 1fr 48px;gap:8px;align-items:center;font-size:13px;min-height:32px;border-radius:6px}
 .relrow:focus-visible{outline:2px solid var(--accent)}
 .relrow .mname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1108,6 +1138,7 @@ function vActive(){
     : ready ? `<button type="button" class="btn primary big block" data-act="begin">${ICON.play} Start workout</button>` : `<button type="button" class="btn primary big block" data-act="finish">Finish workout</button>`;
   return `${head}
   ${w.exercises.length? '' : `<div class="card empty"><h3>Add your first exercise</h3><p style="margin:0">Pick from the library or create your own.</p></div>`}
+  ${w.exercises.length>1?(()=>{ const all=w.exercises.every(x=>x.collapsed); return `<div class="collapse-row"><button type="button" class="btn ghost small" data-act="ex-all" data-v="${all?'open':'close'}">${all?ICON.down+' Expand all':ICON.up+' Collapse all'}</button></div>`; })():''}
   ${w.exercises.map((e,i)=>vExercise(e,i,ss[i],w.exercises.length)).join('')}
   <button type="button" class="btn block" data-act="add-ex">${ICON.plus} Add exercise</button>
   <div class="field"><label class="label" for="wk-note">Workout notes</label><textarea id="wk-note" rows="2" placeholder="Sleep, energy, anything to remember next time">${esc(w.note||'')}</textarea></div>
@@ -1243,18 +1274,20 @@ function vExercise(e,i,ssi,total){
   }).join('');
   const miss=ex?missing(ex):[];
   const hint = A.mode ? null : hintFor(e, prev&&prev.e);
-  return `<article class="ex ${ssi?'in-ss':''} ${ssi&&ssi.nextSame?'ss-joined':''}" data-ex="${i}">
+  const workN=e.sets.filter(x=>!x.wu).length, doneN=e.sets.filter(x=>!x.wu&&x.done).length;
+  return `<article class="ex ${ssi?'in-ss':''} ${ssi&&ssi.nextSame?'ss-joined':''} ${e.collapsed?'collapsed':''}" data-ex="${i}">
     ${ssi?`<div class="ss-tag">Superset ${ssi.L} · ${ssi.pos} of ${ssi.size} · ${ssi.nextSame?'straight on to the next':'rest after this one'}</div>`:''}
     <header>
-      <div style="min-width:0"><h3>${esc(e.name)}</h3>
-      <p class="last">${prev?`Last (${shortDate(prev.w.startedAt)}): ${esc(setsSummary(prev.e))}`:'First time logging this'}</p>
-      ${prev&&prev.e.note?`<p class="last"><i>Note: ${esc(prev.e.note)}</i></p>`:''}</div>
+      <div style="min-width:0"><button type="button" class="ex-toggle" data-act="ex-toggle" aria-expanded="${!e.collapsed}" aria-label="${e.collapsed?'Expand':'Collapse'} ${esc(e.name)}">${ICON.down}<span class="ex-name">${esc(e.name)}</span></button>
+      ${e.collapsed?`<p class="ex-sum num ${e.type!=='cardio'&&workN&&doneN===workN?'all-done':''}">${e.type!=='cardio'&&workN&&doneN===workN?ICON.check:''}${e.type==='cardio'?`${e.sets.length} entr${e.sets.length===1?'y':'ies'}`:`${doneN} of ${workN} sets done`}${e.sets.some(x=>x.wu)?` · ${e.sets.filter(x=>x.wu).length} warm-up`:''}</p>`:`<p class="last">${prev?`Last (${shortDate(prev.w.startedAt)}): ${esc(setsSummary(prev.e))}`:'First time logging this'}</p>
+      ${prev&&prev.e.note?`<p class="last"><i>Note: ${esc(prev.e.note)}</i></p>`:''}`}</div>
       <div class="row" style="flex-wrap:nowrap;gap:0">
         ${ex&&ex.pattern?`<button type="button" class="icon-btn" data-act="ex-swap" aria-label="Swap ${esc(e.name)} for a variation">${ICON.swap}</button>`:''}
         <button type="button" class="icon-btn" data-act="ex-up" aria-label="Move ${esc(e.name)} up">${ICON.up}</button>
         <button type="button" class="icon-btn" data-act="ex-del" aria-label="Remove ${esc(e.name)}">${ICON.x}</button>
       </div>
     </header>
+    ${e.collapsed?'':`
     ${hint?`<div class="hint"><span>${esc(hint.text)}</span><div class="hint-actions">${hint.w?`<button type="button" class="btn" data-act="hint-apply" data-w="${esc(hint.w)}" data-from="${esc(hint.from??'')}">Use ${esc(fmtKg(num(hint.w)))} kg</button>`:''}${hint.swap?`<button type="button" class="btn" data-act="hint-swap" data-id="${esc(hint.swap)}">Try ${esc((exById(hint.swap)||{}).name||'it')}</button>`:''}</div></div>`:''}
     ${miss.length?`<div class="warn"><span>Needs ${esc(miss.join(', '))}, which isn't in your equipment.</span><button type="button" class="btn" data-act="ex-swap">Swap</button></div>`:''}
     ${barControl(e.exId)}${vestControl(e.exId)}
@@ -1271,6 +1304,7 @@ function vExercise(e,i,ssi,total){
       ${ssi?`<button type="button" class="act" data-act="ss-leave" aria-label="Leave superset">${ICON.unlink}<span>Unlink</span></button>`:''}
       ${(!ssi||!ssi.nextSame)&&i<total-1?`<button type="button" class="act" data-act="ss-link" aria-label="Superset with the next exercise">${ICON.link}<span>Superset</span></button>`:''}
     </div>
+    `}
   </article>`;
 }
 /* ---------- progression hints, from last session's working sets ---------- */
@@ -1597,9 +1631,12 @@ function renderSheet(){
   if(sheet.kind==='install'){ title='Add to home screen'; body=sheetInstall(); }
   if(sheet.kind==='exercise'){ const m=exerciseStats().find(x=>x.exId===sheet.exId); title=m?m.name:'Exercise'; body=sheetExercise(m); }
   const keepQ = document.getElementById('pick-q'); const q = keepQ? keepQ.value : (sheet.q||'');
+  const oldB=root.querySelector('.sheet-b'); const keepTop = oldB && root.dataset.kind===sheet.kind+(sheet.id||'') ? oldB.scrollTop : 0;
+  root.dataset.kind=sheet.kind+(sheet.id||'');
   root.innerHTML=`<div class="scrim" data-act="scrim"><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}">
     <div class="sheet-h"><h2>${esc(title)}</h2><button type="button" class="icon-btn" data-act="close" aria-label="Close">${ICON.x}</button></div>
     <div class="sheet-b">${body}</div></div></div>`;
+  if(keepTop){ const nb=root.querySelector('.sheet-b'); if(nb) nb.scrollTop=keepTop; }
   const pq=document.getElementById('pick-q'); if(pq){ pq.value=q; filterPicker(); }
   updateEqCount();
 }
@@ -1667,14 +1704,16 @@ function sheetRoutine(){
     <div class="stepper"><button type="button" data-act="rt-rest" data-d="-15" aria-label="Less rest">−</button><span class="num">${fmtDur((r.rest||S.settings.rest||90)*1000)}</span><button type="button" data-act="rt-rest" data-d="15" aria-label="More rest">+</button></div>
   </div>
   <div class="spread rt-rest"><b>Estimated time</b><span class="big-est num" id="rt-est">${estText(r)||'Add exercises to see it'}</span></div>
-  <div class="stack" style="gap:10px">${r.exercises.length?r.exercises.map((x,i,arr)=>{ const ex=exById(x.exId); const bad=ex&&!canDo(ex); const ssR=ssInfo(arr);
+  ${r.exercises.length>1?(()=>{ const c=sheet.coll||{}; const all=r.exercises.every((_,k)=>c[k]); return `<div class="collapse-row"><button type="button" class="btn ghost small" data-act="rt-all" data-v="${all?'open':'close'}">${all?ICON.down+' Expand all':ICON.up+' Collapse all'}</button></div>`; })():''}
+  <div class="stack" style="gap:10px">${r.exercises.length?r.exercises.map((x,i,arr)=>{ const coll=!!(sheet.coll||{})[i]; const ex=exById(x.exId); const bad=ex&&!canDo(ex); const ssR=ssInfo(arr);
     ensurePlan(x); const [f1,l1,f2,l2]=fieldsFor(x);
-    const bcx=barCfg(x.exId); const si=ssR[i]; return `<div class="rt-ex ${bcx&&bcx.mode!=='total'?'has-tot':''}" data-i="${i}">
+    const bcx=barCfg(x.exId); const si=ssR[i]; return `<div class="rt-ex ${bcx&&bcx.mode!=='total'?'has-tot':''} ${coll?'collapsed':''}" data-i="${i}">
       ${si?`<div class="ss-tag">Superset ${si.L} · ${si.pos} of ${si.size}</div>`:''}
       <div class="spread" style="align-items:flex-start">
-        <div class="nm">${esc(x.name)}${bad?`<button type="button" class="warn-link" data-act="rt-ex-swap">Needs ${esc(missing(ex).join(', '))}: swap</button>`:(ex&&ex.pattern?`<button type="button" class="swap-link" data-act="rt-ex-swap">Swap</button>`:'')}</div>
+        <div class="nm"><button type="button" class="ex-toggle" data-act="rt-toggle" aria-expanded="${!coll}" aria-label="${coll?'Expand':'Collapse'} ${esc(x.name)}">${ICON.down}<span>${esc(x.name)}</span></button>${coll?`<span class="ex-sum num">${esc(planSummary(x))}${x.plan.some(p=>p.wu)?` · ${x.plan.filter(p=>p.wu).length} warm-up`:''}</span>`:''}${bad?`<button type="button" class="warn-link" data-act="rt-ex-swap">Needs ${esc(missing(ex).join(', '))}: swap</button>`:(ex&&ex.pattern?`<button type="button" class="swap-link" data-act="rt-ex-swap">Swap</button>`:'')}</div>
         <button type="button" class="icon-btn" data-act="rt-ex-del" aria-label="Remove ${esc(x.name)}">${ICON.x}</button>
       </div>
+      ${coll?'':`
       ${barControl(x.exId)}${vestControl(x.exId)}
       <div class="plan-h"><span>Set</span><span>${l1}</span><span>${l2}</span><span></span></div>
       ${x.plan.map((p,j)=>{ const bc=f1==='w'?barCfg(x.exId):null; return `<div class="plan-row" data-j="${j}">
@@ -1689,6 +1728,7 @@ function sheetRoutine(){
         ${si?`<button type="button" class="btn ghost quiet" data-act="rt-ss-leave">Leave superset</button>`:''}
         ${(!si||!si.nextSame)&&i<arr.length-1?`<button type="button" class="btn ghost quiet" data-act="rt-ss-link">Superset with next</button>`:''}
       </div>
+      `}
     </div>`; }).join(''):`<p class="note">No exercises yet.</p>`}</div>
   ${r.exercises.length?`<p class="muted" style="margin:0;font-size:12px">Tap a set number to mark it as a warm-up (W). Warm-ups don't count towards volume or personal bests.</p>`:''}
   <button type="button" class="btn block" data-act="rt-add-ex">${ICON.plus} Add exercise</button>
@@ -2185,6 +2225,10 @@ document.addEventListener('click', async ev=>{
       S.active={id:uid(), mode:'log', name:'Workout', startedAt:t.getTime(), durMin:'60', note:'', updatedAt:Date.now(), exercises:[]};
       saveActive(); location.hash='#workout'; render(); window.scrollTo(0,0); break;
     }
+    case 'ex-toggle': { e.collapsed=!e.collapsed; touch(); render(); break; }
+    case 'ex-all': { const close=b.dataset.v==='close'; S.active.exercises.forEach(x=>{ x.collapsed=close; }); touch(); render(); break; }
+    case 'rt-toggle': { const i=+b.closest('.rt-ex').dataset.i; sheet.coll=Object.assign({},sheet.coll||{}); sheet.coll[i]=!sheet.coll[i]; renderSheet(); break; }
+    case 'rt-all': { const close=b.dataset.v==='close'; sheet.coll={}; if(close) sheet.r.exercises.forEach((_,k)=>{ sheet.coll[k]=true; }); renderSheet(); break; }
     case 'wu': { const row=b.closest('.set-row'); const st=e.sets[+row.dataset.set]; if(st.wu) delete st.wu; else st.wu=true; touch(); render(); break; }
     case 'ex-note': e.note=''; render(); document.querySelector(`.ex[data-ex="${art.dataset.ex}"] [data-note]`)?.focus(); break;
     case 'ss-link': linkNext(S.active.exercises, +art.dataset.ex); touch(); render(); break;
@@ -2238,7 +2282,7 @@ document.addEventListener('click', async ev=>{
     case 'rt-new': openSheet({kind:'routine', r:{id:uid(),name:'',order:S.routines.length,exercises:[]}}); break;
     case 'rt-edit': { const r=S.routines.find(x=>x.id===b.dataset.id); if(r) openSheet({kind:'routine', r:JSON.parse(JSON.stringify(r))}); break; }
     case 'rt-add-ex': openSheet({kind:'picker',target:'routine',back:sheet}); break;
-    case 'rt-ex-del': { const i=+b.closest('.rt-ex').dataset.i; sheet.r.exercises.splice(i,1); renderSheet(); break; }
+    case 'rt-ex-del': { const i=+b.closest('.rt-ex').dataset.i; sheet.r.exercises.splice(i,1); sheet.coll={}; renderSheet(); break; }
     case 'rt-set-add': { const x=ensurePlan(sheet.r.exercises[+b.closest('.rt-ex').dataset.i]); if(x.plan.length<20) x.plan.push(Object.assign({},x.plan[x.plan.length-1]||blankPlan(x.type))); renderSheet(); break; }
     case 'rt-set-del': { const x=sheet.r.exercises[+b.closest('.rt-ex').dataset.i]; x.plan.splice(+b.closest('.plan-row').dataset.j,1); renderSheet(); break; }
     case 'rt-save': {
