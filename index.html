@@ -318,6 +318,8 @@ textarea{font:inherit;color:var(--ink);width:100%;min-width:0;border:1px solid v
 .pc-pre{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--muted)}
 .pc-pre.ok{color:var(--ok)}
 .pc-pre svg{width:13px;height:13px}
+.download{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.dl-title{font-family:var(--f-display);font-weight:700;font-size:24px;text-transform:uppercase;letter-spacing:.02em}
 .relrow{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:minmax(96px,38%) 1fr 48px;gap:8px;align-items:center;font-size:13px;min-height:32px;border-radius:6px}
 .relrow:focus-visible{outline:2px solid var(--accent)}
 .relrow .mname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1012,6 +1014,7 @@ function vStart(){
     : (S.loaded.r ? `<p class="note">No routines yet. Make one in the Routines tab to start it in one tap.</p>` : '');
   const last=S.workouts[0];
   return `
+  ${isStandalone()?'':`<div class="card download"><b class="dl-title">Download GymBook now</b><button type="button" class="btn primary" data-act="install-help">Install</button></div>`}
   <section class="hero-start">
     <div class="card stack">
       <div class="spread"><span class="label">This week</span><span class="muted num" style="font-size:14px">${thisWeek.length} workout${thisWeek.length===1?'':'s'} · ${fmtVol(thisWeek.reduce((a,w)=>a+workoutVolume(w),0))} kg</span></div>
@@ -1020,7 +1023,6 @@ function vStart(){
     </div>
     <button type="button" class="btn primary big block" data-act="start-empty">${ICON.play} Start empty workout</button>
   </section>
-  ${!S.workouts.length&&!S.routines.length?`<div class="card stack" style="gap:8px"><b style="font-size:17px">Welcome to GymBook</b><p class="muted" style="margin:0;font-size:14px">Moving over from the Claude version? Export a <b>Full backup (JSON)</b> there, then import it here. Starting fresh? Add the starter Push, Pull and Legs routines.</p><div class="row"><button type="button" class="btn primary" data-act="import">Import backup</button><button type="button" class="btn" data-act="starters">Add starter routines</button></div></div>`:''}
   ${Array.isArray(S.settings.equipment)?'':`<div class="card stack" style="gap:8px"><b style="font-size:17px">What equipment do you have?</b><p class="muted" style="margin:0;font-size:14px">Tell the app what's in your gym, home setup or local bar park. Exercises you can't do are hidden, and routines suggest variations that work with your kit.</p><div><button type="button" class="btn" data-act="equip-open">Choose equipment</button></div></div>`}
   ${S.workouts.length>=3&&(backupAge()==null||backupAge()>=30)?`<div class="hint"><span>${backupAge()==null?"You haven't backed up your log yet.":`Last backup was ${backupAge()} days ago.`} It only lives on this phone.</span><button type="button" class="btn" data-act="export-json">Back up</button></div>`:''}
   <div class="section-h"><h2>Start a routine</h2><a class="btn ghost" href="#routines">Manage</a></div>
