@@ -472,6 +472,26 @@ a.btn svg{width:18px;height:18px}
 .dt-show{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:16px;line-height:1}
 .dt-ic{width:18px;height:18px;flex:none;color:var(--muted)}
 .dt input,.bw-form .dt input,.field .dt input{position:absolute;inset:0;width:100%;height:100%;min-height:0;opacity:0;margin:0;padding:0;border:0;font-size:16px;cursor:pointer;-webkit-appearance:none;appearance:none}
+.next-up{display:flex;flex-direction:column;gap:6px;border-color:var(--accent)}
+.next-up .nu-name{font-family:var(--f-display);font-size:24px;line-height:1.15;text-transform:uppercase;letter-spacing:.02em;overflow-wrap:break-word}
+.next-up small{font-size:13px;line-height:1.35}
+.next-up .btn{margin-top:6px}
+.goal,.goal-set{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:12px;width:100%;padding:8px 10px;border-radius:10px;background:var(--sunk);min-height:44px}
+.goal-set{justify-content:center;gap:6px;font-size:14px;font-weight:600;color:var(--accent)}
+.goal-set svg{width:16px;height:16px}
+.ring{width:48px;height:48px;flex:none}
+.ring circle{fill:none;stroke-width:5}
+.ring-bg{stroke:var(--line)}
+.ring-fg{stroke:var(--accent);stroke-linecap:round}
+.ring-fg.full{stroke:var(--ok)}
+.ring-t{font-size:12px;font-weight:700;fill:var(--ink);text-anchor:middle;dominant-baseline:central;font-variant-numeric:tabular-nums}
+.goal-txt{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.goal-txt b{font-size:15px}
+.goal-txt small{font-size:13px;color:var(--muted)}
+.goal-edit{font-size:13px;font-weight:600;color:var(--accent)}
+.goal-pick{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.goal-pick button{min-height:48px;border:1px solid var(--line);border-radius:10px;background:var(--sunk);font-size:18px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.goal-pick button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(140px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
 table.sess{width:100%;border-collapse:collapse;font-size:14px}
 table.sess th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
@@ -1273,6 +1293,76 @@ const ICON = {
   down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>'
 };
 
+
+/* ---------- next up: which routine is due in your rotation ---------- */
+function routineOf(w, rs){ if(w.src&&w.src.routine){ const r=rs.find(x=>x.id===w.src.routine); if(r) return r; } return rs.find(r=>r.name===w.name)||null; }
+function nextUp(){
+  const rs=[...S.routines].filter(r=>r.exercises&&r.exercises.length).sort((a,b)=>(a.order??0)-(b.order??0));
+  const rot=rs.filter(r=>!(r.src&&r.src.skill)); if(!rot.length) return null;
+  const fam=r=>r.src&&r.src.program?'p:'+r.src.program:'own';
+  let lastW=null, lastR=null;
+  for(const w of S.workouts){ const r=routineOf(w, rot); if(r){ lastW=w; lastR=r; break; } }
+  if(!lastR){ const own=rot.filter(r=>fam(r)==='own'); return {r:(own[0]||rot[0]), first:true}; }
+  const group=rot.filter(r=>fam(r)===fam(lastR)).sort((a,b)=>fam(lastR)==='own'?0:((a.src.session??0)-(b.src.session??0)));
+  const r=group[(group.indexOf(lastR)+1)%group.length];
+  let prevW=null; for(const w of S.workouts){ if(routineOf(w,rot)===r){ prevW=w; break; } }
+  return {r, after:lastR, afterAt:lastW.startedAt, lastAt:prevW?prevW.startedAt:null};
+}
+function vNextUp(){
+  const n=nextUp(); if(!n) return '';
+  const r=n.r;
+  const why = n.first ? 'First in your routines' : `After ${esc(n.after.name)} on ${DAY[new Date(n.afterAt).getDay()]} ${shortDate(n.afterAt)}`;
+  return `<div class="card next-up">
+    <div class="spread"><span class="label">Next up</span><span class="muted num" style="font-size:13px">${estText(r)}</span></div>
+    <b class="nu-name">${esc(r.name)}</b>
+    <small class="muted">${why}${n.lastAt?` · last done ${shortDate(n.lastAt)}`:''}</small>
+    <small class="muted">${esc(r.exercises.slice(0,4).map(x=>x.name).join(', '))}${r.exercises.length>4?` +${r.exercises.length-4}`:''}</small>
+    <button type="button" class="btn primary big block" data-act="start-routine" data-id="${esc(r.id)}">${ICON.play} Start ${esc(r.name)}</button>
+  </div>`;
+}
+/* ---------- weekly goal and streak ---------- */
+function weekCounts(){ const m=new Map(); for(const w of S.workouts){ const k=weekStart(w.startedAt); m.set(k,(m.get(k)||0)+1); } return m; }
+function goalStreak(goal){
+  const m=weekCounts(); let k=weekStart(Date.now()); let n=0;
+  if((m.get(k)||0)>=goal) n++;
+  for(;;){ const d=new Date(k); d.setDate(d.getDate()-7); k=weekStart(d.getTime()); if((m.get(k)||0)>=goal) n++; else break; if(n>520) break; }
+  return n;
+}
+function goalRing(done, goal){
+  const r=19, c=2*Math.PI*r, f=Math.min(1,done/goal);
+  return `<svg class="ring" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="${r}" class="ring-bg"/><circle cx="24" cy="24" r="${r}" class="ring-fg ${f>=1?'full':''}" stroke-dasharray="${(c*f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 24 24)"/><text x="24" y="24" class="ring-t">${done}/${goal}</text></svg>`;
+}
+function vGoal(n){
+  const g=num(S.settings.weekGoal);
+  if(!g) return `<button type="button" class="goal-set" data-act="goal-open">${ICON.plus}<span>Set a weekly goal</span></button>`;
+  const st=goalStreak(g); const left=g-n;
+  return `<button type="button" class="goal" data-act="goal-open" aria-label="Weekly goal ${n} of ${g}. Change goal">${goalRing(n,g)}
+    <span class="goal-txt"><b>${left>0?`${left} more to hit your goal`:'Weekly goal hit'}</b><small>${st?`${st}-week streak`:'Hit your goal to start a streak'}</small></span>
+    <span class="goal-edit">Edit</span></button>`;
+}
+function sheetGoal(){
+  const g=num(S.settings.weekGoal);
+  return `<p class="muted" style="margin:0;font-size:14px">How many workouts a week are you aiming for? Each week you hit it adds to your streak. Weeks run Monday to Sunday.</p>
+  <div class="goal-pick">${[1,2,3,4,5,6,7].map(i=>`<button type="button" class="${i===g?'on':''}" data-act="goal-pick" data-v="${i}">${i}</button>`).join('')}</div>
+  ${g?`<button type="button" class="btn ghost block quiet" data-act="goal-pick" data-v="0">Turn off weekly goal</button>`:''}`;
+}
+/* ---------- personal bests: worked out again from the whole log, so edits and deletes stay accurate ---------- */
+function recomputePRs(){
+  const best={}; const asc=[...S.workouts].sort((a,b)=>a.startedAt-b.startedAt);
+  for(const w of asc){
+    const prs=[];
+    for(const e of (w.exercises||[])){ if(e.type==='cardio') continue; const prev=best[e.exId]; if(!prev) continue;
+      const now=setBests(e.sets||[]);
+      if(e.type==='hold'){ if(now.sec>prev.sec) prs.push({exId:e.exId,name:e.name,sec:now.sec,t:w.startedAt}); continue; }
+      let top=null; for(const s of working(e.sets||[])){ const x=e1rm(s.w,s.r); if(!top||x>top.x) top={x,w:s.w,r:s.r}; }
+      if(top && top.w>0 && top.x>prev.e1+0.01) prs.push({exId:e.exId,name:e.name,w:top.w,r:top.r,t:w.startedAt});
+      else if(isBw(e) && now.reps0>prev.reps0 && prev.reps0>0) prs.push({exId:e.exId,name:e.name,w:0,r:now.reps0,t:w.startedAt});
+    }
+    for(const e of (w.exercises||[])){ if(e.type==='cardio') continue; const x=setBests(e.sets||[]); const b=best[e.exId]||(best[e.exId]={e1:0,reps0:0,sec:0});
+      b.e1=Math.max(b.e1,x.e1); b.reps0=Math.max(b.reps0,x.reps0); b.sec=Math.max(b.sec,x.sec); }
+    if(JSON.stringify(prs)!==JSON.stringify(w.prs||[])){ w.prs=prs; const {id,...body}=w; queueWrite('workouts/'+id, body); }
+  }
+}
 function vStart(){
   const now=Date.now(), ws=weekStart(now);
   const days=[0,1,2,3,4,5,6].map(i=>{ const s=ws+i*864e5, e=s+864e5; const on=S.workouts.some(w=>w.startedAt>=s&&w.startedAt<e);
@@ -1281,16 +1371,18 @@ function vStart(){
   const routines = S.routines.length ? `<div class="routine-pick">${S.routines.map(r=>`
       <button type="button" data-act="start-routine" data-id="${esc(r.id)}"><b>${esc(r.name)}</b><small class="num" style="font-weight:600">${estText(r)}</small><small>${esc(r.exercises.slice(0,3).map(x=>x.name).join(', '))}${r.exercises.length>3?` +${r.exercises.length-3}`:''}</small>${swapCount(r)?`<small class="warn-txt">${swapCount(r)} need a swap</small>`:''}</button>`).join('')}</div>`
     : (S.loaded.r ? `<p class="note">No routines yet. Make one in the Routines tab to start it in one tap.</p>` : '');
-  const last=S.workouts[0];
+  const last=S.workouts[0]; const nu=vNextUp();
   return `
   ${isStandalone()?'':`<div class="card download"><b class="dl-title">Download GymBook now</b><button type="button" class="btn primary" data-act="install-help">Install</button></div>`}
   <section class="hero-start">
     <div class="card stack">
       <div class="spread"><span class="label">This week</span><span class="muted num" style="font-size:14px">${thisWeek.length} workout${thisWeek.length===1?'':'s'} · ${fmtVol(thisWeek.reduce((a,w)=>a+workoutVolume(w),0))} kg</span></div>
       <div class="week" aria-label="Days trained this week">${days}</div>
+      ${vGoal(thisWeek.length)}
       ${last?`<p class="muted" style="margin:0;font-size:14px">Last session: <b style="color:var(--ink)">${esc(last.name)}</b>, ${shortDate(last.startedAt)}</p>`:''}
     </div>
-    <button type="button" class="btn primary big block" data-act="start-empty">${ICON.play} Start empty workout</button>
+    ${nu}
+    <button type="button" class="btn ${nu?'':'primary big'} block" data-act="start-empty">${nu?ICON.plus:ICON.play} Start empty workout</button>
   </section>
   ${Array.isArray(S.settings.equipment)?'':`<div class="card stack" style="gap:8px"><b style="font-size:17px">What equipment do you have?</b><p class="muted" style="margin:0;font-size:14px">Tell the app what's in your gym, home setup or local bar park. Exercises you can't do are hidden, and routines suggest variations that work with your kit.</p><div><button type="button" class="btn" data-act="equip-open">Choose equipment</button></div></div>`}
   ${S.workouts.length>=3&&(backupAge()==null||backupAge()>=30)?`<div class="hint"><span>${backupAge()==null?"You haven't backed up your log yet.":`Last backup was ${backupAge()} days ago.`} It only lives on this phone.</span><button type="button" class="btn" data-act="export-json">Back up</button></div>`:''}
@@ -1821,6 +1913,7 @@ function renderSheet(){
   if(sheet.kind==='program'){ const p=PROGRAMS.find(x=>x.id===sheet.id); title=p?p.title:'Programme'; body=sheetProgram(p); }
   if(sheet.kind==='skill'){ const sk=SKILLS.find(x=>x.id===sheet.id); title=sk?sk.title:'Skill'; body=sheetSkill(sk); }
   if(sheet.kind==='howto'){ const ex=exById(sheet.id); title=ex?ex.name:'How to'; body=sheetHowto(ex); }
+  if(sheet.kind==='goal'){ title='Weekly goal'; body=sheetGoal(); }
   if(sheet.kind==='bw-all'){ title='Bodyweight'; body=sheetBwAll(); }
   if(sheet.kind==='export'){ title='Your export'; body=sheetExport(); }
   if(sheet.kind==='install'){ title='Add to home screen'; body=sheetInstall(); }
@@ -2132,7 +2225,7 @@ async function finishWorkout(){
   const mode=w.mode;
   const skObj=w.src&&w.src.skill?SKILLS.find(x=>x.id===w.src.skill):null; const skPre=skObj?{wasMastered:skillMastery(skObj).done}:null;
   S.active=null; saveActive(); stopRest();
-  await putWorkout(done);
+  await putWorkout(done); recomputePRs();
   if(mode){ S.openHist=done.id; location.hash='#history'; render(); toast(mode==='edit'?'Changes saved':'Workout logged'); return; }
   render(); openSheet({kind:'summary',w:done,skill:skPre});
   if(dropped) toast(`${dropped} set${dropped>1?'s':''} with a weight but no reps ${dropped>1?'were':'was'} left out.`);
@@ -2288,6 +2381,7 @@ function importBackup(text){
   [S.custom]=merge(S.custom, d.customExercises||[], 'id');
   if(d.settings && typeof d.settings==='object') S.settings=Object.assign({rest:90}, d.settings, {lastBackup:S.settings.lastBackup||d.settings.lastBackup});
   S.workouts.sort((a,b)=>b.startedAt-a.startedAt); S.bw.sort((a,b)=>a.t-b.t);
+  recomputePRs();
   S.loaded={w:true,r:true}; saveLocalAll(); render();
   toast(`Imported ${n1} workout${n1===1?'':'s'}, ${n2} routine${n2===1?'':'s'}, ${n3} weigh-in${n3===1?'':'s'}`);
 }
@@ -2342,7 +2436,7 @@ document.addEventListener('click', async ev=>{
       if(S.active){ toast('Finish or discard your current workout first.'); location.hash='#workout'; break; }
       const r=S.routines.find(x=>x.id===b.dataset.id); if(!r) break;
       const exs=r.exercises.map(x=>{ const ex=exById(x.exId)||{id:x.exId,name:x.name,type:x.type||'strength'}; ensurePlan(x); return newExerciseEntry(ex,{sets:x.plan.length,reps:x.reps,plan:x.plan,ss:x.ss}); });
-      startWorkout(r.name, exs, r.rest||null, r.src||null); break;
+      startWorkout(r.name, exs, r.rest||null, Object.assign({}, r.src||{}, {routine:r.id})); break;
     }
     case 'add-ex': openSheet({kind:'picker',target:'workout'}); break;
     case 'pick': case 'pick-create': {
@@ -2402,7 +2496,7 @@ document.addEventListener('click', async ev=>{
     case 'rest-skip': stopRest(); break;
 
     case 'hist-toggle': S.openHist = S.openHist===b.dataset.id?null:b.dataset.id; render(); break;
-    case 'hist-del': { if(!armed(b,'Tap again to delete')) break; await delWorkout(b.dataset.id); render(); toast('Workout deleted'); break; }
+    case 'hist-del': { if(!armed(b,'Tap again to delete')) break; await delWorkout(b.dataset.id); recomputePRs(); render(); toast('Workout deleted'); break; }
     case 'hist-repeat': {
       if(S.active){ toast('Finish or discard your current workout first.'); break; }
       const w=S.workouts.find(x=>x.id===b.dataset.id); if(!w) break;
@@ -2458,6 +2552,8 @@ document.addEventListener('click', async ev=>{
     case 'prog-kind': S.progKind=b.dataset.v; render(); break;
     case 'prog-view': openSheet({kind:'program', id:b.dataset.id}); break;
     case 'skill-view': openSheet({kind:'skill', id:b.dataset.id}); break;
+    case 'goal-open': openSheet({kind:'goal'}); break;
+    case 'goal-pick': { const v=+b.dataset.v; const st=Object.assign({},S.settings); if(v) st.weekGoal=v; else delete st.weekGoal; S.settings=st; putSettings(); closeSheet(); render(); break; }
     case 'howto': { const sb=document.querySelector('#sheet-root .sheet-b');
       let back=sheet; if(back&&back.kind==='howto') back=back.back; if(back&&sb) back._top=sb.scrollTop;
       openSheet({kind:'howto', id:b.dataset.id, back:back||null}); const nb=document.querySelector('#sheet-root .sheet-b'); if(nb) nb.scrollTop=0; break; }
