@@ -557,7 +557,7 @@ table.sess td{padding:8px 4px;border-bottom:1px solid var(--line);vertical-align
 const EQUIP = [
   ['Free weights', [['barbell','Barbell & plates'],['rack','Squat rack'],['bench','Bench'],['dumbbell','Dumbbells'],['kettlebell','Kettlebells'],['ezbar','EZ curl bar'],['trapbar','Trap bar'],['medball','Medicine ball']]],
   ['Machines', [['cable','Cable station'],['machine','Weight machines'],['smith','Smith machine']]],
-  ['Calisthenics', [['pullup','Pull-up bar'],['dip','Dip bars / parallettes'],['rings','Gymnastic rings'],['suspension','Suspension trainer (TRX)'],['bands','Resistance bands'],['box','Plyo box / step'],['wheel','Ab wheel'],['pole','Vertical pole / stall bars']]],
+  ['Calisthenics', [['pullup','Pull-up bar'],['dip','Dip bars / parallettes'],['rings','Gymnastic rings'],['suspension','Suspension trainer (TRX)'],['bands','Resistance bands'],['box','Plyo box / step'],['wheel','Ab wheel'],['pole','Vertical pole / stall bars'],['slant','Slant board']]],
   ['Cardio', [['treadmill','Treadmill'],['rower','Rowing machine'],['bike','Exercise bike'],['elliptical','Cross trainer'],['stairs','Stair climber'],['skierg','SkiErg'],['rope','Jump rope']]]
 ];
 const EQ_ALL = EQUIP.flatMap(g=>g[1].map(x=>x[0]));
@@ -640,6 +640,9 @@ const LIB_RAW = [
  ['hip-thrust','Barbell Hip Thrust','Legs','glute','barbell,bench'],['db-hip-thrust','Dumbbell Hip Thrust','Legs','glute','dumbbell,bench'],['hip-thrust-machine','Hip Thrust Machine','Legs','glute','machine'],
  ['cable-kickback','Cable Glute Kickback','Legs','glute','cable'],['hip-abduction','Hip Abduction Machine','Legs','glute','machine'],['band-walk','Banded Lateral Walk','Legs','glute','bands'],
  ['glute-bridge','Glute Bridge','Legs','glute','','s',1],['sl-glute-bridge','Single-Leg Glute Bridge','Legs','glute','','s',2],
+ ['slant-squat','Slant Board Squat','Legs','squat','slant','s',2],['slant-goblet','Slant Board Goblet Squat','Legs','squat','slant,dumbbell|kettlebell'],['atg-split','ATG Split Squat','Legs','lunge','','s',3],
+ ['poliquin-step','Poliquin Step-up','Legs','kneeext','slant|box','s',1],['patrick-step','Patrick Step','Legs','kneeext','box|bench|slant','s',2],['tib-raise','Tibialis Raise','Legs','tib','','s',1],['soleus-raise','Seated Soleus Raise','Legs','calf','','s',1],
+ ['jefferson-curl','Jefferson Curl','Legs','hinge','dumbbell|kettlebell|barbell'],['elephant-walk','Elephant Walk','Legs','hinge','','s',1],['couch-stretch','Couch Stretch','Legs','prep','','h',1],['backward-walk','Backward Treadmill Walk','Cardio','cardio','treadmill','c'],
  ['box-jump','Box Jump','Legs','plyo','box','s',2],['broad-jump','Broad Jump','Legs','plyo','','s',2],
  // Core
  ['plank','Plank','Core','antiext','','h',1],['side-plank','Side Plank','Core','antiext','','h',1],['dead-bug','Dead Bug','Core','antiext','','s',1],['hollow','Hollow Body Hold','Core','antiext','','h',2],
@@ -673,7 +676,7 @@ const LIB = LIB_RAW.map(([id,name,group,pattern,needs,t,lvl])=>{
 });
 /* closest stand-ins when nothing with the same movement fits your kit */
 const RELATED = {triceps:['dip'], biceps:['vpull'], fly:['hpush'], latraise:['vpush'], reardelt:['hpull'], kneeext:['squat','lunge'], kneeflex:['hinge','glute'],
-  glute:['hinge','lunge'], shrug:['hang','carry'], forearm:['hang'], calf:['plyo'], dip:['hpush','triceps'], vpush:['handstand'], carry:['hang'], power:['plyo','conditioning'], backext:['hinge'], flag:['antiext']};
+  glute:['hinge','lunge'], shrug:['hang','carry'], forearm:['hang'], calf:['plyo','tib'], tib:['calf'], dip:['hpush','triceps'], vpush:['handstand'], carry:['hang'], power:['plyo','conditioning'], backext:['hinge'], flag:['antiext']};
 const GROUPS = ['Chest','Shoulders','Back','Arms','Legs','Core','Full body','Cardio','Custom'];
 const LVL = ['','Beginner','Novice','Intermediate','Advanced','Expert','Elite'];
 /* ---------- sources the programmes and skills are built on ---------- */
@@ -985,6 +988,17 @@ const HOWTO = {
  'burpee':['Full body conditioning','Squat down and put your hands on the floor|Jump your feet back into a plank|Bring your feet back in|Jump up with your arms overhead','Sagging hips in the plank'],
  'bear-crawl':['Shoulders, core and coordination','On hands and feet with knees just off the floor|Move opposite hand and foot together|Keep the back flat and hips low|Small, controlled steps','Hips rising high'],
  'kick-up':['Handstand entry and balance','Lunge forward with arms overhead|Place your hands and kick the back leg up|Bring the other leg to meet it|Practise bailing safely','Kicking too hard and falling over'],
+ 'slant-squat':['Quads, knees and ankles','Stand on the slant board with your heels high, feet about hip width|Keep your chest up and let your knees travel well past your toes as you sink|Go as deep as is comfortable, building towards hamstrings on calves|Hold a door frame or rail for balance at first, then stand back up','Rushing depth. Start shallow with a support and add range over weeks'],
+ 'slant-goblet':['Quads, knees and ankles','Stand on the slant board, heels high, holding a dumbbell or kettlebell at your chest|Sink straight down with an upright torso, knees well past your toes|Go as deep as you can control|Drive up through the whole foot','Leaning forward so the weight pulls you off balance'],
+ 'atg-split':['Quads, glutes and hip flexors','Take a long stride, front foot flat; hold a support or raise the front foot to make it easier|Drive your front knee forward past your toes until your hamstring covers your calf|Let the back leg stay fairly straight to stretch the hip flexor|Push back up through the whole front foot','Front heel lifting. Keep it down and go only as deep as it allows'],
+ 'poliquin-step':['Quads (inner quad) and knees','Stand on one leg on a slant board or low step, heel raised, other foot hanging free|Slowly bend the standing knee forward over your toes|Lower until the free heel taps the floor|Straighten the knee fully at the top','Letting the knee cave inwards. Keep it tracking over your toes'],
+ 'patrick-step':['Quads (inner quad) and knees','Stand side-on at the edge of a low step on one leg|Rise onto the ball of the standing foot and drive that knee forward over the toes|Lower until the heel of the free leg taps the floor in front|Return to tall and repeat','Sitting the hips back instead of moving the knee forward'],
+ 'tib-raise':['Tibialis (front of the shins)','Lean your back against a wall with your heels about a foot out|Keep your legs straight and lift your toes as high as you can|Lower slowly under control|Walk your feet further out to make it harder','Bending the knees or cutting the range short'],
+ 'soleus-raise':['Soleus (lower calf) and Achilles','Sit with knees bent at 90°, balls of your feet on a plate or step|Rest a weight on your knees once bodyweight is easy|Raise your heels as high as you can and pause|Lower all the way down slowly','Bouncing through the bottom'],
+ 'jefferson-curl':['Hamstrings and spine mobility','Stand on a box or step holding a light weight, legs straight|Tuck your chin and roll down one vertebra at a time|Let the weight go below the step as far as is comfortable|Roll back up slowly from the bottom of the spine','Going heavy too soon. Start with a very light weight'],
+ 'elephant-walk':['Hamstrings and calves','Fold forward and put your palms on the floor, bending your knees as needed|Straighten one knee while the other bends|Alternate sides slowly, like walking on the spot|Keep your palms down throughout','Forcing the straight leg. Ease into the stretch'],
+ 'couch-stretch':['Hip flexors and quads','Kneel with your back knee on a cushion against a wall or sofa, shin up the wall|Put your front foot flat in front of you|Squeeze the glute of the back leg and stay tall|Hold, then switch sides','Arching the lower back instead of squeezing the glute'],
+ 'backward-walk':['Knees and quads, low-impact conditioning','Set the treadmill slow and hold the rails|Walk backwards on the balls of your feet, pushing through your toes|Let your knees bend a little with each step|Build speed or incline gradually','Going too fast before you are used to it'],
  'ring-fly':['Chest and shoulder stabilisers','Hold the rings, lean forward in a plank|Let the arms open wide with a slight bend in the elbows|Go only as far as you can control|Squeeze the rings back together','Going so wide you lose control']
 };
 
@@ -1391,6 +1405,8 @@ function recomputePRs(){
 /* tips show until you hide them; reference text folds away behind a link */
 function tip(key, text){ if((S.settings.tips||{})[key]) return ''; return `<div class="tip"><span>${text}</span><button type="button" class="tip-x" data-act="tip-hide" data-k="${esc(key)}" aria-label="Hide this tip">${ICON.x}</button></div>`; }
 function more(label, inner){ return `<details class="more"><summary>${ICON.info}<span>${label}</span></summary><div class="more-b">${inner}</div></details>`; }
+/* Knees Over Toes exercises: searchable by the method's name */
+const KOT=new Set(['slant-squat','slant-goblet','atg-split','poliquin-step','patrick-step','tib-raise','soleus-raise','jefferson-curl','elephant-walk','couch-stretch','backward-walk','nordic','reverse-nordic','sissy']);
 function vStart(){
   const now=Date.now(), ws=weekStart(now);
   const days=[0,1,2,3,4,5,6].map(i=>{ const s=ws+i*864e5, e=s+864e5; const on=S.workouts.some(w=>w.startedAt>=s&&w.startedAt<e);
@@ -1964,7 +1980,7 @@ function sheetPicker(){
   const eq=myEq();
   const groups=GROUPS.map(g=>{ const items=allEx().filter(e=>(e.group||'Custom')===g); if(!items.length) return '';
     return `<div class="grp" data-g="${g}">${g}</div>`+items.map(e=>{ const ok=canDo(e,eq);
-      return `<button type="button" data-act="pick" data-id="${esc(e.id)}" data-name="${esc(e.name.toLowerCase())}" data-g="${esc(e.group||'Custom')}" data-cali="${e.cali?1:0}" data-ok="${ok?1:0}" class="${ok?'':'na'}">
+      return `<button type="button" data-act="pick" data-id="${esc(e.id)}" data-name="${esc(e.name.toLowerCase())}${KOT.has(e.id)?' knees over toes kot':''}" data-g="${esc(e.group||'Custom')}" data-cali="${e.cali?1:0}" data-ok="${ok?1:0}" class="${ok?'':'na'}">
         <span class="pk-main"><span>${esc(e.name)}</span><small>${ok?esc(e.type==='hold'?'Timed hold':needsText(e)):'Needs '+esc(missing(e).join(', '))}</small></span>${lvlTag(e)}</button>`; }).join(''); }).join('');
   const chips=['All','Calisthenics',...GROUPS].filter(g=>g!=='Custom'||S.custom.length).map(g=>`<button type="button" class="fchip" data-act="pick-filter" data-v="${g}" aria-pressed="${(sheet.filter||'All')===g}">${g}</button>`).join('');
   return `<div class="field"><label class="label" for="pick-q">Search</label><input id="pick-q" type="search" placeholder="e.g. squat, row, pistol, treadmill" autocomplete="off"></div>
