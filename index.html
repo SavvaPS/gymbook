@@ -507,6 +507,16 @@ a.btn svg{width:18px;height:18px}
 .callout .more summary{color:var(--warn)}
 .callout .more-b{color:var(--ink);padding-top:0}
 .wk-btns.pinned{position:sticky;bottom:calc(74px + env(safe-area-inset-bottom,0px));z-index:5;margin-top:8px;padding:8px;border-radius:16px;background:var(--surface);border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.14)}
+.rt{display:flex;flex-direction:column;gap:4px;padding-block:12px}
+.rt-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.rt-tg{align-items:center;min-width:0;flex:1}
+.rt-tg svg{margin-top:0}
+.rt-name{font-family:var(--f-display);font-weight:700;font-size:21px;line-height:1.15;text-transform:uppercase;letter-spacing:.02em;overflow-wrap:break-word;min-width:0}
+.rt-meta{font-size:13px;margin-left:26px}
+.rt .src-tag{margin-left:26px}
+.rt .btn.small{flex:none;gap:4px}
+.rt .btn.small svg{width:14px;height:14px}
+.rt ol{margin:8px 0 10px 26px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top,0px));bottom:auto;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
 table.sess{width:100%;border-collapse:collapse;font-size:14px}
 table.sess th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
@@ -681,6 +691,7 @@ const GROUPS = ['Chest','Shoulders','Back','Arms','Legs','Core','Full body','Car
 const LVL = ['','Beginner','Novice','Intermediate','Advanced','Expert','Elite'];
 /* ---------- sources the programmes and skills are built on ---------- */
 const REF = {
+  kotA1: {t:'A1Athlete: Knees Over Toes program (full list of ATG exercises)', n:'The exercise list, ATG standards, and training in a pain-free range (no worse than about 2–3 out of 10)', u:'https://a1athlete.com/knees-over-toes-exercises/'},
   vol:  {t:'Schoenfeld, Ogborn & Krieger (2017). Dose-response relationship between weekly resistance training volume and increases in muscle mass. Journal of Sports Sciences', n:'At least 10 hard sets per muscle a week; more volume, more growth', u:'https://doi.org/10.1080/02640414.2016.1210197'},
   freq: {t:'Schoenfeld, Ogborn & Krieger (2016). Effects of resistance training frequency on measures of muscle hypertrophy. Sports Medicine', n:'Train each muscle at least twice a week', u:'https://pubmed.ncbi.nlm.nih.gov/27102172/'},
   load: {t:'Schoenfeld, Grgic, Van Every & Plotkin (2021). Loading recommendations for muscle strength, hypertrophy, and local endurance: a re-examination of the repetition continuum. Sports', n:'Heavy loads for strength; muscle grows across a wide rep range when sets are hard', u:'https://pmc.ncbi.nlm.nih.gov/articles/PMC7927075/'},
@@ -703,6 +714,12 @@ const HYPER_REFS=['vol','freq','fail','load'];
    Each exercise is [exercise id, sets, reps (or seconds for holds), {wu:true} for warm-up/prep].
    Each session is done once a week, so weekly sets per target muscle stay roughly 10–20. */
 const PROGRAMS = [
+ {id:'kot', cat:'Joints', title:'Knees Over Toes', days:3, weeks:'8–12 weeks', refs:['kotA1'],
+  blurb:'Strong, resilient knees and ankles from Knees Over Toes (ATG) exercises: backward walking, tibialis and soleus work, step-ups and full-range squats and split squats. The exercises come from the method; the session layout is GymBook\'s own.',
+  progress:'Stay in a pain-free range: no worse than about 2–3 out of 10. Earn range before load: use more slant or support, or a raised front foot, until every rep reaches full depth, then lower the support and add reps. Only then add weight (dumbbell or vest). Keep the Jefferson curl very light and build up slowly. Regress Nordics with a band or a shorter range.',
+  sessions:[
+   {name:'A', rest:60, ex:[['backward-walk',1,10],['tib-raise',3,20],['soleus-raise',3,20],['patrick-step',3,15],['poliquin-step',3,10],['slant-squat',3,15],['couch-stretch',2,45]]},
+   {name:'B', rest:75, ex:[['backward-walk',1,10],['tib-raise',3,20],['atg-split',3,8],['nordic',3,5],['jefferson-curl',2,10],['elephant-walk',2,10],['bw-calf',3,15]]}]},
  {id:'chest-strength', cat:'Strength', title:'Stronger chest', days:2, weeks:'8–12 weeks', refs:['load','fail','freq','vol'],
   blurb:'A heavy bench press twice a week, with pressing accessories for lockout and the upper chest. About 19 chest sets a week.',
   progress:'On the main lift, stop 2–3 reps short of failure and add 2.5 kg when every set hits its reps; strength gains do not depend on going to failure. Take accessories closer to failure (0–2 reps left).',
@@ -856,7 +873,7 @@ function adaptList(list){
     if(!canDo(orig)){ const vs=variationsFor(orig); const same=vs.filter(x=>x.pattern===orig.pattern); const v=same.find(x=>!used.has(x.id))||same[0]||vs.find(x=>!used.has(x.id))||vs[0];
       if(v){ use=v; used.add(v.id); swaps.push({from:orig.name,to:v.name}); } }
     const t=use.type;
-    const plan=Array.from({length:sets},()=> t==='cardio'?{min:'',km:''} : t==='hold'?{w:'',sec:String(orig.type==='hold'?amt:20)} : {w:'',r:String(orig.type==='hold'?6:amt)}).map(p=>opt&&opt.wu?Object.assign(p,{wu:true}):p);
+    const plan=Array.from({length:sets},()=> t==='cardio'?{min:orig.type==='cardio'&&amt?String(amt):'',km:''} : t==='hold'?{w:'',sec:String(orig.type==='hold'?amt:20)} : {w:'',r:String(orig.type==='hold'?6:amt)}).map(p=>opt&&opt.wu?Object.assign(p,{wu:true}):p);
     const it={exId:use.id,name:use.name,type:t,plan}; it.sets=plan.length; it.reps=planReps(it);
     it._orig=orig.id!==use.id?orig.name:null; it._amt=t==='hold'?(orig.type==='hold'?amt:20):(orig.type==='hold'?6:amt);
     return it;
@@ -1909,15 +1926,18 @@ function vPrograms(){
   ${kind==='skills'?tip('skills','Pick your stage and GymBook builds the session, then tells you when to move on.'):tip('goals','Ready-made routines, adjusted to your equipment. Add one, then edit anything.')}
   ${body}`;
 }
+if(!S.rtOpen) S.rtOpen=new Set();
 function vRoutines(){
   const rest=S.settings.rest||90;
-  const items=S.routines.map(r=>`<div class="card rt">
-      <div class="spread"><h3>${esc(r.name)}</h3><span class="muted num" style="font-size:13px">${estText(r)} · ${r.exercises.length} exercises · ${r.rest?`${fmtDur(r.rest*1000)} rest`:'default rest'}</span></div>
+  const items=S.routines.map(r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
+      <div class="rt-top"><button type="button" class="ex-toggle rt-tg" data-act="rt-fold" data-id="${esc(r.id)}" aria-expanded="${open}">${ICON.down}<span class="rt-name">${esc(r.name)}</span></button>
+        ${open?'':`<button type="button" class="btn primary small" data-act="start-routine" data-id="${esc(r.id)}">${ICON.play} Start</button>`}</div>
+      <span class="rt-meta muted num">${estText(r)} · ${r.exercises.length} exercise${r.exercises.length===1?'':'s'} · ${r.rest?`${fmtDur(r.rest*1000)} rest`:'default rest'}</span>
       ${srcTag(r)}
-      <ol>${r.exercises.map(x=>{ const ex=exById(x.exId); const bad=ex&&!canDo(ex);
+      ${open?`<ol>${r.exercises.map(x=>{ const ex=exById(x.exId); const bad=ex&&!canDo(ex);
         return `<li>${esc(x.name)} <span class="num">${esc(planSummary(x))}</span>${bad?' <span class="warn-txt">needs swap</span>':''}</li>`; }).join('')}</ol>
-      <div class="row"><button type="button" class="btn primary" data-act="start-routine" data-id="${esc(r.id)}">${ICON.play} Start</button><button type="button" class="btn" data-act="rt-edit" data-id="${esc(r.id)}">Edit</button></div>
-    </div>`).join('');
+      <div class="row"><button type="button" class="btn primary" data-act="start-routine" data-id="${esc(r.id)}">${ICON.play} Start</button><button type="button" class="btn" data-act="rt-edit" data-id="${esc(r.id)}">Edit</button></div>`:''}
+    </div>`; }).join('');
   return `<div class="section-h"><h2>Routines</h2><button type="button" class="btn ghost" data-act="rt-new">${ICON.plus} New</button></div>
   ${items || (S.loaded.r?`<div class="card empty"><h3>No routines yet</h3><p style="margin:0 0 12px">Save a workout plan like Push, Pull or Legs and start it in one tap.</p><button type="button" class="btn primary" data-act="rt-new">Create a routine</button></div>`:'')}
   ${vPrograms()}
@@ -2600,6 +2620,7 @@ document.addEventListener('click', async ev=>{
     case 'skill-view': openSheet({kind:'skill', id:b.dataset.id}); break;
     case 'theme': { const v=b.dataset.v; const st=Object.assign({},S.settings); if(v==='auto') delete st.theme; else st.theme=v; S.settings=st; putSettings(); render(); break; }
     case 'tip-hide': { const st=Object.assign({},S.settings); st.tips=Object.assign({},st.tips||{},{[b.dataset.k]:1}); S.settings=st; putSettings(); if(sheet) renderSheet(); render(); break; }
+    case 'rt-fold': { const id=b.dataset.id; if(S.rtOpen.has(id)) S.rtOpen.delete(id); else S.rtOpen.add(id); render(); break; }
     case 'goal-open': openSheet({kind:'goal'}); break;
     case 'goal-pick': { const v=+b.dataset.v; const st=Object.assign({},S.settings); if(v) st.weekGoal=v; else delete st.weekGoal; S.settings=st; putSettings(); closeSheet(); render(); break; }
     case 'howto': { const sb=document.querySelector('#sheet-root .sheet-b');
