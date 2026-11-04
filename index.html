@@ -2006,6 +2006,8 @@ function vPrograms(){
   ${body}`;
 }
 if(!S.rtOpen) S.rtOpen=new Set();
+/* keep in step with VERSION in sw.js, so you can see which version is running */
+const APP_VERSION=25;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const items=S.routines.map(r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
@@ -2046,7 +2048,8 @@ function vRoutines(){
     <div class="row"><button type="button" class="btn primary" data-act="export-json">Back up now</button><button type="button" class="btn" data-act="import">Import backup</button><button type="button" class="btn" data-act="export-csv">Spreadsheet (CSV)</button></div>
   </div>
   <div class="card spread"><div style="min-width:0"><b>Add to home screen</b><div class="muted" style="font-size:13px">${isStandalone()?'Installed. You are using GymBook as an app.':'Open GymBook like an app, full screen and offline.'}</div></div>${isStandalone()?'':`<button type="button" class="btn" data-act="install-help">How</button>`}</div>
-  <p class="note">Everything is saved on this phone and works without signal. Nothing is sent anywhere.</p>`;
+  <p class="note">Everything is saved on this phone and works without signal. Nothing is sent anywhere.</p>
+  <p class="muted num" style="margin:0;font-size:12px;text-align:center">GymBook version ${APP_VERSION}</p>`;
 }
 
 /* ---------- sheet (modal) ---------- */

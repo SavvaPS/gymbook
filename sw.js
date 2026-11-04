@@ -1,6 +1,6 @@
 /* GymBook service worker: keeps the app working with no signal.
    Bump VERSION whenever you upload changed files, so phones pick up the update. */
-const VERSION = 'gymbook-v24';
+const VERSION = 'gymbook-v25';
 const SHELL = [
   './',
   './index.html',
