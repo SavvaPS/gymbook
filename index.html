@@ -517,6 +517,13 @@ a.btn svg{width:18px;height:18px}
 .rt .btn.small{flex:none;gap:4px}
 .rt .btn.small svg{width:14px;height:14px}
 .rt ol{margin:8px 0 10px 26px}
+.cx-seg button{padding:0 4px;white-space:nowrap;min-width:0}
+.cx-bw{flex-wrap:nowrap}
+.cx-list{display:flex;flex-direction:column;gap:6px}
+.cx-row{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--sunk)}
+.cx-row small{font-size:13px}
+.cx-notes{display:flex;flex-direction:column;gap:6px;font-size:16px;line-height:1.45}
+.cx-notes p{margin:0}
 .toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top,0px));bottom:auto;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
 table.sess{width:100%;border-collapse:collapse;font-size:14px}
 table.sess th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
@@ -566,13 +573,13 @@ table.sess td{padding:8px 4px;border-bottom:1px solid var(--line);vertical-align
 /* Equipment you can own. "needs" on an exercise lists tokens; "a|b" means either one will do. */
 const EQUIP = [
   ['Free weights', [['barbell','Barbell & plates'],['rack','Squat rack'],['bench','Bench'],['dumbbell','Dumbbells'],['kettlebell','Kettlebells'],['ezbar','EZ curl bar'],['trapbar','Trap bar'],['medball','Medicine ball']]],
-  ['Machines', [['cable','Cable station'],['machine','Weight machines'],['smith','Smith machine']]],
+  ['Machines', [['cable','Cable station'],['machine','Weight machines'],['smith','Smith machine'],['sled','Sled / prowler']]],
   ['Calisthenics', [['pullup','Pull-up bar'],['dip','Dip bars / parallettes'],['rings','Gymnastic rings'],['suspension','Suspension trainer (TRX)'],['bands','Resistance bands'],['box','Plyo box / step'],['wheel','Ab wheel'],['pole','Vertical pole / stall bars'],['slant','Slant board']]],
   ['Cardio', [['treadmill','Treadmill'],['rower','Rowing machine'],['bike','Exercise bike'],['elliptical','Cross trainer'],['stairs','Stair climber'],['skierg','SkiErg'],['rope','Jump rope']]]
 ];
 const EQ_ALL = EQUIP.flatMap(g=>g[1].map(x=>x[0]));
 const EQ_NAME = Object.fromEntries(EQUIP.flatMap(g=>g[1]));
-const LOAD_EQ = new Set(['barbell','dumbbell','kettlebell','ezbar','trapbar','cable','machine','smith','medball','bands']);
+const LOAD_EQ = new Set(['sled','barbell','dumbbell','kettlebell','ezbar','trapbar','cable','machine','smith','medball','bands']);
 const PRESETS = [
   ['Full gym', EQ_ALL],
   ['Home: dumbbells', ['dumbbell','bench','pullup','bands','kettlebell']],
@@ -653,6 +660,8 @@ const LIB_RAW = [
  ['slant-squat','Slant Board Squat','Legs','squat','slant','s',2],['slant-goblet','Slant Board Goblet Squat','Legs','squat','slant,dumbbell|kettlebell'],['atg-split','ATG Split Squat','Legs','lunge','','s',3],
  ['poliquin-step','Poliquin Step-up','Legs','kneeext','slant|box','s',1],['patrick-step','Patrick Step','Legs','kneeext','box|bench|slant','s',2],['tib-raise','Tibialis Raise','Legs','tib','','s',1],['soleus-raise','Seated Soleus Raise','Legs','calf','','s',1],
  ['jefferson-curl','Jefferson Curl','Legs','hinge','dumbbell|kettlebell|barbell'],['elephant-walk','Elephant Walk','Legs','hinge','','s',1],['couch-stretch','Couch Stretch','Legs','prep','','h',1],['backward-walk','Backward Treadmill Walk','Cardio','cardio','treadmill','c'],
+ ['sled-push','Sled Push','Legs','sled','sled'],['sled-drag','Forward Sled Drag','Legs','sled','sled'],['reverse-sled','Backward Sled Drag','Legs','sled','sled'],['lateral-sled','Lateral Sled Drag','Legs','sled','sled'],
+ ['sled-rope','Sled Rope Pull','Back','hpull','sled'],['sled-row','Sled Row','Back','hpull','sled'],['sled-press','Sled Chest Press','Chest','hpush','sled'],
  ['box-jump','Box Jump','Legs','plyo','box','s',2],['broad-jump','Broad Jump','Legs','plyo','','s',2],
  // Core
  ['plank','Plank','Core','antiext','','h',1],['side-plank','Side Plank','Core','antiext','','h',1],['dead-bug','Dead Bug','Core','antiext','','s',1],['hollow','Hollow Body Hold','Core','antiext','','h',2],
@@ -686,7 +695,7 @@ const LIB = LIB_RAW.map(([id,name,group,pattern,needs,t,lvl])=>{
 });
 /* closest stand-ins when nothing with the same movement fits your kit */
 const RELATED = {triceps:['dip'], biceps:['vpull'], fly:['hpush'], latraise:['vpush'], reardelt:['hpull'], kneeext:['squat','lunge'], kneeflex:['hinge','glute'],
-  glute:['hinge','lunge'], shrug:['hang','carry'], forearm:['hang'], calf:['plyo','tib'], tib:['calf'], dip:['hpush','triceps'], vpush:['handstand'], carry:['hang'], power:['plyo','conditioning'], backext:['hinge'], flag:['antiext']};
+  glute:['hinge','lunge'], shrug:['hang','carry'], forearm:['hang'], calf:['plyo','tib'], tib:['calf'], sled:['squat','lunge','conditioning'], dip:['hpush','triceps'], vpush:['handstand'], carry:['hang'], power:['plyo','conditioning'], backext:['hinge'], flag:['antiext']};
 const GROUPS = ['Chest','Shoulders','Back','Arms','Legs','Core','Full body','Cardio','Custom'];
 const LVL = ['','Beginner','Novice','Intermediate','Advanced','Expert','Elite'];
 /* ---------- sources the programmes and skills are built on ---------- */
@@ -1005,6 +1014,13 @@ const HOWTO = {
  'burpee':['Full body conditioning','Squat down and put your hands on the floor|Jump your feet back into a plank|Bring your feet back in|Jump up with your arms overhead','Sagging hips in the plank'],
  'bear-crawl':['Shoulders, core and coordination','On hands and feet with knees just off the floor|Move opposite hand and foot together|Keep the back flat and hips low|Small, controlled steps','Hips rising high'],
  'kick-up':['Handstand entry and balance','Lunge forward with arms overhead|Place your hands and kick the back leg up|Bring the other leg to meet it|Practise bailing safely','Kicking too hard and falling over'],
+ 'sled-push':['Quads, glutes and calves, plus conditioning','Hands on the high or low handles, arms fairly straight|Lean in so your body makes a straight line at about 45°|Drive with short, powerful steps on the balls of your feet|Log the plates added as kg and each length as a rep','Standing too upright, which turns it into a push with the arms'],
+ 'sled-drag':['Glutes, hamstrings and calves','Clip a harness or straps to the sled and face away from it|Lean forward slightly and walk or march with long, strong steps|Keep the straps taut the whole way|Log the plates added as kg and each length as a rep','Letting the straps go slack so the sled jerks'],
+ 'reverse-sled':['Quads and knees (a Knees Over Toes staple)','Hold the straps facing the sled, arms straight, and walk backwards|Stay low, driving through the balls of your feet with knees travelling over toes|Take short, quick steps|Log the plates added as kg and each length as a rep','Leaning back and pulling with the arms instead of driving with the legs'],
+ 'lateral-sled':['Glutes, adductors and abductors','Stand side-on with the strap in the hand nearest the sled|Sink into a quarter squat and step sideways away from it|Keep your feet from crossing and your hips level|Do both directions; log each length as a rep','Standing up tall between steps'],
+ 'sled-rope':['Back, biceps and grip','Attach a rope to the sled and walk it out to its full length|Stand or kneel in an athletic stance facing the sled|Pull it towards you hand over hand, keeping your back flat|Log the plates added as kg and each full pull as a rep','Rounding the lower back as you pull'],
+ 'sled-row':['Upper back and biceps','Hold the straps facing the sled, arms straight|Row the straps to your ribs while stepping backwards|Squeeze your shoulder blades together on every row|Log the plates added as kg and each length as a rep','Turning it into a drag with straight arms'],
+ 'sled-press':['Chest, shoulders and triceps','Face away from the sled holding the straps at chest height|Lean forward, step, and press both hands out in front|Bring the hands back to your chest and repeat with each step|Log the plates added as kg and each length as a rep','Letting the elbows drop so the shoulders take over'],
  'slant-squat':['Quads, knees and ankles','Stand on the slant board with your heels high, feet about hip width|Keep your chest up and let your knees travel well past your toes as you sink|Go as deep as is comfortable, building towards hamstrings on calves|Hold a door frame or rail for balance at first, then stand back up','Rushing depth. Start shallow with a support and add range over weeks'],
  'slant-goblet':['Quads, knees and ankles','Stand on the slant board, heels high, holding a dumbbell or kettlebell at your chest|Sink straight down with an upright torso, knees well past your toes|Go as deep as you can control|Drive up through the whole foot','Leaning forward so the weight pulls you off balance'],
  'atg-split':['Quads, glutes and hip flexors','Take a long stride, front foot flat; hold a support or raise the front foot to make it easier|Drive your front knee forward past your toes until your hamstring covers your calf|Let the back leg stay fairly straight to stretch the hip flexor|Push back up through the whole front foot','Front heel lifting. Keep it down and go only as deep as it allows'],
@@ -1020,7 +1036,7 @@ const HOWTO = {
 };
 
 SKILLS.forEach(sk=>sk.stages.forEach(st=>{ st.sk=sk.id; }));
-function howBtn(id, name){ return HOWTO[id]?`<button type="button" class="how-i" data-act="howto" data-id="${esc(id)}" aria-label="How to do ${esc(name||'')}">${ICON.info}</button>`:''; }
+function howBtn(id, name){ return hasHow(id)?`<button type="button" class="how-i" data-act="howto" data-id="${esc(id)}" aria-label="How to do ${esc(name||'')}">${ICON.info}</button>`:''; }
 /* nearest easier and harder bodyweight versions of the same movement */
 function howLadder(ex){
   if(!ex||ex.pattern==='prep'||!ex.lvl) return {};
@@ -1030,6 +1046,7 @@ function howLadder(ex){
   return {lo,hi};
 }
 function sheetHowto(ex){
+  if(ex&&isCustomId(ex.id)) return sheetHowtoCustom(ex);
   const h=ex&&HOWTO[ex.id]; if(!h) return '<p class="muted">No notes for this exercise yet.</p>';
   const [works,cues,mistake]=h; const {lo,hi}=howLadder(ex);
   const step=(x,l)=>x?`<button type="button" class="how-step" data-act="howto" data-id="${esc(x.id)}"><small>${l}</small><b>${esc(x.name)}</b></button>`:'';
@@ -1423,7 +1440,63 @@ function recomputePRs(){
 function tip(key, text){ if((S.settings.tips||{})[key]) return ''; return `<div class="tip"><span>${text}</span><button type="button" class="tip-x" data-act="tip-hide" data-k="${esc(key)}" aria-label="Hide this tip">${ICON.x}</button></div>`; }
 function more(label, inner){ return `<details class="more"><summary>${ICON.info}<span>${label}</span></summary><div class="more-b">${inner}</div></details>`; }
 /* Knees Over Toes exercises: searchable by the method's name */
-const KOT=new Set(['slant-squat','slant-goblet','atg-split','poliquin-step','patrick-step','tib-raise','soleus-raise','jefferson-curl','elephant-walk','couch-stretch','backward-walk','nordic','reverse-nordic','sissy']);
+const KOT=new Set(['reverse-sled','sled-push','slant-squat','slant-goblet','atg-split','poliquin-step','patrick-step','tib-raise','soleus-raise','jefferson-curl','elephant-walk','couch-stretch','backward-walk','nordic','reverse-nordic','sissy']);
+
+/* ---------- your own exercises: create, edit, delete, with your own form notes ---------- */
+const isCustomId=id=>String(id||'').startsWith('c-');
+function hasHow(id){ return !!HOWTO[id] || isCustomId(id); }
+const CX_GROUPS=['Chest','Shoulders','Back','Arms','Legs','Core','Full body'];
+const CX_TYPES=[['strength','Weight × reps'],['hold','Timed hold'],['cardio','Cardio']];
+function cxRead(){ const g=id=>document.getElementById(id); if(!sheet||sheet.kind!=='cx') return;
+  if(g('cx-name')) sheet.name=g('cx-name').value; if(g('cx-group')) sheet.group=g('cx-group').value; if(g('cx-bw')) sheet.bw=g('cx-bw').checked; if(g('cx-note')) sheet.note=g('cx-note').value; }
+function sheetCx(){
+  const t=sheet.type||'strength', edit=!!sheet.id;
+  const used=edit && (S.workouts.some(w=>(w.exercises||[]).some(e=>e.exId===sheet.id)) || S.routines.some(r=>r.exercises.some(x=>x.exId===sheet.id)) || !!(S.active&&S.active.exercises.some(e=>e.exId===sheet.id)));
+  return `<div class="field"><label class="label" for="cx-name">Name</label><input id="cx-name" value="${esc(sheet.name||'')}" placeholder="e.g. Landmine press" autocomplete="off"></div>
+  <div class="field"><span class="label">How you log it</span>
+    ${edit&&used?`<p style="margin:0;font-weight:600">${esc((CX_TYPES.find(x=>x[0]===t)||[])[1]||'')}</p><small class="muted">Can't be changed once it has been logged or used in a routine.</small>`
+    :`<div class="seg seg-wide cx-seg" role="group" aria-label="How you log it">${CX_TYPES.map(([v,l])=>`<button type="button" data-act="cx-type" data-v="${v}" aria-pressed="${t===v}">${l}</button>`).join('')}</div>`}</div>
+  ${t==='cardio'?'':`<div class="field"><label class="label" for="cx-group">Muscle group</label><select id="cx-group">${CX_GROUPS.map(g=>`<option ${(sheet.group||'Legs')===g?'selected':''}>${g}</option>`).join('')}</select></div>
+  <div class="card spread cx-bw" style="padding:10px 12px"><div style="min-width:0"><b>Bodyweight exercise</b><div class="muted" style="font-size:13px">Log added kg only, with the weighted vest option</div></div>
+    <label class="switch"><input type="checkbox" id="cx-bw" ${sheet.bw?'checked':''}><span class="sr">Bodyweight exercise</span></label></div>`}
+  <div class="field"><label class="label" for="cx-note">Your form notes <span class="muted" style="text-transform:none;letter-spacing:0">(optional)</span></label><textarea id="cx-note" rows="4" placeholder="e.g. Seat on 4, elbows tucked, 2 s down">${esc(sheet.note||'')}</textarea></div>
+  <button type="button" class="btn primary big block" data-act="cx-save">${edit?'Save changes':(sheet.back&&sheet.back.kind==='picker'?'Create and add':'Create exercise')}</button>
+  ${sheet.back?`<button type="button" class="btn ghost block" data-act="how-back">Back</button>`:''}
+  ${edit?`<button type="button" class="btn danger block" data-act="cx-del">Delete exercise</button><p class="muted" style="margin:0;font-size:13px;text-align:center">Past workouts keep their sets if you delete it.</p>`:''}`;
+}
+function sheetCxList(){
+  const list=[...S.custom].sort((a,b)=>a.name.localeCompare(b.name));
+  return `${list.length?`<div class="cx-list">${list.map(x=>`<button type="button" class="cx-row" data-act="cx-edit" data-id="${esc(x.id)}"><b>${esc(x.name)}</b><small class="muted">${esc(x.type==='cardio'?'Cardio':(x.group&&x.group!=='Custom'?x.group:'No group'))} · ${esc((CX_TYPES.find(t=>t[0]===x.type)||[])[1]||'')}${x.bw?' · bodyweight':''}</small></button>`).join('')}</div>`
+    :'<p class="note">No exercises of your own yet. Add one here, or search for it in Add exercise and choose Create.</p>'}
+  <button type="button" class="btn block" data-act="cx-new">${ICON.plus} New exercise</button>`;
+}
+function sheetHowtoCustom(ex){
+  const notes=(ex.note||'').trim();
+  return `<p class="how-works"><span class="label">Your exercise</span>${esc(ex.type==='cardio'?'Cardio':(ex.group&&ex.group!=='Custom'?ex.group:'No muscle group'))}${ex.bw?' · bodyweight':''}</p>
+  ${notes?`<div class="cx-notes">${notes.split(/\n+/).map(l=>`<p>${esc(l)}</p>`).join('')}</div>`:'<p class="muted" style="margin:0">No form notes yet. Add your own cues so they show here.</p>'}
+  <button type="button" class="btn block" data-act="cx-edit" data-id="${esc(ex.id)}">${notes?'Edit exercise':'Add notes'}</button>
+  <a class="btn block" href="https://www.youtube.com/results?search_query=${encodeURIComponent(ex.name+' tutorial')}" target="_blank" rel="noopener">${ICON.play}<span>Find a video</span></a>
+  ${sheet&&sheet.back?`<button type="button" class="btn ghost block" data-act="how-back">Back</button>`:''}`;
+}
+async function cxSave(){
+  cxRead(); const name=(sheet.name||'').trim(); if(!name){ toast('Give the exercise a name.'); document.getElementById('cx-name')?.focus(); return; }
+  const t=sheet.type||'strength'; const fields={name, type:t, group:t==='cardio'?'Cardio':(sheet.group||'Legs'), bw:t!=='cardio'&&!!sheet.bw, note:(sheet.note||'').trim()};
+  if(sheet.id){
+    const ex=S.custom.find(x=>x.id===sheet.id); if(!ex) return;
+    const renamed=ex.name!==name; S.custom=S.custom.map(x=>x.id===ex.id?Object.assign({},x,fields):x); putCustom();
+    if(renamed){
+      for(const r of S.routines){ if(r.exercises.some(x=>x.exId===ex.id)){ r.exercises.forEach(x=>{ if(x.exId===ex.id) x.name=name; }); putRoutine(r); } }
+      for(const w of S.workouts){ if((w.exercises||[]).some(e=>e.exId===ex.id)){ w.exercises.forEach(e=>{ if(e.exId===ex.id) e.name=name; }); const {id,...body}=w; queueWrite('workouts/'+id, body); } }
+      if(S.active){ S.active.exercises.forEach(e=>{ if(e.exId===ex.id) e.name=name; }); saveActive(); }
+    }
+    const back=sheet.back; if(back){ openSheet(back); } else closeSheet(); render(); return;
+  }
+  const ex=Object.assign({id:'c-'+uid(), needs:[], pattern:''}, fields);
+  S.custom.push(ex); putCustom();
+  const back=sheet.back;
+  if(back&&back.kind==='picker'){ sheet=back; applyPicked(ex); return; }
+  if(back) openSheet(back); else closeSheet(); render();
+}
 function vStart(){
   const now=Date.now(), ws=weekStart(now);
   const days=[0,1,2,3,4,5,6].map(i=>{ const s=ws+i*864e5, e=s+864e5; const on=S.workouts.some(w=>w.startedAt>=s&&w.startedAt<e);
@@ -1619,7 +1692,7 @@ function vExercise(e,i,ssi,total){
     ${ssi?`<div class="ss-tag">Superset ${ssi.L} · ${ssi.pos} of ${ssi.size} · ${ssi.nextSame?'straight on to the next':'rest after this one'}</div>`:''}
     <header>
       <div style="min-width:0"><button type="button" class="ex-toggle" data-act="ex-toggle" aria-expanded="${!e.collapsed}" aria-label="${e.collapsed?'Expand':'Collapse'} ${esc(e.name)}">${ICON.down}<span class="ex-name">${esc(e.name)}</span></button>
-      ${e.collapsed?`<p class="ex-sum num ${e.type!=='cardio'&&workN&&doneN===workN?'all-done':''}">${e.type!=='cardio'&&workN&&doneN===workN?ICON.check:''}${e.type==='cardio'?`${e.sets.length} entr${e.sets.length===1?'y':'ies'}`:`${doneN} of ${workN} sets done`}${e.sets.some(x=>x.wu)?` · ${e.sets.filter(x=>x.wu).length} warm-up`:''}</p>`:`<p class="last">${prev?`Last (${shortDate(prev.w.startedAt)}): ${esc(setsSummary(prev.e))}`:'First time logging this'}</p>${HOWTO[e.exId]?`<button type="button" class="how-link" data-act="howto" data-id="${esc(e.exId)}">${ICON.info}How to do it</button>`:''}
+      ${e.collapsed?`<p class="ex-sum num ${e.type!=='cardio'&&workN&&doneN===workN?'all-done':''}">${e.type!=='cardio'&&workN&&doneN===workN?ICON.check:''}${e.type==='cardio'?`${e.sets.length} entr${e.sets.length===1?'y':'ies'}`:`${doneN} of ${workN} sets done`}${e.sets.some(x=>x.wu)?` · ${e.sets.filter(x=>x.wu).length} warm-up`:''}</p>`:`<p class="last">${prev?`Last (${shortDate(prev.w.startedAt)}): ${esc(setsSummary(prev.e))}`:'First time logging this'}</p>${hasHow(e.exId)?`<button type="button" class="how-link" data-act="howto" data-id="${esc(e.exId)}">${ICON.info}How to do it</button>`:''}
       ${prev&&prev.e.note?`<p class="last"><i>Note: ${esc(prev.e.note)}</i></p>`:''}`}</div>
       <div class="row" style="flex-wrap:nowrap;gap:0">
         ${ex&&ex.pattern?`<button type="button" class="icon-btn" data-act="ex-swap" aria-label="Swap ${esc(e.name)} for a variation">${ICON.swap}</button>`:''}
@@ -1947,6 +2020,10 @@ function vRoutines(){
     <button type="button" class="btn" data-act="equip-open">Edit</button>
   </div>
   <div class="card spread">
+    <div style="min-width:0"><b>My exercises</b><div class="muted" style="font-size:13px">${S.custom.length?`${S.custom.length} of your own`:'Add exercises that aren\'t in the library'}</div></div>
+    <button type="button" class="btn" data-act="cx-list">${S.custom.length?'Manage':'Add'}</button>
+  </div>
+  <div class="card spread">
     <div><b>Default rest</b><div class="muted" style="font-size:13px">Starts when you tick a set</div></div>
     <div class="stepper"><button type="button" data-act="rest-def" data-d="-15" aria-label="Less rest">−</button><span class="num" id="rest-def">${fmtDur(rest*1000)}</span><button type="button" data-act="rest-def" data-d="15" aria-label="More rest">+</button></div>
   </div>
@@ -1982,6 +2059,8 @@ function renderSheet(){
   if(sheet.kind==='skill'){ const sk=SKILLS.find(x=>x.id===sheet.id); title=sk?sk.title:'Skill'; body=sheetSkill(sk); }
   if(sheet.kind==='howto'){ const ex=exById(sheet.id); title=ex?ex.name:'How to'; body=sheetHowto(ex); }
   if(sheet.kind==='goal'){ title='Weekly goal'; body=sheetGoal(); }
+  if(sheet.kind==='cx'){ title=sheet.id?'Edit exercise':'New exercise'; body=sheetCx(); }
+  if(sheet.kind==='cx-list'){ title='My exercises'; body=sheetCxList(); }
   if(sheet.kind==='bw-all'){ title='Bodyweight'; body=sheetBwAll(); }
   if(sheet.kind==='export'){ title='Your export'; body=sheetExport(); }
   if(sheet.kind==='install'){ title='Add to home screen'; body=sheetInstall(); }
@@ -2000,15 +2079,15 @@ function sheetPicker(){
   const eq=myEq();
   const groups=GROUPS.map(g=>{ const items=allEx().filter(e=>(e.group||'Custom')===g); if(!items.length) return '';
     return `<div class="grp" data-g="${g}">${g}</div>`+items.map(e=>{ const ok=canDo(e,eq);
-      return `<button type="button" data-act="pick" data-id="${esc(e.id)}" data-name="${esc(e.name.toLowerCase())}${KOT.has(e.id)?' knees over toes kot':''}" data-g="${esc(e.group||'Custom')}" data-cali="${e.cali?1:0}" data-ok="${ok?1:0}" class="${ok?'':'na'}">
+      return `<button type="button" data-act="pick" data-id="${esc(e.id)}" data-name="${esc(e.name.toLowerCase())}${KOT.has(e.id)?' knees over toes kot':''}" data-g="${esc(e.group||'Custom')}" data-mine="${isCustomId(e.id)?1:0}" data-cali="${e.cali?1:0}" data-ok="${ok?1:0}" class="${ok?'':'na'}">
         <span class="pk-main"><span>${esc(e.name)}</span><small>${ok?esc(e.type==='hold'?'Timed hold':needsText(e)):'Needs '+esc(missing(e).join(', '))}</small></span>${lvlTag(e)}</button>`; }).join(''); }).join('');
   const chips=['All','Calisthenics',...GROUPS].filter(g=>g!=='Custom'||S.custom.length).map(g=>`<button type="button" class="fchip" data-act="pick-filter" data-v="${g}" aria-pressed="${(sheet.filter||'All')===g}">${g}</button>`).join('');
   return `<div class="field"><label class="label" for="pick-q">Search</label><input id="pick-q" type="search" placeholder="e.g. squat, row, pistol, treadmill" autocomplete="off"></div>
   <div class="fchips" role="group" aria-label="Filter by group">${chips}</div>
   <label class="check-row"><input type="checkbox" id="pick-all" ${sheet.showAll?'checked':''}> Show exercises my equipment can't do <span class="muted num" id="pick-hidden"></span></label>
   <div id="pick-new" hidden class="card stack" style="padding:12px">
-    <div class="muted" style="font-size:14px">Not in the list? Create <b id="pick-new-name" style="color:var(--ink)"></b> as:</div>
-    <div class="row"><button type="button" class="btn" data-act="pick-create" data-type="strength">Weight × reps</button><button type="button" class="btn" data-act="pick-create" data-type="hold">Timed hold</button><button type="button" class="btn" data-act="pick-create" data-type="cardio">Cardio</button></div>
+    <div class="muted" style="font-size:14px">Not in the list? Add <b id="pick-new-name" style="color:var(--ink)"></b> as your own exercise.</div>
+    <div><button type="button" class="btn" data-act="cx-from-pick">${ICON.plus} Create exercise</button></div>
   </div>
   <div class="pick-list" id="pick-list">${groups}</div>
   <p class="note" id="pick-none" hidden>Nothing matches. Try another filter, or create it above.</p>`;
@@ -2018,7 +2097,7 @@ function filterPicker(){
   const q=(qEl.value||'').trim().toLowerCase(); const f=sheet.filter||'All'; const all=!!sheet.showAll;
   const list=document.getElementById('pick-list'); let exact=false, hidden=0, shown=0;
   list.querySelectorAll('button').forEach(b=>{
-    const inF = f==='All' || (f==='Calisthenics'? b.dataset.cali==='1' : b.dataset.g===f);
+    const inF = f==='All' || (f==='Calisthenics'? b.dataset.cali==='1' : f==='Custom'? b.dataset.mine==='1' : b.dataset.g===f);
     const inQ = !q || b.dataset.name.includes(q);
     const ok = b.dataset.ok==='1';
     if(inF&&inQ&&!ok&&!all) hidden++;
@@ -2066,7 +2145,7 @@ function sheetRoutine(){
     const bcx=barCfg(x.exId); const si=ssR[i]; return `<div class="rt-ex ${bcx&&bcx.mode!=='total'?'has-tot':''} ${coll?'collapsed':''}" data-i="${i}">
       ${si?`<div class="ss-tag">Superset ${si.L} · ${si.pos} of ${si.size}</div>`:''}
       <div class="spread" style="align-items:flex-start">
-        <div class="nm"><button type="button" class="ex-toggle" data-act="rt-toggle" aria-expanded="${!coll}" aria-label="${coll?'Expand':'Collapse'} ${esc(x.name)}">${ICON.down}<span>${esc(x.name)}</span></button>${coll?`<span class="ex-sum num">${esc(planSummary(x))}${x.plan.some(p=>p.wu)?` · ${x.plan.filter(p=>p.wu).length} warm-up`:''}</span>`:''}<div class="nm-links">${bad?`<button type="button" class="warn-link" data-act="rt-ex-swap">Needs ${esc(missing(ex).join(', '))}: swap</button>`:(ex&&ex.pattern?`<button type="button" class="swap-link" data-act="rt-ex-swap">Swap</button>`:'')}${HOWTO[x.exId]?`<button type="button" class="how-link" data-act="howto" data-id="${esc(x.exId)}">${ICON.info}How to</button>`:''}</div></div>
+        <div class="nm"><button type="button" class="ex-toggle" data-act="rt-toggle" aria-expanded="${!coll}" aria-label="${coll?'Expand':'Collapse'} ${esc(x.name)}">${ICON.down}<span>${esc(x.name)}</span></button>${coll?`<span class="ex-sum num">${esc(planSummary(x))}${x.plan.some(p=>p.wu)?` · ${x.plan.filter(p=>p.wu).length} warm-up`:''}</span>`:''}<div class="nm-links">${bad?`<button type="button" class="warn-link" data-act="rt-ex-swap">Needs ${esc(missing(ex).join(', '))}: swap</button>`:(ex&&ex.pattern?`<button type="button" class="swap-link" data-act="rt-ex-swap">Swap</button>`:'')}${hasHow(x.exId)?`<button type="button" class="how-link" data-act="howto" data-id="${esc(x.exId)}">${ICON.info}How to</button>`:''}</div></div>
         <button type="button" class="icon-btn" data-act="rt-ex-del" aria-label="Remove ${esc(x.name)}">${ICON.x}</button>
       </div>
       ${coll?'':`
@@ -2621,6 +2700,14 @@ document.addEventListener('click', async ev=>{
     case 'theme': { const v=b.dataset.v; const st=Object.assign({},S.settings); if(v==='auto') delete st.theme; else st.theme=v; S.settings=st; putSettings(); render(); break; }
     case 'tip-hide': { const st=Object.assign({},S.settings); st.tips=Object.assign({},st.tips||{},{[b.dataset.k]:1}); S.settings=st; putSettings(); if(sheet) renderSheet(); render(); break; }
     case 'rt-fold': { const id=b.dataset.id; if(S.rtOpen.has(id)) S.rtOpen.delete(id); else S.rtOpen.add(id); render(); break; }
+    case 'cx-from-pick': { const q=(document.getElementById('pick-q')?.value||'').trim(); const f=sheet.filter; sheet.q=q; openSheet({kind:'cx', name:q, type:'strength', group:CX_GROUPS.includes(f)?f:'Legs', back:sheet}); break; }
+    case 'cx-list': openSheet({kind:'cx-list'}); break;
+    case 'cx-new': openSheet({kind:'cx', name:'', type:'strength', group:'Legs', back:sheet&&sheet.kind==='cx-list'?sheet:null}); break;
+    case 'cx-edit': { const ex=S.custom.find(x=>x.id===b.dataset.id); if(!ex) break; const back=sheet&&(sheet.kind==='cx-list'||sheet.kind==='howto')?(sheet.kind==='howto'?sheet.back:sheet):null;
+      openSheet({kind:'cx', id:ex.id, name:ex.name, type:ex.type, group:CX_GROUPS.includes(ex.group)?ex.group:'Legs', bw:!!ex.bw, note:ex.note||'', back:back||(sheet&&sheet.kind==='howto'?null:null)}); break; }
+    case 'cx-type': cxRead(); sheet.type=b.dataset.v; renderSheet(); break;
+    case 'cx-save': await cxSave(); break;
+    case 'cx-del': { if(!armed(b,'Tap again to delete')) break; const id=sheet.id; S.custom=S.custom.filter(x=>x.id!==id); putCustom(); const back=sheet.back; if(back) openSheet(back); else closeSheet(); render(); toast('Exercise deleted'); break; }
     case 'goal-open': openSheet({kind:'goal'}); break;
     case 'goal-pick': { const v=+b.dataset.v; const st=Object.assign({},S.settings); if(v) st.weekGoal=v; else delete st.weekGoal; S.settings=st; putSettings(); closeSheet(); render(); break; }
     case 'howto': { const sb=document.querySelector('#sheet-root .sheet-b');
