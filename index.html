@@ -524,6 +524,12 @@ a.btn svg{width:18px;height:18px}
 .cx-row small{font-size:13px}
 .cx-notes{display:flex;flex-direction:column;gap:6px;font-size:16px;line-height:1.45}
 .cx-notes p{margin:0}
+/* keep room so the rest timer never covers the last buttons on the page */
+body.resting{padding-bottom:calc(190px + env(safe-area-inset-bottom,0px))}
+/* draw the focus ring inside text boxes, so scrolling panels can't clip its edges */
+input:not([type="checkbox"]):not([type="radio"]):focus,input:not([type="checkbox"]):not([type="radio"]):focus-visible,select:focus,select:focus-visible,textarea:focus,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.dt:focus-within{outline-offset:-2px}
+.dt input:focus,.dt input:focus-visible{outline:none}
 .toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top,0px));bottom:auto;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
 table.sess{width:100%;border-collapse:collapse;font-size:14px}
 table.sess th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
@@ -2395,8 +2401,8 @@ function estimateSec(r){
 function estText(r){ const sec=estimateSec(r); if(!sec) return ''; const m=Math.max(5,Math.round(sec/300)*5); return m>=60?`~${Math.floor(m/60)}h${m%60?` ${m%60}m`:''}`:`~${m} min`; }
 /* this workout's rest: the routine's own if it has one, else the default */
 function restFor(){ return (S.active&&S.active.rest)||S.settings.rest||90; }
-function startRest(sec){ rest={end:Date.now()+sec*1000,total:sec,beeped:false}; document.getElementById('rest').hidden=false; tick(); }
-function stopRest(){ rest=null; const el=document.getElementById('rest'); el.hidden=true; el.classList.remove('over'); }
+function startRest(sec){ rest={end:Date.now()+sec*1000,total:sec,beeped:false}; document.getElementById('rest').hidden=false; document.body.classList.add('resting'); tick(); }
+function stopRest(){ rest=null; const el=document.getElementById('rest'); el.hidden=true; el.classList.remove('over'); document.body.classList.remove('resting'); }
 function beep(){
   try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){}
   try{ if(!audioCtx) return; const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.frequency.value=880; o.connect(g); g.connect(audioCtx.destination);
