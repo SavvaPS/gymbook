@@ -537,6 +537,8 @@ input:not([type="checkbox"]):not([type="radio"]):focus,input:not([type="checkbox
 .card.spread.nowrap>.btn{flex:none}
 .pc-meta{line-height:1.35}
 @media (max-width:430px){ .pc-title{font-size:19px;overflow-wrap:normal;word-break:normal;-webkit-hyphens:auto;hyphens:auto} }
+.btn.danger-fill{background:var(--pr);border-color:var(--pr);color:#fff}
+.btn.danger-fill:disabled{opacity:.4}
 .toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top,0px));bottom:auto;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
 table.sess{width:100%;border-collapse:collapse;font-size:14px}
 table.sess th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
@@ -675,6 +677,14 @@ const LIB_RAW = [
  ['jefferson-curl','Jefferson Curl','Legs','hinge','dumbbell|kettlebell|barbell'],['elephant-walk','Elephant Walk','Legs','hinge','','s',1],['couch-stretch','Couch Stretch','Legs','prep','','h',1],['backward-walk','Backward Treadmill Walk','Cardio','cardio','treadmill','c'],
  ['sled-push','Sled Push','Legs','sled','sled'],['sled-drag','Forward Sled Drag','Legs','sled','sled'],['reverse-sled','Backward Sled Drag','Legs','sled','sled'],['lateral-sled','Lateral Sled Drag','Legs','sled','sled'],
  ['sled-rope','Sled Rope Pull','Back','hpull','sled'],['sled-row','Sled Row','Back','hpull','sled'],['sled-press','Sled Chest Press','Chest','hpush','sled'],
+ ['towel-oap','Towel-Assisted One-Arm Pull-up','Back','vpull','pullup','s',5],['oap-pull-neg','One-Arm Pull-up Negative','Back','vpull','pullup','h',5],
+ ['false-grip-hang','False-Grip Hang','Back','muscleup','rings','h',3],['false-grip-pullup','False-Grip Ring Pull-up','Back','muscleup','rings','s',4],['ring-mu-transition','Low-Ring Muscle-up Transition','Back','muscleup','rings','s',4],['band-ring-mu','Band-Assisted Ring Muscle-up','Back','muscleup','rings,bands','s',5],
+ ['wall-hspu-neg','Wall Handstand Push-up Negative','Shoulders','vpush','','s',4],
+ ['rto-support','Rings-Turned-Out Support Hold','Shoulders','cross','rings','h',3],['band-cross-pull','Band-Assisted Cross Pull','Shoulders','cross','rings,bands','s',5],['band-cross-hold','Band-Assisted Iron Cross Hold','Shoulders','cross','rings,bands','h',6],['iron-cross','Iron Cross','Shoulders','cross','rings','h',6],
+ ['tuck-dragon','Tuck Dragon Flag','Core','flexion','bench','s',3],['sl-dragon','Single-Leg Dragon Flag','Core','flexion','bench','s',4],['straddle-dragon','Straddle Dragon Flag','Core','flexion','bench','s',5],
+ ['diag-elbow-lever','Diagonal Elbow Lever','Core','elbowlever','','h',2],['bk-elbow-lever','Bent-Knee Elbow Lever','Core','elbowlever','','h',3],['straddle-elbow-lever','Straddle Elbow Lever','Core','elbowlever','','h',4],['elbow-lever','Elbow Lever','Core','elbowlever','','h',5],
+ ['band-nordic','Band-Assisted Nordic Curl','Legs','kneeflex','bands','s',3],['nordic-neg','Nordic Curl Negative','Legs','kneeflex','','s',4],
+ ['bridge','Bridge (Wheel)','Back','prep','','h',2],['pancake','Pancake Stretch','Legs','prep','','h',1],['pike-stretch','Seated Pike Stretch','Legs','prep','','h',1],['half-split','Half Split Stretch','Legs','prep','','h',1],['deep-squat-hold','Deep Squat Hold','Legs','prep','','h',1],['hip-90-90','90/90 Hip Switch','Legs','prep','','s',1],['cat-cow','Cat-Cow','Back','prep','','s',1],
  ['box-jump','Box Jump','Legs','plyo','box','s',2],['broad-jump','Broad Jump','Legs','plyo','','s',2],
  // Core
  ['plank','Plank','Core','antiext','','h',1],['side-plank','Side Plank','Core','antiext','','h',1],['dead-bug','Dead Bug','Core','antiext','','s',1],['hollow','Hollow Body Hold','Core','antiext','','h',2],
@@ -708,11 +718,20 @@ const LIB = LIB_RAW.map(([id,name,group,pattern,needs,t,lvl])=>{
 });
 /* closest stand-ins when nothing with the same movement fits your kit */
 const RELATED = {triceps:['dip'], biceps:['vpull'], fly:['hpush'], latraise:['vpush'], reardelt:['hpull'], kneeext:['squat','lunge'], kneeflex:['hinge','glute'],
-  glute:['hinge','lunge'], shrug:['hang','carry'], forearm:['hang'], calf:['plyo','tib'], tib:['calf'], sled:['squat','lunge','conditioning'], dip:['hpush','triceps'], vpush:['handstand'], carry:['hang'], power:['plyo','conditioning'], backext:['hinge'], flag:['antiext']};
+  glute:['hinge','lunge'], shrug:['hang','carry'], forearm:['hang'], calf:['plyo','tib'], tib:['calf'], sled:['squat','lunge','conditioning'], elbowlever:['antiext','lsit'], cross:['dip','lever'], dip:['hpush','triceps'], vpush:['handstand'], carry:['hang'], power:['plyo','conditioning'], backext:['hinge'], flag:['antiext']};
 const GROUPS = ['Chest','Shoulders','Back','Arms','Legs','Core','Full body','Cardio','Custom'];
 const LVL = ['','Beginner','Novice','Intermediate','Advanced','Expert','Elite'];
 /* ---------- sources the programmes and skills are built on ---------- */
 const REF = {
+  bocPu: {t:'FreeGym: Pull-up progression, from beginner to advanced', n:'Active hang, scapular shrugs, negatives, band-assisted, then pull-ups; 3 × 8 banded before moving on, 3 × 10 as the benchmark', u:'https://bibleofcalisthenics.substack.com/p/pull-up-progression-from-beginner'},
+  bocHspu: {t:'FreeGym: Wall handstand push-up progression', n:'Pike, elevated pike, wall walks, wall holds (30–45 s), then 3 × 5–8 wall handstand push-ups', u:'https://bibleofcalisthenics.substack.com/p/wall-handstand-push-up-progression'},
+  fvOapu: {t:'FitnessVolt: One-arm pull-up progression', n:'12 strict pull-ups, archers (5 each side), towel-assisted (3 each side), 10 s negatives, then the one-arm pull-up', u:'https://fitnessvolt.com/calisthenics/one-arm-pull-up/'},
+  cwDf: {t:'Calisthenics World: Dragon flag', n:'60 s hollow hold first; tuck to full; move on at 5 reps, train 2–3 times a week', u:'https://calisthenicsworld.org/best-calisthenics-core-exercise-dragon-flag/'},
+  hcEl: {t:'Hybrid Calisthenics: Elbow lever progressions', n:'Diagonal (30 s), bent-knee (9 s), straddle (9 s), then full elbow lever (30 s)', u:'https://hybridcalisthenics.com/elbowlevers'},
+  wkNhc: {t:'Wikipedia: Nordic hamstring curl', n:'Reduces hamstring injuries; scale with bands, raised pads or a partner', u:'https://en.wikipedia.org/wiki/Nordic_hamstring_curl'},
+  cfRmu: {t:'CrossFit: Ring training part 3, building toward the muscle-up', n:'About 5 strict pull-ups and 5 dips first; false grip, deep ring dips, low-ring transitions, banded muscle-ups', u:'https://www.crossfit.com/essentials/crossfit-ring-training-part-3'},
+  slCross: {t:'Steven Low (2007). Developing the iron cross. The Performance Menu', n:'Assisted cross work with locked elbows, 9–12 months, rest at the first sign of lingering pain', u:'https://performancemenu.com/article/403/Steven-Low'},
+  acsmFlex: {t:'ACSM: Stretching and flexibility guidelines update', n:'Stretch at least 2–3 days a week (daily is best), holding 10–30 s; 30–60 s for older adults', u:'https://www.acsm.org/blog-detail/acsm-certified-blog/2021/03/18/stretching-and-flexibility-guidelines-update'},
   kotA1: {t:'A1Athlete: Knees Over Toes program (full list of ATG exercises)', n:'The exercise list, ATG standards, and training in a pain-free range (no worse than about 2–3 out of 10)', u:'https://a1athlete.com/knees-over-toes-exercises/'},
   vol:  {t:'Schoenfeld, Ogborn & Krieger (2017). Dose-response relationship between weekly resistance training volume and increases in muscle mass. Journal of Sports Sciences', n:'At least 10 hard sets per muscle a week; more volume, more growth', u:'https://doi.org/10.1080/02640414.2016.1210197'},
   freq: {t:'Schoenfeld, Ogborn & Krieger (2016). Effects of resistance training frequency on measures of muscle hypertrophy. Sports Medicine', n:'Train each muscle at least twice a week', u:'https://pubmed.ncbi.nlm.nih.gov/27102172/'},
@@ -800,7 +819,36 @@ const PROGRAMS = [
   progress:'Work in 3 sets of 5–8. When you hit 8 on every set, move to the harder variation (or add a little weight with a vest).',
   sessions:[
    {name:'Full body', rest:90, ex:[['band-dislocate',1,10,{wu:true}],['wrist-prep',1,10,{wu:true}],['support-hold',1,30,{wu:true}],
-     ['pullup',3,6],['assisted-pistol',3,6],['dips',3,8],['sl-rdl',3,8],['inverted-row',3,8],['pushup',3,8],['plank',3,30]]}]}
+     ['pullup',3,6],['assisted-pistol',3,6],['dips',3,8],['sl-rdl',3,8],['inverted-row',3,8],['pushup',3,8],['plank',3,30]]}]},
+ {id:'bw-beginner', cat:'Calisthenics', title:'Beginner bodyweight', days:3, weeks:'8–12 weeks', refs:['rr','freq','vol'],
+  blurb:'For home with no equipment at all: two full-body sessions to alternate, three days a week. Builds the base for push-ups, squats and core strength.',
+  progress:'Work in 3 sets of 8–12. When every set reaches 12, move to the harder version: knee to full push-ups, lunges to split squats, longer plank holds.',
+  sessions:[
+   {name:'A', rest:75, ex:[['wrist-prep',1,10,{wu:true}],['cat-cow',1,10,{wu:true}],['air-squat',3,12],['knee-pushup',3,10],['prone-ytw',3,10],['glute-bridge',3,12],['plank',3,30]]},
+   {name:'B', rest:75, ex:[['wrist-prep',1,10,{wu:true}],['hip-90-90',1,10,{wu:true}],['bw-lunge',3,10],['incline-pushup',3,10],['superman',3,12],['side-plank',3,25],['hollow',3,20]]}]},
+ {id:'bar-only', cat:'Calisthenics', title:'Pull-up bar only', days:3, weeks:'8–12 weeks', refs:['rr','freq','vol'],
+  blurb:'For a park bar or a doorway bar: pulling on the bar, pushing and legs on the floor. Two sessions to alternate, three days a week.',
+  progress:'Work in 3 sets of 5–8 on the bar and 8–15 on the floor. When you hit the top of the range on every set, move to the harder variation or add a vest.',
+  sessions:[
+   {name:'A', rest:90, ex:[['band-dislocate',1,10,{wu:true}],['scap-pull',1,8,{wu:true}],['pullup',4,6],['pike-pushup',3,8],['assisted-pistol',3,6],['pushup',3,12],['hanging-knee',3,10]]},
+   {name:'B', rest:90, ex:[['band-dislocate',1,10,{wu:true}],['active-hang',1,20,{wu:true}],['chinup',4,6],['diamond-pushup',3,10],['bw-lunge',3,12],['wide-pullup',3,5],['hanging-leg',3,8]]}]},
+ {id:'rings', cat:'Calisthenics', title:'Rings routine', days:3, weeks:'8–12 weeks', refs:['rr','freq','vol'],
+  blurb:'For people with gymnastic rings: rows, pull-ups, dips and push-ups on unstable rings for extra shoulder control, plus skin the cat for mobility.',
+  progress:'Work in 3 sets of 5–8. Make it harder by lowering the rings for rows, turning the rings out at the top of dips and push-ups, or adding a vest.',
+  sessions:[
+   {name:'A', rest:90, ex:[['band-dislocate',1,10,{wu:true}],['support-hold',1,20,{wu:true}],['ring-pullup',4,6],['ring-dip',4,6],['ring-row',3,10],['ring-curl',3,10],['tuck-lsit',3,15]]},
+   {name:'B', rest:90, ex:[['band-dislocate',1,10,{wu:true}],['skin-cat',1,3,{wu:true}],['ring-row',4,8],['ring-pushup',4,8],['false-grip-hang',3,20],['ring-tri-ext',3,10],['hollow',3,30]]}]},
+ {id:'mobility', cat:'Mobility', title:'Mobility and flexibility', days:3, weeks:'Ongoing', refs:['acsmFlex'],
+  blurb:'Hips, hamstrings, shoulders and spine: the ranges that squats, splits, bridges and handstands rely on. One session to repeat; daily is fine.',
+  progress:'Hold each stretch for 30 s at first, building to 60 s, and breathe into it. Stretch at least 2–3 days a week; more often works better. Never force a stretch into pain.',
+  sessions:[
+   {name:'Full body', rest:30, ex:[['cat-cow',1,10],['hip-90-90',2,10],['deep-squat-hold',2,45],['couch-stretch',2,45],['half-split',2,30],['pike-stretch',2,45],['pancake',2,45],['band-dislocate',2,10],['bridge',3,20]]}]},
+ {id:'street', cat:'Calisthenics', title:'Pull-up and muscle-up endurance', days:3, weeks:'8 weeks', refs:['load','rr'],
+  blurb:'Street workout style: high reps on the bar and dip bars to build pull-up, dip and muscle-up endurance. For people who can already do 8 or more pull-ups.',
+  progress:'Leave 1–2 reps in each set. Each week add a rep to every set or cut 15 s of rest. Test your max pull-ups and dips every 4 weeks.',
+  sessions:[
+   {name:'Volume', rest:75, ex:[['scap-pull',1,10,{wu:true}],['pullup',5,8],['dips',5,12],['pushup',3,25],['hanging-leg',3,10]]},
+   {name:'Power', rest:120, ex:[['scap-pull',1,10,{wu:true}],['explosive-pullup',4,5],['muscle-up',5,2],['straight-bar-dip',4,10],['c2b-pullup',3,6],['toes-to-bar',3,8]]}]}
 ];
 
 /* ---------- calisthenics skills: staged progressions ----------
@@ -883,7 +931,80 @@ const SKILLS = [
    {key:'tuck-bl', name:'Tuck back lever', target:'30 s', goal:{sec:30}, ex:[...PREP_SHOULDER,['tuck-bl',5,12],['skin-cat',3,5],['german-hang',2,30]]},
    {key:'adv-tuck-bl', name:'Advanced tuck', target:'10 s with a flat back', goal:{sec:10}, ex:[...PREP_SHOULDER,['adv-tuck-bl',5,8],['tuck-bl',3,20]]},
    {key:'straddle-bl', name:'Straddle back lever', target:'5 s', goal:{sec:5}, ex:[...PREP_SHOULDER,['straddle-bl',5,4],['adv-tuck-bl',3,10]]},
-   {key:'back-lever', name:'Full back lever', target:'5 s with legs together', goal:{sec:5}, ex:[...PREP_SHOULDER,['back-lever',5,3],['straddle-bl',3,5]]}]}
+   {key:'back-lever', name:'Full back lever', target:'5 s with legs together', goal:{sec:5}, ex:[...PREP_SHOULDER,['back-lever',5,3],['straddle-bl',3,5]]}]},
+ {id:'pullup10', title:'Pull-ups: first to 10', rest:120, refs:['bocPu'], own:true,
+  blurb:'From hanging to ten strict pull-ups: build the grip and shoulder control first, then the lowering strength, then the full pull.',
+  stages:[
+   {key:'active-hang', name:'Active hang', target:'30 s with shoulders pulled down', goal:{sec:30}, ex:[...PREP_SHOULDER,['active-hang',3,20],['dead-hang',2,30],['ring-row',3,8]]},
+   {key:'scap-pull', name:'Scapular pulls', target:'12 controlled reps', goal:{r:12}, ex:[...PREP_SHOULDER,['scap-pull',3,10],['active-hang',3,30],['ring-row',3,10]]},
+   {key:'neg-pullup', name:'Negative pull-ups', target:'5 reps, 5 s lowering each', goal:{r:5}, ex:[...PREP_SHOULDER,['neg-pullup',4,3],['scap-pull',3,10],['ring-row',3,10]]},
+   {key:'band-pullup', name:'Band-assisted pull-ups', target:'8 reps with a light band', goal:{r:8}, ex:[...PREP_SHOULDER,['band-pullup',3,6],['neg-pullup',3,3],['active-hang',2,30]]},
+   {key:'pullup', name:'First pull-ups', target:'5 strict pull-ups', goal:{r:5}, ex:[...PREP_SHOULDER,['pullup',4,3],['neg-pullup',3,3],['band-pullup',2,8]]},
+   {key:'pullup', name:'Ten pull-ups', target:'10 strict pull-ups in one set', goal:{r:10}, ex:[...PREP_SHOULDER,['pullup',5,6],['chinup',3,6],['neg-pullup',2,3]]}]},
+ {id:'hspu', title:'Handstand push-up', rest:150, refs:['bocHspu'], own:true,
+  pre:[{keys:['wall-handstand','handstand'], goal:{sec:30}, label:'30 s wall handstand', from:{skill:'handstand',stage:1}}],
+  safety:'Lower your head under control every rep; a fall onto the head is the main risk. Use a folded mat under your head, and stop if your neck or wrists hurt.',
+  blurb:'Vertical pressing strength, from pike push-ups to a full handstand push-up against the wall and then freestanding.',
+  stages:[
+   {key:'pike-pushup', name:'Pike push-up', target:'10 reps, head to the floor', goal:{r:10}, ex:[...PREP_WRIST,['pike-pushup',4,8],['pushup',3,12],['plank',3,40]]},
+   {key:'elevated-pike', name:'Elevated pike push-up', target:'10 reps, feet on a box', goal:{r:10}, ex:[...PREP_WRIST,['elevated-pike',4,8],['pike-pushup',3,10],['wall-handstand',3,30]]},
+   {key:'wall-handstand', name:'Wall handstand hold', target:'45 s chest to the wall', goal:{sec:45}, ex:[...PREP_WRIST,['wall-handstand',4,30],['wall-walk',3,4],['elevated-pike',3,10]]},
+   {key:'wall-hspu-neg', name:'Wall negatives', target:'5 reps, 5 s lowering each', goal:{r:5}, ex:[...PREP_WRIST,['wall-hspu-neg',4,3],['elevated-pike',3,10],['wall-handstand',2,45]]},
+   {key:'wall-hspu', name:'Wall handstand push-up', target:'5 full reps', goal:{r:5}, ex:[...PREP_WRIST,['wall-hspu',5,3],['wall-hspu-neg',3,3],['dips',3,10]]},
+   {key:'hspu', name:'Freestanding handstand push-up', target:'3 full reps', goal:{r:3}, ex:[...PREP_WRIST,['handstand',5,20],['hspu',5,1],['wall-hspu',3,5]]}]},
+ {id:'oapu', title:'One-arm pull-up', rest:180, refs:['fvOapu'],
+  pre:[{keys:['pullup','chinup'], goal:{r:10}, label:'10 strict pull-ups', from:{skill:'pullup10',stage:5}}],
+  safety:'One-arm work loads the elbow and biceps tendon heavily. Start every rep from a still hang, add volume slowly, and rest if the elbow aches the next day.',
+  blurb:'Shifts more of the pull onto one arm at each stage, from archers to towel-assisted reps and negatives. A long-term goal: often a year or more.',
+  stages:[
+   {key:'pullup', name:'Strict pull-ups', target:'12 strict pull-ups', goal:{r:12}, ex:[...PREP_SHOULDER,['pullup',5,8],['chinup',3,8],['dead-hang',2,40]]},
+   {key:'archer-pullup', name:'Archer pull-ups', target:'5 each side', goal:{r:5}, ex:[...PREP_SHOULDER,['archer-pullup',4,3],['typewriter',3,3],['pullup',3,10]]},
+   {key:'towel-oap', name:'Towel-assisted one-arm', target:'3 each side, towel hand at eye level', goal:{r:3}, ex:[...PREP_SHOULDER,['towel-oap',5,2],['archer-pullup',3,5],['dead-hang',2,30]]},
+   {key:'oap-pull-neg', name:'One-arm negatives', target:'10 s lowering each arm', goal:{sec:10}, ex:[...PREP_SHOULDER,['oap-pull-neg',4,6],['towel-oap',3,3],['pullup',3,10]]},
+   {key:'one-arm-pullup', name:'One-arm pull-up', target:'1 strict rep each arm', goal:{r:1}, ex:[...PREP_SHOULDER,['one-arm-pullup',5,1],['oap-pull-neg',3,10],['archer-pullup',3,5]]}]},
+ {id:'dflag', title:'Dragon flag', rest:120, refs:['cwDf'],
+  pre:[{keys:['hollow'], goal:{sec:60}, label:'60 s hollow body hold'}],
+  blurb:'Lowers your whole body as one straight line from the shoulders. Each stage lengthens the lever, from tucked knees to straight legs together.',
+  stages:[
+   {key:'tuck-dragon', name:'Tuck dragon flag', target:'5 slow reps', goal:{r:5}, ex:[['hollow',3,30],['tuck-dragon',4,4],['hanging-knee',3,10],['leg-raise',3,10]]},
+   {key:'sl-dragon', name:'Single-leg dragon flag', target:'5 slow reps', goal:{r:5}, ex:[['hollow',3,40],['sl-dragon',4,4],['tuck-dragon',3,6],['hanging-leg',3,8]]},
+   {key:'straddle-dragon', name:'Straddle dragon flag', target:'5 slow reps', goal:{r:5}, ex:[['hollow',3,45],['straddle-dragon',4,4],['sl-dragon',3,6],['hanging-leg',3,10]]},
+   {key:'dragon-flag', name:'Dragon flag', target:'5 slow reps, legs together', goal:{r:5}, ex:[['hollow',2,60],['dragon-flag',5,3],['straddle-dragon',3,5],['toes-to-bar',3,8]]}]},
+ {id:'elever', title:'Elbow lever', rest:90, refs:['hcEl'], own:true,
+  safety:'Keep your fingers turned back or to the side and warm up the wrists first. Lean forward slowly; put a cushion in front of your face while learning.',
+  blurb:'A balance hold on your hands with elbows dug into the hips. A quick early win that builds wrist strength and body tension for planche work.',
+  stages:[
+   {key:'diag-elbow-lever', name:'Diagonal elbow lever', target:'30 s, toes on the floor', goal:{sec:30}, ex:[...PREP_WRIST,['diag-elbow-lever',3,20],['plank',3,45],['crow',3,15]]},
+   {key:'bk-elbow-lever', name:'Bent-knee elbow lever', target:'10 s, feet off the floor', goal:{sec:10}, ex:[...PREP_WRIST,['bk-elbow-lever',4,6],['diag-elbow-lever',3,30],['hollow',3,30]]},
+   {key:'straddle-elbow-lever', name:'Straddle elbow lever', target:'10 s', goal:{sec:10}, ex:[...PREP_WRIST,['straddle-elbow-lever',4,6],['bk-elbow-lever',3,10],['arch-hold',3,20]]},
+   {key:'elbow-lever', name:'Full elbow lever', target:'30 s, legs together', goal:{sec:30}, ex:[...PREP_WRIST,['elbow-lever',4,15],['straddle-elbow-lever',3,10],['arch-hold',3,30]]}]},
+ {id:'nordic', title:'Nordic curl', rest:120, refs:['wkNhc'], own:true,
+  safety:'Expect strong soreness at first; start with one or two sets and build up over weeks. Pad the knees.',
+  blurb:'Eccentric hamstring strength that helps protect against hamstring strains. Pairs well with the Knees Over Toes programme.',
+  stages:[
+   {key:'band-nordic', name:'Band-assisted Nordics', target:'8 reps, full range', goal:{r:8}, ex:[['band-nordic',3,6],['slider-curl',3,10],['glute-bridge',3,12]]},
+   {key:'nordic-neg', name:'Nordic negatives', target:'6 slow reps to the floor', goal:{r:6}, ex:[['nordic-neg',3,4],['band-nordic',2,8],['sl-rdl',3,8]]},
+   {key:'nordic', name:'Nordic curl', target:'3 full reps', goal:{r:3}, ex:[['nordic',4,2],['nordic-neg',3,5],['sl-glute-bridge',3,10]]},
+   {key:'nordic', name:'Nordic curl, strong', target:'8 full reps', goal:{r:8}, ex:[['nordic',4,5],['nordic-neg',2,6],['reverse-nordic',2,8]]}]},
+ {id:'rmu', title:'Ring muscle-up', rest:180, refs:['cfRmu'], own:true,
+  pre:[{keys:['pullup','chinup','ring-pullup'], goal:{r:5}, label:'5 strict pull-ups'},{keys:['dips','ring-dip','straight-bar-dip'], goal:{r:5}, label:'5 strict dips'}],
+  blurb:'The rings version of the muscle-up: harder than the bar because the rings move. Built on the false grip, deep ring dips and a smooth transition.',
+  stages:[
+   {key:'false-grip-hang', name:'False-grip hang', target:'30 s', goal:{sec:30}, ex:[...PREP_SHOULDER,['false-grip-hang',3,20],['ring-row',3,10],['ring-dip',3,5]]},
+   {key:'false-grip-pullup', name:'False-grip pull-ups', target:'5 to the chest', goal:{r:5}, ex:[...PREP_SHOULDER,['false-grip-pullup',4,3],['false-grip-hang',2,30],['ring-dip',3,6]]},
+   {key:'ring-dip', name:'Deep ring dips', target:'8 deep reps', goal:{r:8}, ex:[...PREP_SHOULDER,['ring-dip',4,6],['support-hold',3,30],['false-grip-pullup',3,5]]},
+   {key:'ring-mu-transition', name:'Low-ring transitions', target:'8 smooth reps', goal:{r:8}, ex:[...PREP_SHOULDER,['ring-mu-transition',4,5],['false-grip-pullup',3,5],['ring-dip',3,8]]},
+   {key:'band-ring-mu', name:'Band-assisted ring muscle-up', target:'5 reps', goal:{r:5}, ex:[...PREP_SHOULDER,['band-ring-mu',4,3],['ring-mu-transition',3,6],['false-grip-pullup',3,5]]},
+   {key:'ring-muscle-up', name:'Ring muscle-up', target:'3 strict reps', goal:{r:3}, ex:[...PREP_SHOULDER,['ring-muscle-up',5,1],['band-ring-mu',3,3],['ring-dip',3,8]]}]},
+ {id:'cross', title:'Iron cross', rest:180, refs:['slCross'], own:true,
+  pre:[{keys:['pullup','chinup','ring-pullup'], goal:{r:10}, label:'10 strict pull-ups'},{keys:['ring-dip'], goal:{r:10}, label:'10 ring dips'}],
+  safety:'Very hard on the elbows and biceps tendons. Elbows stay locked on every rep, take an easy week every 5–6 weeks, and rest if pain lingers after a session or on rest days. Expect 9–12 months.',
+  blurb:'An advanced rings strength hold with arms straight out to the side. Built with turned-out support holds and band-assisted cross work.',
+  stages:[
+   {key:'rto-support', name:'Rings turned out support', target:'30 s', goal:{sec:30}, ex:[...PREP_SHOULDER,['rto-support',4,20],['ring-dip',3,8],['german-hang',2,20]]},
+   {key:'band-cross-pull', name:'Band-assisted cross pulls', target:'8 reps, elbows locked', goal:{r:8}, ex:[...PREP_SHOULDER,['rto-support',3,30],['band-cross-pull',4,5],['ring-dip',3,8]]},
+   {key:'band-cross-hold', name:'Band-assisted cross hold', target:'10 s with a light band', goal:{sec:10}, ex:[...PREP_SHOULDER,['band-cross-hold',5,5],['band-cross-pull',3,6],['rto-support',2,30]]},
+   {key:'iron-cross', name:'Iron cross', target:'3 s hold', goal:{sec:3}, ex:[...PREP_SHOULDER,['iron-cross',5,2],['band-cross-hold',3,8],['rto-support',2,30]]}]}
 ];
 
 /* turn a program's exercise list into routine items, swapping anything your equipment can't do */
@@ -1027,6 +1148,33 @@ const HOWTO = {
  'burpee':['Full body conditioning','Squat down and put your hands on the floor|Jump your feet back into a plank|Bring your feet back in|Jump up with your arms overhead','Sagging hips in the plank'],
  'bear-crawl':['Shoulders, core and coordination','On hands and feet with knees just off the floor|Move opposite hand and foot together|Keep the back flat and hips low|Small, controlled steps','Hips rising high'],
  'kick-up':['Handstand entry and balance','Lunge forward with arms overhead|Place your hands and kick the back leg up|Bring the other leg to meet it|Practise bailing safely','Kicking too hard and falling over'],
+ 'towel-oap':['Lats, biceps and grip, mostly one side','Loop a towel over the bar next to your working hand|Grip the bar with one hand and the towel with the other, towel hand at eye level or lower|Pull mainly with the bar arm, using the towel hand only as much as you need|Lower slowly to a full hang and switch sides','Pulling hard with the towel arm, which turns it back into a normal pull-up'],
+ 'oap-pull-neg':['Lats, biceps and grip, one side','Get your chin over the bar with both hands, or jump up|Let go with one hand and keep the elbow of the working arm tight to your side|Lower as slowly as you can to a full hang; log the lowering time in seconds|Stop if you drop fast at the bottom; that part is the hardest on the elbow','Starting these before a 3-rep towel-assisted pull-up; they load the elbow heavily'],
+ 'false-grip-hang':['Wrist flexors and grip, for ring muscle-ups','Set the rings so the heel of your palm sits on top of the ring, wrists bent over|Hang with straight arms and shoulders pulled down|Keep the false grip the whole time; log the hold in seconds|Use your feet on the floor to take some weight at first','Letting the grip slide back into a normal hang'],
+ 'false-grip-pullup':['Lats, biceps and grip, for ring muscle-ups','Hang from the rings in a false grip, wrists over the rings|Pull until the rings reach your lower chest, elbows close to your body|Keep the false grip all the way up and down|Lower to straight arms under control','Pulling the rings in front of the face instead of down to the chest'],
+ 'ring-mu-transition':['Chest, lats and triceps through the transition','Set the rings low so you can sit or kneel under them in a false grip|Pull the rings to your ribs and lean your chest forward over your hands|Roll through into the bottom of a ring dip, using your legs as much as needed|Press out to a support, then lower back down','Pulling the rings wide; keep them close to your body throughout'],
+ 'band-ring-mu':['Lats, chest and triceps','Loop a band between the rings or straps and kneel or stand in it|Use a false grip and pull the rings to your ribs|Lean forward through the transition and press out of the dip|Use a lighter band as you get stronger','Relying on a big swing instead of a strong pull'],
+ 'wall-hspu-neg':['Shoulders and triceps','Kick up into a handstand facing away from the wall, hands a palm from it|Lower your head slowly to the floor over 5 seconds or more|Keep the elbows from flaring past about 45 degrees|Come down from the wall and kick up again for each rep','Dropping the last part instead of lowering all the way under control'],
+ 'rto-support':['Shoulders, chest and biceps (straight-arm strength)','Push up into a ring support with arms locked and rings by your hips|Turn the rings out so your palms face forward|Push the shoulders down and keep the body straight|Hold for time; turn out a little further over weeks','Bending the elbows, which lets the rings turn back in'],
+ 'band-cross-pull':['Chest, lats and biceps tendon (straight-arm)','Hang a band from the rings or stand on bands for support|From a ring support, lower the arms out to the side with elbows locked|Go only as low as you can pull back up with straight arms|Press the rings back to your hips','Bending the elbows; it shifts the load and strains the biceps tendon'],
+ 'band-cross-hold':['Chest, lats and biceps tendon (straight-arm)','Use a band under your feet or hips for support|Lower into the cross position with arms locked and wrists level with the shoulders|Push the rings down hard and keep the shoulders depressed|Hold for a few seconds, then press back up to support','Holding through sharp elbow pain; stop and rest instead'],
+ 'iron-cross':['Chest, lats, shoulders and biceps tendon','From a ring support, lower the arms out to the side with elbows locked|Stop with your hands level with your shoulders and body straight|Push down hard on the rings to hold the position|Press back up to support','Training it through persistent elbow or shoulder pain'],
+ 'tuck-dragon':['Abs, lats and hip flexors','Lie on a bench and grip it behind your head|Roll up onto your upper back with knees tucked to your chest|Lower the tucked hips slowly while keeping your back off the bench|Go only as far as you can return from, then raise back up','Letting the lower back touch down and losing tension'],
+ 'sl-dragon':['Abs, lats and hip flexors','Set up as for a tuck dragon flag, then straighten one leg|Lower as one piece from the shoulders, bent knee tucked|Keep the hips extended, not piked|Raise back up and alternate the straight leg','Piking at the hips as you lower'],
+ 'straddle-dragon':['Abs, lats and hip flexors','Set up on your upper back with legs straight and wide|Lower as one straight line from the shoulders|Keep the hips extended and the legs wide|Raise back up under control','Bending at the hips to make it easier'],
+ 'diag-elbow-lever':['Core, wrists and balance, for the elbow lever','Kneel, fingers pointing back or to the side, hands together|Dig your elbows into your sides just above the hips|Lean forward and straighten your legs behind you with toes on the floor|Shift weight onto your hands and hold','Elbows sliding out from the hips'],
+ 'bk-elbow-lever':['Core, wrists and balance','Set up as for the diagonal version, elbows in your hips|Lean forward until your feet lift|Keep your knees bent and pulled in|Hold, looking slightly forward','Leaning too far and tipping onto your face; go slowly'],
+ 'straddle-elbow-lever':['Core, glutes and balance','From the bent-knee version, extend your legs wide apart|Keep the body level with the floor|Squeeze the glutes and point the toes|Hold for time','Hips dropping below the shoulders'],
+ 'elbow-lever':['Core, glutes, wrists and balance','Elbows dug into your hips, hands together|Lean forward and lift both straight legs together|Hold the body level and straight from head to heels|Breathe and hold','Legs sagging below level'],
+ 'band-nordic':['Hamstrings','Anchor your ankles and loop a band from high behind you around your chest|Kneel tall with hips straight|Lower forward as slowly as you can, letting the band take some weight|Pull back up with the hamstrings; use a lighter band over time','Bending at the hips to shorten the lever'],
+ 'nordic-neg':['Hamstrings','Kneel with your ankles anchored, hips straight|Lower forward as slowly as you can|Catch yourself with your hands near the floor|Push off with your hands to return; the work is in the lowering','Folding at the hips instead of staying straight'],
+ 'bridge':['Shoulders, upper back and hip flexors (mobility)','Lie on your back, feet flat, hands by your ears with fingers towards your shoulders|Push up through hands and feet into an arch|Straighten the arms and push the chest towards the wall behind you|Hold, then lower slowly to your upper back','Pushing only from the lower back with bent arms'],
+ 'pancake':['Hamstrings and adductors (mobility)','Sit with legs wide and knees pointing up|Tilt the pelvis forward and walk your hands out in front|Keep the chest proud rather than rounding|Breathe and relax a little further each breath','Rounding the back to reach further'],
+ 'pike-stretch':['Hamstrings and calves (mobility)','Sit with legs straight together|Fold forward from the hips with a long back|Reach for your shins, ankles or feet|Relax and breathe; let gravity do the work','Bending the knees and curling the spine'],
+ 'half-split':['Hamstrings (mobility)','Kneel on one knee and straighten the front leg|Keep the front toes pulled up|Fold forward from the hips over the front leg|Hold, then switch sides','Rounding the back instead of hinging'],
+ 'deep-squat-hold':['Hips, ankles and lower back (mobility)','Sink into your deepest comfortable squat, heels down|Push the knees out with your elbows|Keep your chest up and breathe|Hold onto something for balance if needed','Lifting the heels; widen the stance instead'],
+ 'hip-90-90':['Hip rotation (mobility)','Sit with both knees bent at 90 degrees, one in front and one to the side|Sit tall, then rotate both knees to the other side|Keep your hands behind you at first|Move slowly; each switch is one rep','Rushing the switch and using momentum'],
+ 'cat-cow':['Spine mobility','On hands and knees, round your back up towards the ceiling|Then let the belly drop and lift the chest|Move slowly with your breath|Each round counts as one rep','Moving only the neck instead of the whole spine'],
  'sled-push':['Quads, glutes and calves, plus conditioning','Hands on the high or low handles, arms fairly straight|Lean in so your body makes a straight line at about 45°|Drive with short, powerful steps on the balls of your feet|Log the plates added as kg and each length as a rep','Standing too upright, which turns it into a push with the arms'],
  'sled-drag':['Glutes, hamstrings and calves','Clip a harness or straps to the sled and face away from it|Lean forward slightly and walk or march with long, strong steps|Keep the straps taut the whole way|Log the plates added as kg and each length as a rep','Letting the straps go slack so the sled jerks'],
  'reverse-sled':['Quads and knees (a Knees Over Toes staple)','Hold the straps facing the sled, arms straight, and walk backwards|Stay low, driving through the balls of your feet with knees travelling over toes|Take short, quick steps|Log the plates added as kg and each length as a rep','Leaning back and pulling with the arms instead of driving with the legs'],
@@ -1510,6 +1658,32 @@ async function cxSave(){
   if(back&&back.kind==='picker'){ sheet=back; applyPicked(ex); return; }
   if(back) openSheet(back); else closeSheet(); render();
 }
+
+/* ---------- clear data: history only, or everything ---------- */
+function sheetClear(){
+  const what=sheet.what||'history'; const age=backupAgeDays();
+  return `<p class="muted" style="margin:0;font-size:14px">This can't be undone. Back up first if you might want any of it again.</p>
+  <div class="seg seg-wide" role="group" aria-label="What to clear"><button type="button" data-act="clear-what" data-v="history" aria-pressed="${what==='history'}">Workout history</button><button type="button" data-act="clear-what" data-v="all" aria-pressed="${what==='all'}">Everything</button></div>
+  <p style="margin:0;font-size:14px">${what==='all'?'Removes workouts, routines, your own exercises, bodyweight, skill progress and settings. GymBook goes back to a fresh start.':'Removes every logged workout and the workout in progress. Routines, your own exercises, bodyweight, equipment and settings stay.'}</p>
+  <div class="card spread nowrap" style="padding:10px 12px"><div style="min-width:0"><b>Back up first</b><div class="muted" style="font-size:13px">${age==null?'<b style="color:var(--warn)">No backup yet.</b>':age===0?'Last backup today.':`Last backup ${age} day${age===1?'':'s'} ago.`}</div></div><button type="button" class="btn" data-act="clear-backup">Back up</button></div>
+  <div class="field"><label class="label" for="clear-confirm">Type DELETE to confirm</label><input id="clear-confirm" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>
+  <button type="button" class="btn danger-fill big block" data-act="clear-go" id="clear-go" disabled>${what==='all'?'Clear everything':'Clear workout history'}</button>`;
+}
+function backupAgeDays(){ const t=S.settings.lastBackup; if(!t) return null; return Math.floor((Date.now()-t)/864e5); }
+function clearData(what){
+  for(const w of S.workouts) queueWrite('workouts/'+w.id, null);
+  S.workouts=[]; S.active=null; saveActive(); stopRest();
+  if(what==='all'){
+    for(const r of S.routines) queueWrite('routines/'+r.id, null); S.routines=[];
+    for(const b of S.bw) queueWrite('bodyweight/'+b.id, null); S.bw=[];
+    S.custom=[]; putCustom();
+    const keep={rest:90}; if(S.settings.lastBackup) keep.lastBackup=S.settings.lastBackup; S.settings=keep; putSettings();
+    try{ localStorage.removeItem('gymbook.theme'); }catch(e){}
+    S.rtOpen=new Set();
+  }
+  saveLocalAll();
+}
+document.addEventListener('input', ev=>{ if(ev.target&&ev.target.id==='clear-confirm'){ const b=document.getElementById('clear-go'); if(b) b.disabled=ev.target.value.trim().toUpperCase()!=='DELETE'; } }, true);
 function vStart(){
   const now=Date.now(), ws=weekStart(now);
   const days=[0,1,2,3,4,5,6].map(i=>{ const s=ws+i*864e5, e=s+864e5; const on=S.workouts.some(w=>w.startedAt>=s&&w.startedAt<e);
@@ -2014,7 +2188,7 @@ function vPrograms(){
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=26;
+const APP_VERSION=27;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const items=S.routines.map(r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
@@ -2055,6 +2229,7 @@ function vRoutines(){
     <div class="btn-grid"><button type="button" class="btn primary" data-act="export-json">Back up now</button><button type="button" class="btn" data-act="import">Import backup</button><button type="button" class="btn span2" data-act="export-csv">Spreadsheet (CSV)</button></div>
   </div>
   <div class="card spread nowrap"><div style="min-width:0"><b>Add to home screen</b><div class="muted" style="font-size:13px">${isStandalone()?'Installed. You are using GymBook as an app.':'Open GymBook like an app, full screen and offline.'}</div></div>${isStandalone()?'':`<button type="button" class="btn" data-act="install-help">How</button>`}</div>
+  <div class="card spread nowrap"><div style="min-width:0"><b>Clear data</b><div class="muted" style="font-size:13px">Remove workout history, or everything, from this phone</div></div><button type="button" class="btn danger" data-act="clear-open">Clear…</button></div>
   <p class="note">Everything is saved on this phone and works without signal. Nothing is sent anywhere.</p>
   <p class="muted num" style="margin:0;font-size:12px;text-align:center">GymBook version ${APP_VERSION}</p>`;
 }
@@ -2077,6 +2252,7 @@ function renderSheet(){
   if(sheet.kind==='goal'){ title='Weekly goal'; body=sheetGoal(); }
   if(sheet.kind==='cx'){ title=sheet.id?'Edit exercise':'New exercise'; body=sheetCx(); }
   if(sheet.kind==='cx-list'){ title='My exercises'; body=sheetCxList(); }
+  if(sheet.kind==='clear'){ title='Clear data'; body=sheetClear(); }
   if(sheet.kind==='bw-all'){ title='Bodyweight'; body=sheetBwAll(); }
   if(sheet.kind==='export'){ title='Your export'; body=sheetExport(); }
   if(sheet.kind==='install'){ title='Add to home screen'; body=sheetInstall(); }
@@ -2724,6 +2900,10 @@ document.addEventListener('click', async ev=>{
     case 'cx-type': cxRead(); sheet.type=b.dataset.v; renderSheet(); break;
     case 'cx-save': await cxSave(); break;
     case 'cx-del': { if(!armed(b,'Tap again to delete')) break; const id=sheet.id; S.custom=S.custom.filter(x=>x.id!==id); putCustom(); const back=sheet.back; if(back) openSheet(back); else closeSheet(); render(); toast('Exercise deleted'); break; }
+    case 'clear-open': openSheet({kind:'clear', what:'history'}); break;
+    case 'clear-what': sheet.what=b.dataset.v; renderSheet(); break;
+    case 'clear-backup': await doBackup(); renderSheet(); break;
+    case 'clear-go': { const v=(document.getElementById('clear-confirm')?.value||'').trim().toUpperCase(); if(v!=='DELETE') break; const what=sheet.what; clearData(what); closeSheet(); location.hash='#workout'; render(); toast(what==='all'?'Everything cleared':'Workout history cleared'); break; }
     case 'goal-open': openSheet({kind:'goal'}); break;
     case 'goal-pick': { const v=+b.dataset.v; const st=Object.assign({},S.settings); if(v) st.weekGoal=v; else delete st.weekGoal; S.settings=st; putSettings(); closeSheet(); render(); break; }
     case 'howto': { const sb=document.querySelector('#sheet-root .sheet-b');
