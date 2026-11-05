@@ -636,6 +636,16 @@ input:not([type="checkbox"]):not([type="radio"]):focus,input:not([type="checkbox
 .cal-grid>span,.cal-grid>button{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;height:36px;border-radius:10px;font-size:14px;font-variant-numeric:tabular-nums;color:var(--muted)}
 .cal-grid>button.on{background:var(--accent);color:var(--accent-ink);font-weight:700;cursor:pointer}
 .cal-grid>.today{outline:2px solid var(--accent);outline-offset:-2px;color:var(--ink);font-weight:700}
+.cal{padding:10px 12px}
+.cal-top{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:36px}
+.cal-tg{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:700;font-size:15px;min-height:36px;min-width:0}
+.cal-tg svg{width:18px;height:18px;color:var(--muted);transition:transform .15s;transform:none!important}
+.cal-tg[aria-expanded="false"] svg{transform:rotate(-90deg)!important}
+.cal-nav{display:flex;gap:2px}
+.cal-nav .icon-btn{width:36px;height:36px}
+.cal-grid{gap:3px}
+.cal-grid>span,.cal-grid>button{height:30px;font-size:13px;border-radius:8px}
+.cal-h span{height:auto!important;font-size:10px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top,0px));bottom:auto;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
 table.sess{width:100%;border-collapse:collapse;font-size:14px}
 table.sess th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
@@ -2214,19 +2224,29 @@ function exChart(m){
 }
 /* history calendar */
 function calendarCard(){
-  const off=S.calOff||0; const base=new Date(); const d0=new Date(base.getFullYear(), base.getMonth()+off, 1);
+  const open=S.settings.calOpen!==false;
+  const today=new Date(); const dayBtn=(d, ws, isToday)=>ws?`<button type="button" class="on ${isToday?'today':''}" data-act="cal-day" data-id="${esc(ws[0].id)}" aria-label="${d.getDate()} ${MON[d.getMonth()]}: ${esc(ws.map(w=>w.name).join(', '))}">${d.getDate()}</button>`:`<span class="${isToday?'today':''}">${d.getDate()}</span>`;
+  const toggle=(label)=>`<button type="button" class="cal-tg" data-act="cal-toggle" aria-expanded="${open}">${ICON.down}<span>${label}</span></button>`;
+  if(!open){
+    const ws0=weekStart(Date.now()); let cells='', n=0;
+    for(let i=0;i<7;i++){ const d=new Date(ws0+i*864e5+3600e3); const a=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(), b=a+864e5;
+      const ws=S.workouts.filter(w=>w.startedAt>=a&&w.startedAt<b); n+=ws.length; cells+=dayBtn(d, ws.length?ws:null, d.toDateString()===today.toDateString()); }
+    return `<div class="card stack cal" style="gap:6px">
+      <div class="cal-top">${toggle(`This week · ${n} workout${n===1?'':'s'}`)}</div>
+      <div class="cal-grid cal-h">${['M','T','W','T','F','S','S'].map(x=>`<span>${x}</span>`).join('')}</div>
+      <div class="cal-grid">${cells}</div></div>`;
+  }
+  const off=S.calOff||0; const d0=new Date(today.getFullYear(), today.getMonth()+off, 1);
   const y=d0.getFullYear(), m=d0.getMonth(); const days=new Date(y,m+1,0).getDate(); const lead=(d0.getDay()+6)%7;
   const byDay={}; for(const w of S.workouts){ const d=new Date(w.startedAt); if(d.getFullYear()===y&&d.getMonth()===m){ (byDay[d.getDate()]=byDay[d.getDate()]||[]).push(w); } }
-  const today=new Date(); const isNow=today.getFullYear()===y&&today.getMonth()===m;
-  let cells=''; for(let i=0;i<lead;i++) cells+='<span></span>';
-  for(let dd=1; dd<=days; dd++){ const ws=byDay[dd]; const cls=`${ws?'on':''} ${isNow&&dd===today.getDate()?'today':''}`;
-    cells+= ws?`<button type="button" class="${cls}" data-act="cal-day" data-id="${esc(ws[0].id)}" aria-label="${dd} ${MON[m]}: ${esc(ws.map(w=>w.name).join(', '))}">${dd}</button>`:`<span class="${cls}">${dd}</span>`; }
+  const isNow=today.getFullYear()===y&&today.getMonth()===m;
+  let cells=''; for(let i=0;i<lead;i++) cells+='<span class="blank"></span>';
+  for(let dd=1; dd<=days; dd++) cells+=dayBtn(new Date(y,m,dd), byDay[dd], isNow&&dd===today.getDate());
   const n=Object.values(byDay).reduce((a,v)=>a+v.length,0);
-  return `<div class="card stack cal" style="gap:8px">
-    <div class="spread nowrap"><button type="button" class="icon-btn" data-act="cal-nav" data-d="-1" aria-label="Previous month">${ICON.down}</button><b>${MONTH_FULL[m]} ${y}</b><button type="button" class="icon-btn" data-act="cal-nav" data-d="1" aria-label="Next month" ${off>=0?'disabled':''}>${ICON.down}</button></div>
+  return `<div class="card stack cal" style="gap:6px">
+    <div class="cal-top">${toggle(`${MON[m]} ${y} · ${n} workout${n===1?'':'s'}`)}<span class="cal-nav"><button type="button" class="icon-btn" data-act="cal-nav" data-d="-1" aria-label="Previous month">${ICON.down}</button><button type="button" class="icon-btn" data-act="cal-nav" data-d="1" aria-label="Next month" ${off>=0?'disabled':''}>${ICON.down}</button></span></div>
     <div class="cal-grid cal-h">${['M','T','W','T','F','S','S'].map(x=>`<span>${x}</span>`).join('')}</div>
     <div class="cal-grid">${cells}</div>
-    <small class="muted num" style="text-align:center">${n} workout${n===1?'':'s'} · tap a day to open it</small>
   </div>`;
 }
 function vStart(){
@@ -2770,7 +2790,7 @@ function vSettings(){
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=39;
+const APP_VERSION=40;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const card=r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
@@ -3509,6 +3529,7 @@ document.addEventListener('click', async ev=>{
     case 'prs-open': openSheet({kind:'prs'}); break;
     case 'muscle-open': openSheet({kind:'muscle', g:b.dataset.g}); break;
     case 'ex-range': S.exRange=b.dataset.v; renderSheet(); break;
+    case 'cal-toggle': { const open=S.settings.calOpen!==false; S.settings=Object.assign({},S.settings,{calOpen:!open}); S.calOff=0; putSettings(); render(); break; }
     case 'cal-nav': S.calOff=Math.min(0,(S.calOff||0)+(+b.dataset.d)); render(); break;
     case 'cal-day': { S.openHist=b.dataset.id; render(); const el=document.querySelector(`[data-act="hist-toggle"][data-id="${b.dataset.id}"]`); if(el) el.scrollIntoView({block:'start',behavior:'smooth'}); break; }
     case 'goal-open': openSheet({kind:'goal'}); break;
