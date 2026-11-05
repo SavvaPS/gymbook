@@ -588,6 +588,15 @@ input:not([type="checkbox"]):not([type="radio"]):focus,input:not([type="checkbox
 .rt-move .icon-btn{border:1px solid var(--line);border-radius:10px;width:44px;height:44px}
 .rt-move .icon-btn:disabled{opacity:.3}
 .rt.reorder{padding-block:8px}
+.lib-list{display:flex;flex-direction:column;gap:6px}
+.lib-row{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.lib-row.na{opacity:.6}
+.lib-row[hidden]{display:none}
+.lib-txt{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.lib-txt b{font-size:16px}
+.lib-txt small{font-size:13px;color:var(--muted)}
+.lib-i{flex:none;color:var(--accent);display:inline-flex}
+.lib-i svg{width:18px;height:18px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top,0px));bottom:auto;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
 table.sess{width:100%;border-collapse:collapse;font-size:14px}
 table.sess th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
@@ -636,14 +645,14 @@ table.sess td{padding:8px 4px;border-bottom:1px solid var(--line);vertical-align
 /* ---------- exercise library ---------- */
 /* Equipment you can own. "needs" on an exercise lists tokens; "a|b" means either one will do. */
 const EQUIP = [
-  ['Free weights', [['barbell','Barbell & plates'],['rack','Squat rack'],['bench','Bench'],['dumbbell','Dumbbells'],['kettlebell','Kettlebells'],['ezbar','EZ curl bar'],['trapbar','Trap bar'],['medball','Medicine ball']]],
+  ['Free weights', [['barbell','Barbell & plates'],['rack','Squat rack'],['bench','Bench'],['dumbbell','Dumbbells'],['kettlebell','Kettlebells'],['ezbar','EZ curl bar'],['trapbar','Trap bar'],['medball','Medicine ball'],['landmine','Landmine attachment']]],
   ['Machines', [['cable','Cable station'],['machine','Weight machines'],['smith','Smith machine'],['sled','Sled / prowler']]],
   ['Calisthenics', [['pullup','Pull-up bar'],['dip','Dip bars / parallettes'],['rings','Gymnastic rings'],['suspension','Suspension trainer (TRX)'],['bands','Resistance bands'],['box','Plyo box / step'],['wheel','Ab wheel'],['pole','Vertical pole / stall bars'],['slant','Slant board']]],
   ['Cardio', [['treadmill','Treadmill'],['rower','Rowing machine'],['bike','Exercise bike'],['elliptical','Cross trainer'],['stairs','Stair climber'],['skierg','SkiErg'],['rope','Jump rope']]]
 ];
 const EQ_ALL = EQUIP.flatMap(g=>g[1].map(x=>x[0]));
 const EQ_NAME = Object.fromEntries(EQUIP.flatMap(g=>g[1]));
-const LOAD_EQ = new Set(['sled','barbell','dumbbell','kettlebell','ezbar','trapbar','cable','machine','smith','medball','bands']);
+const LOAD_EQ = new Set(['landmine','sled','barbell','dumbbell','kettlebell','ezbar','trapbar','cable','machine','smith','medball','bands']);
 const PRESETS = [
   ['Full gym', EQ_ALL],
   ['Home: dumbbells', ['dumbbell','bench','pullup','bands','kettlebell']],
@@ -734,6 +743,13 @@ const LIB_RAW = [
  ['diag-elbow-lever','Diagonal Elbow Lever','Core','elbowlever','','h',2],['bk-elbow-lever','Bent-Knee Elbow Lever','Core','elbowlever','','h',3],['straddle-elbow-lever','Straddle Elbow Lever','Core','elbowlever','','h',4],['elbow-lever','Elbow Lever','Core','elbowlever','','h',5],
  ['band-nordic','Band-Assisted Nordic Curl','Legs','kneeflex','bands','s',3],['nordic-neg','Nordic Curl Negative','Legs','kneeflex','','s',4],
  ['bridge','Bridge (Wheel)','Back','prep','','h',2],['pancake','Pancake Stretch','Legs','prep','','h',1],['pike-stretch','Seated Pike Stretch','Legs','prep','','h',1],['half-split','Half Split Stretch','Legs','prep','','h',1],['deep-squat-hold','Deep Squat Hold','Legs','prep','','h',1],['hip-90-90','90/90 Hip Switch','Legs','prep','','s',1],['cat-cow','Cat-Cow','Back','prep','','s',1],
+ ['suitcase-carry','Suitcase Carry','Core','carry','dumbbell|kettlebell','h'],['overhead-carry','Overhead Carry','Shoulders','carry','dumbbell|kettlebell','h'],
+ ['band-ext-rot','Band External Rotation','Shoulders','cuff','bands'],['cable-ext-rot','Cable External Rotation','Shoulders','cuff','cable'],['db-ext-rot','Side-Lying Dumbbell External Rotation','Shoulders','cuff','dumbbell'],['band-int-rot','Band Internal Rotation','Shoulders','cuff','bands'],['cuban-press','Cuban Press','Shoulders','cuff','dumbbell'],
+ ['short-copenhagen','Short-Lever Copenhagen Plank','Legs','adductor','bench|box','h',1],['copenhagen','Copenhagen Plank','Legs','adductor','bench|box','h',2],['lateral-lunge','Lateral Lunge','Legs','adductor','','s',1],['adduction-machine','Hip Adduction Machine','Legs','adductor','machine'],
+ ['landmine-press','Landmine Press','Shoulders','vpush','landmine,barbell'],['meadows-row','Meadows Row','Back','hpull','landmine,barbell'],['landmine-squat','Landmine Squat','Legs','squat','landmine,barbell'],['landmine-rotation','Landmine Rotation','Core','rotation','landmine,barbell'],
+ ['worlds-greatest',"World's Greatest Stretch",'Legs','prep','','s',1],['pigeon','Pigeon Stretch','Legs','prep','','h',1],['thoracic-rot','Thoracic Rotation','Back','prep','','s',1],['knee-to-wall','Knee-to-Wall Ankle Mobility','Legs','prep','','s',1],['doorway-pec','Doorway Chest Stretch','Chest','prep','','h',1],['childs-pose',"Child's Pose",'Back','prep','','h',1],['shoulder-cars','Shoulder CARs','Shoulders','prep','','s',1],['sleeper-stretch','Sleeper Stretch','Shoulders','prep','','h',1],
+ ['tuck-planche-pu','Tuck Planche Push-up','Shoulders','planche','','s',5],['ninety-pushup','90° Push-up','Shoulders','planche','','s',6],['korean-dip','Korean Dip','Chest','dip','dip|pullup','s',4],['impossible-dip','Impossible Dip','Arms','triceps','dip','s',5],
+ ['fl-raise','Front Lever Raise','Back','lever','pullup|rings','s',5],['ice-cream','Ice Cream Maker','Back','lever','pullup|rings','s',5],['ring-lsit','Ring L-Sit','Core','lsit','rings','h',4],['straddle-press','Straddle Press to Handstand','Shoulders','handstand','','s',6],['oah-assisted','Assisted One-Arm Handstand','Shoulders','handstand','','h',6],
  ['box-jump','Box Jump','Legs','plyo','box','s',2],['broad-jump','Broad Jump','Legs','plyo','','s',2],
  // Core
  ['plank','Plank','Core','antiext','','h',1],['side-plank','Side Plank','Core','antiext','','h',1],['dead-bug','Dead Bug','Core','antiext','','s',1],['hollow','Hollow Body Hold','Core','antiext','','h',2],
@@ -767,7 +783,7 @@ const LIB = LIB_RAW.map(([id,name,group,pattern,needs,t,lvl])=>{
 });
 /* closest stand-ins when nothing with the same movement fits your kit */
 const RELATED = {triceps:['dip'], biceps:['vpull'], fly:['hpush'], latraise:['vpush'], reardelt:['hpull'], kneeext:['squat','lunge'], kneeflex:['hinge','glute'],
-  glute:['hinge','lunge'], shrug:['hang','carry'], forearm:['hang'], calf:['plyo','tib'], tib:['calf'], sled:['squat','lunge','conditioning'], elbowlever:['antiext','lsit'], cross:['dip','lever'], dip:['hpush','triceps'], vpush:['handstand'], carry:['hang'], power:['plyo','conditioning'], backext:['hinge'], flag:['antiext']};
+  glute:['hinge','lunge'], shrug:['hang','carry'], forearm:['hang'], calf:['plyo','tib'], tib:['calf'], sled:['squat','lunge','conditioning'], elbowlever:['antiext','lsit'], cuff:['reardelt'], adductor:['lunge','glute'], cross:['dip','lever'], dip:['hpush','triceps'], vpush:['handstand'], carry:['hang'], power:['plyo','conditioning'], backext:['hinge'], flag:['antiext']};
 const GROUPS = ['Chest','Shoulders','Back','Arms','Legs','Core','Full body','Cardio','Custom'];
 const LVL = ['','Beginner','Novice','Intermediate','Advanced','Expert','Elite'];
 /* ---------- sources the programmes and skills are built on ---------- */
@@ -1197,6 +1213,154 @@ const HOWTO = {
  'burpee':['Full body conditioning','Squat down and put your hands on the floor|Jump your feet back into a plank|Bring your feet back in|Jump up with your arms overhead','Sagging hips in the plank'],
  'bear-crawl':['Shoulders, core and coordination','On hands and feet with knees just off the floor|Move opposite hand and foot together|Keep the back flat and hips low|Small, controlled steps','Hips rising high'],
  'kick-up':['Handstand entry and balance','Lunge forward with arms overhead|Place your hands and kick the back leg up|Bring the other leg to meet it|Practise bailing safely','Kicking too hard and falling over'],
+ 'farmer':['Grip, traps, core and conditioning','Pick up a heavy weight in each hand with a flat back, as if deadlifting|Stand tall with shoulders down and back|Walk with short, quick steps and steady breathing|Log the weight per hand as kg and each length as a rep','Letting the shoulders round forward or the weights swing'],
+ 'suitcase-carry':['Obliques, grip and hip stability','Hold one weight at your side like a suitcase|Stand tall without leaning towards or away from it|Walk with short, steady steps|Switch hands each set; log seconds per side','Leaning sideways to balance the weight'],
+ 'overhead-carry':['Shoulders, upper back and core','Press one or two weights overhead and lock the elbows|Keep the ribs down so the lower back does not arch|Walk slowly with the weight stacked over your shoulder|Log seconds; switch hands if carrying one','Letting the arm drift forward of the head'],
+ 'band-ext-rot':['Rotator cuff (external rotators)','Anchor a band at elbow height and stand side-on to it|Keep the elbow tucked at your side, bent to 90 degrees|Rotate the forearm outwards, away from your body|Return slowly; go light and smooth','Letting the elbow leave your side'],
+ 'cable-ext-rot':['Rotator cuff (external rotators)','Set a cable at elbow height and stand side-on to it|Elbow tucked to your side at 90 degrees, a towel between elbow and ribs helps|Rotate the hand outwards under control|Return slowly; use a light weight','Turning the whole body instead of the shoulder'],
+ 'db-ext-rot':['Rotator cuff (external rotators)','Lie on your side, top elbow on your hip, bent to 90 degrees|Hold a light dumbbell with the forearm across your belly|Rotate the forearm up towards the ceiling|Lower slowly','Using a weight heavy enough to need a swing'],
+ 'band-int-rot':['Rotator cuff (internal rotators)','Anchor a band at elbow height and stand side-on, band on the outside|Elbow tucked at your side, bent to 90 degrees|Rotate the forearm in across your belly|Return slowly','Letting the elbow drift forward'],
+ 'cuban-press':['Rotator cuff and upper back','Hold light dumbbells, upright row until elbows reach shoulder height|Rotate the forearms up so the weights point at the ceiling|Press overhead, then reverse each step|Go light; this is shoulder health work','Using weights heavy enough to strain the rotation'],
+ 'short-copenhagen':['Adductors (inner thigh) and obliques','Lie on your side with the top knee resting on a bench|Prop yourself on the forearm|Lift your hips so the body is in a straight line, bottom leg off the floor if you can|Hold, then switch sides','Hips sagging towards the floor'],
+ 'copenhagen':['Adductors (inner thigh) and obliques','Lie on your side with the top foot or ankle on a bench, leg straight|Prop yourself on the forearm|Lift your hips into a straight line|Hold, then switch sides; start with the short-lever version','Twisting the hips forward or back'],
+ 'lateral-lunge':['Adductors, glutes and quads','Stand with feet wide|Shift your weight to one side and sit back into that hip, other leg straight|Keep the chest up and the heel of the bent leg down|Push back to the middle and switch sides','Letting the bent knee cave inwards'],
+ 'adduction-machine':['Adductors (inner thigh)','Set the pads so you start in a comfortable stretch|Squeeze your legs together in a smooth arc|Pause briefly at the end|Return slowly','Letting the weight slam back'],
+ 'landmine-press':['Shoulders, upper chest and core','Hold the end of the bar at your shoulder in a split or square stance|Press up and forward until the arm is straight|Keep the ribs down and do not lean back|Lower under control; one or two arms','Arching the lower back to finish the press'],
+ 'meadows-row':['Lats and upper back, one side','Stand side-on to the end of the landmine bar in a staggered stance|Hinge forward and grip the bar end overhand|Row the elbow up and back towards your hip|Lower to a full stretch','Twisting the torso to lift the weight'],
+ 'landmine-squat':['Quads and glutes','Hold the bar end at your chest with both hands|Sit down between your heels, leaning slightly into the bar|Keep the chest up|Drive up through the whole foot','Letting the knees cave in'],
+ 'landmine-rotation':['Obliques and core','Hold the bar end at head height with straight arms|Rotate it in an arc down to one hip, pivoting the back foot|Bring it back over the top to the other side|Move from the hips and trunk, not the arms','Bending the arms and turning it into a press'],
+ 'worlds-greatest':['Hips, hamstrings and upper back (mobility)','Step into a long lunge and put both hands inside the front foot|Drop the front elbow towards the ankle|Rotate and reach the same arm to the ceiling|Straighten the front leg for a hamstring stretch, then switch sides; each side is one rep','Rushing through the positions'],
+ 'pigeon':['Glutes and hip rotation (mobility)','From all fours, bring one knee forward behind the same hand|Lay the shin across in front of you as far as comfortable|Extend the back leg and square your hips|Stay upright or fold forward; switch sides','Forcing the front knee into pain; prop the hip on a cushion'],
+ 'thoracic-rot':['Upper back rotation (mobility)','Kneel on all fours, one hand behind your head|Rotate the elbow down towards the other arm|Then rotate it up towards the ceiling, following with your eyes|Keep the hips still; each turn is one rep','Moving from the lower back instead of the upper back'],
+ 'knee-to-wall':['Ankle mobility','Face a wall in a half-kneeling stance, front toes a few cm from the wall|Drive the front knee forward to touch the wall, heel down|Move the foot back a little as it gets easy|Each touch is one rep; do both sides','Letting the heel lift off the floor'],
+ 'doorway-pec':['Chest and front shoulders (mobility)','Place your forearm on a door frame, elbow at shoulder height|Step through until you feel a stretch across the chest|Keep the shoulder down and ribs in|Hold, then switch sides','Shrugging the shoulder up towards the ear'],
+ 'childs-pose':['Lower back, lats and hips (mobility)','Kneel and sit back towards your heels|Reach your arms forward and rest your forehead down|Let your chest sink towards the floor|Breathe slowly and hold','Holding your breath'],
+ 'shoulder-cars':['Shoulder joint control (mobility)','Stand tall and brace your core|Draw the biggest slow circle you can with one straight arm|Keep the rest of the body still|Each full circle is one rep; reverse direction','Moving fast so the trunk twists to help'],
+ 'sleeper-stretch':['Back of the shoulder (mobility)','Lie on your side with the bottom arm in front, elbow at shoulder height|Bend the elbow to 90 degrees, fingers to the ceiling|Gently press the forearm down towards the floor with the other hand|Hold a mild stretch, then switch sides','Pushing into pain at the front of the shoulder'],
+ 'tuck-planche-pu':['Front shoulders, chest and triceps','Hold a tuck planche, hands by the hips, arms locked|Bend the elbows and lower the chest while keeping the lean|Keep the knees tucked and the hips up|Press back to straight arms','Losing the lean so it becomes a normal push-up'],
+ 'ninety-pushup':['Shoulders, triceps and balance','From a handstand, lower until your body is horizontal on bent arms, elbows tight|Hold the 90 degree position briefly|Press back up to the handstand|Learn it against a wall or with a spotter','Elbows flaring out to the sides'],
+ 'korean-dip':['Front shoulders, chest and triceps (shoulder extension)','Stand with a bar behind you at hip height and grip it|Lift your feet and lower until the bar is near your upper back|Press back up to straight arms|Go slowly; build depth gradually','Dropping into the bottom; it is a big stretch for the shoulders'],
+ 'impossible-dip':['Triceps','On parallel bars, lower onto your forearms|Keep the elbows tucked and body upright|Press back up onto your hands using only the triceps|Partial range first; feet down for help','Letting the elbows flare out'],
+ 'fl-raise':['Lats and core (straight-arm)','Hang from the bar with straight arms|Raise your body as one piece into a front lever, or tuck version|Lower slowly back to the hang|Keep the arms locked throughout','Bending the arms to pull'],
+ 'ice-cream':['Lats and core (straight-arm into pull)','From a hang, raise into a front lever (tuck if needed)|Pull the bar to your hips, rotating up into an inverted hang|Return to the lever, then lower to the hang|Keep the body straight','Losing the body line during the pull'],
+ 'ring-lsit':['Core, hip flexors and shoulder stability','Push up into a ring support, rings by the hips, turned slightly out|Lift your legs to horizontal and lock the knees|Keep the shoulders pushed down|Hold; tuck the knees if needed','Rings drifting forward or shoulders shrugging'],
+ 'straddle-press':['Shoulders, hip flexors and compression','Stand in a wide straddle, hands on the floor in front|Lean the shoulders forward over the hands|Lift the hips over the shoulders, legs wide|Bring the legs together in a handstand','Jumping instead of pressing; use a wall or elevated feet to learn'],
+ 'oah-assisted':['Shoulder, wrist and balance for one-arm handstand','In a handstand, shift your weight onto one hand|Keep the other hand on the floor with fingertips only|Stack the hips over the working hand|Hold for time, then switch sides','Shifting weight without moving the hips over the hand'],
+ 'bench':['Chest, front shoulders and triceps','Lie with eyes under the bar, feet flat, shoulder blades pulled back and down|Grip a little wider than shoulders and unrack with straight arms|Lower to the lower chest with elbows about 45 degrees from your body|Press up and slightly back to lockout, keeping the upper back tight','Bouncing the bar off the chest or lifting the hips'],
+ 'incline-bench':['Upper chest, front shoulders and triceps','Set the bench to about 30 degrees and set your shoulder blades back|Unrack and lower the bar to the upper chest, just below the collarbones|Keep the wrists stacked over the elbows|Press up to lockout over the shoulders','Setting the bench so steep it becomes a shoulder press'],
+ 'decline-bench':['Lower chest and triceps','Hook your feet securely and lie back on the decline bench|Unrack with straight arms over the lower chest|Lower under control to the lower chest|Press back up to lockout; use a spotter','Dropping the bar towards the neck'],
+ 'close-grip-bench':['Triceps, chest and front shoulders','Grip about shoulder width, not narrower|Keep the elbows tucked close to your sides|Lower to the lower chest|Press to lockout with the triceps','Gripping so narrow the wrists bend and hurt'],
+ 'db-bench':['Chest, front shoulders and triceps','Sit with the dumbbells on your thighs and kick them up as you lie back|Start with arms straight over the chest, shoulder blades pinched|Lower until the dumbbells are beside the chest, elbows about 45 degrees|Press up, letting them come slightly together','Letting the dumbbells drift too wide at the bottom'],
+ 'db-incline':['Upper chest and front shoulders','Set the bench to about 30 degrees|Start with the dumbbells over the upper chest|Lower to the sides of the upper chest|Press up and slightly in','Arching the back off the bench to make it a flat press'],
+ 'floor-press':['Chest and triceps, lockout strength','Lie on the floor with knees bent and a dumbbell in each hand|Lower until the upper arms touch the floor|Pause briefly without relaxing|Press back up to straight arms','Slamming the elbows into the floor'],
+ 'smith-bench':['Chest, front shoulders and triceps','Set the bench so the bar lands on your lower chest|Unhook the bar with straight arms|Lower under control, elbows about 45 degrees|Press up and rehook at the top','Positioning the bench so the bar path hits the neck or belly'],
+ 'machine-chest':['Chest, front shoulders and triceps','Set the seat so the handles are at mid-chest height|Sit tall with shoulder blades back against the pad|Press the handles forward to near lockout|Return slowly until you feel a stretch','Letting the shoulders roll forward off the pad'],
+ 'band-press':['Chest and triceps','Anchor a band behind you at chest height|Hold the handles at your chest in a split stance|Press forward until the arms are straight|Return slowly against the band','Leaning into the press instead of using the chest'],
+ 'kb-floor-press':['Chest and triceps','Lie on the floor holding a kettlebell, handle in your palm, bell on the back of the forearm|Lower until the upper arm touches the floor|Keep the wrist straight|Press back up','Letting the wrist bend back under the bell'],
+ 'db-fly':['Chest','Lie on a bench with dumbbells over the chest, palms facing|Keep a slight bend in the elbows|Open the arms wide until you feel a stretch across the chest|Bring them back together in the same arc','Bending the elbows more as you go, turning it into a press'],
+ 'cable-fly':['Chest','Set the pulleys at shoulder height and step forward in a split stance|Start with arms open and a slight bend in the elbows|Bring the hands together in front of the chest in an arc|Return slowly to the stretch','Using so much weight the shoulders roll forward'],
+ 'pec-deck':['Chest','Set the seat so the handles are at chest height|Sit tall with the back against the pad|Bring the handles together in front of you|Return slowly to a comfortable stretch','Letting the weight stack slam between reps'],
+ 'band-fly':['Chest','Anchor a band behind you at chest height|Start with arms open and slightly bent|Bring the hands together in front of you|Return slowly','Bending the arms to make it easier'],
+ 'machine-dip':['Chest and triceps','Kneel or stand on the platform; more weight means more help|Grip the handles and start with straight arms|Lower until the upper arms are about level with the floor|Press back up to lockout','Shrugging the shoulders up at the bottom'],
+ 'ohp':['Shoulders, triceps and upper back','Start with the bar on the front of your shoulders, grip just outside shoulder width|Squeeze glutes and brace so the lower back does not arch|Press straight up, moving the head back out of the way|Lock out with the bar over the middle of your feet','Leaning back into a standing incline press'],
+ 'push-press':['Shoulders, triceps and leg drive','Start as for an overhead press|Dip by bending the knees a few centimetres, chest upright|Drive up through the legs and press the bar overhead|Lock out, then lower to the shoulders','Dipping forward onto the toes instead of straight down'],
+ 'db-shoulder':['Shoulders and triceps','Sit or stand with dumbbells at shoulder height, palms forward|Brace and keep the ribs down|Press up until the arms are straight|Lower to shoulder height under control','Arching the lower back to finish the rep'],
+ 'arnold':['Shoulders, all three heads','Start with dumbbells in front of your shoulders, palms facing you|Press up while rotating the palms to face forward|Finish with arms straight overhead|Reverse the rotation on the way down','Rushing the rotation and losing control'],
+ 'kb-press':['Shoulders, triceps and core','Clean the kettlebell to the rack position, bell resting on the forearm|Brace and keep the wrist straight|Press straight up, rotating slightly to finish palm forward|Lower back to the rack','Letting the elbow flare out wide at the start'],
+ 'machine-shoulder':['Shoulders and triceps','Set the seat so the handles start at shoulder height|Sit tall with the back against the pad|Press up to near lockout|Lower slowly','Letting the lower back come off the pad'],
+ 'smith-ohp':['Shoulders and triceps','Set a bench under the bar so it starts at shoulder height|Unhook with hands just outside shoulder width|Press up to lockout|Lower to chin height and repeat','Lowering the bar too far behind the head'],
+ 'band-ohp':['Shoulders and triceps','Stand on the band and hold the handles at shoulder height|Brace and squeeze the glutes|Press up to straight arms|Lower slowly against the band','Leaning back to press'],
+ 'lat-raise':['Side shoulders','Stand with dumbbells at your sides, a slight bend in the elbows|Raise the arms out to the side to shoulder height|Lead with the elbows, not the hands|Lower slowly','Swinging the body and shrugging to lift heavier weights'],
+ 'cable-lat-raise':['Side shoulders','Stand side-on to a low pulley and take the handle in the far hand|Raise the arm out to the side to shoulder height|Keep a slight bend in the elbow|Lower slowly; the cable keeps tension at the bottom','Leaning away from the cable to cheat the weight up'],
+ 'machine-lat-raise':['Side shoulders','Set the seat so your shoulders line up with the pivot|Place the arms against the pads|Raise to shoulder height|Lower under control','Shrugging the shoulders up towards the ears'],
+ 'band-lat-raise':['Side shoulders','Stand on the band and hold an end in each hand|Raise the arms out to the side to shoulder height|Keep a slight bend in the elbows|Lower slowly','Turning it into a shrug'],
+ 'upright-row':['Side shoulders and upper traps','Hold the weight with hands about shoulder width or wider|Pull up close to your body, leading with the elbows|Stop when the elbows reach shoulder height|Lower slowly','Using a narrow grip and pulling to the chin, which can pinch the shoulders'],
+ 'front-raise':['Front shoulders','Hold the weight in front of your thighs|Raise it forward to shoulder height with a slight bend in the elbows|Pause, then lower slowly|Stay upright throughout','Leaning back and swinging the weight'],
+ 'face-pull':['Rear shoulders, upper back and rotator cuff','Set a rope at upper chest to face height|Pull towards your face, hands either side of your head|Finish with elbows high and knuckles turned back|Return slowly','Pulling with the elbows low, turning it into a row'],
+ 'band-pull-apart':['Rear shoulders and upper back','Hold a band in front of you at shoulder height, arms straight|Pull it apart until it touches your chest|Squeeze the shoulder blades together|Return slowly','Bending the elbows to make it easier'],
+ 'rear-delt':['Rear shoulders and upper back','Hinge forward with a flat back, dumbbells hanging below the chest|Raise the arms out to the sides with a slight bend in the elbows|Lead with the elbows to shoulder height|Lower slowly','Using momentum from the back to swing the weights'],
+ 'reverse-pec-deck':['Rear shoulders and upper back','Sit facing the pad with the handles at shoulder height|Push the handles back and out in a wide arc|Keep a slight bend in the elbows|Return slowly','Squeezing the shoulder blades so hard the traps take over'],
+ 'deadlift':['Hamstrings, glutes, back and grip','Stand with the bar over the middle of your feet, grip just outside the legs|Push the hips back, shins to the bar, and flatten your back|Brace, take the slack out of the bar, then push the floor away|Stand tall with hips and knees locked, then lower the same way','Rounding the lower back or letting the bar drift away from the legs'],
+ 'sumo-deadlift':['Glutes, adductors, quads and back','Take a wide stance with toes turned out, bar over mid-foot|Grip inside the knees with arms straight|Push the knees out, brace and drive the floor apart|Lock out with the hips forward, then lower the same way','Hips shooting up first so it becomes a stiff-leg pull'],
+ 'trap-deadlift':['Quads, glutes, hamstrings and back','Stand in the centre of the trap bar and grip the handles|Sit the hips back with a flat back and chest up|Drive up through the whole foot to standing|Lower under control','Rounding the back at the bottom'],
+ 'good-morning':['Hamstrings, glutes and lower back','Put the bar on your upper back as for a squat|Soften the knees and push the hips back|Lower the chest until you feel a hamstring stretch, back flat|Drive the hips forward to stand','Rounding the back to go lower'],
+ 'back-ext':['Lower back, glutes and hamstrings','Set the pad just below the hips|Lower the upper body with a flat back|Raise until the body is in a straight line|Squeeze the glutes at the top','Overextending and arching at the top'],
+ 'row':['Upper back, lats and biceps','Hinge to about 45 degrees with a flat back, bar below the shoulders|Grip just outside shoulder width|Row the bar to the lower chest or upper belly|Lower under control without standing up','Standing more upright each rep to use the legs and back'],
+ 'pendlay':['Upper back, lats and power','Hinge until the back is roughly parallel to the floor|Start each rep from the floor with straight arms|Pull explosively to the lower chest|Return the bar to the floor and reset','Lifting the torso as you pull'],
+ 'db-row':['Lats and upper back, one side','Put one hand and knee on a bench, back flat|Hang the dumbbell under the shoulder|Row towards the hip, elbow close to the body|Lower to a full stretch','Rotating the torso to lift the weight'],
+ 'kb-row':['Lats and upper back, one side','Brace one hand on a bench or your knee, back flat|Row the kettlebell towards your hip|Squeeze the shoulder blade back|Lower slowly','Shrugging instead of pulling with the back'],
+ 'tbar':['Mid back and lats','Straddle the bar and hinge with a flat back|Grip the handle close to the plates|Row towards the chest|Lower under control','Standing up as you pull'],
+ 'seated-row':['Mid back, lats and biceps','Sit tall with feet on the platform and knees soft|Start with arms straight and shoulders reaching forward|Row the handle to the lower ribs, squeezing the shoulder blades|Return slowly to the stretch','Rocking backwards to move the weight'],
+ 'machine-row':['Mid back and lats','Set the chest pad so the handles are just in reach|Keep the chest on the pad|Row until the elbows are behind you|Return slowly','Lifting the chest off the pad'],
+ 'chest-sup-db':['Mid back and lats','Lie face down on an incline bench with dumbbells hanging|Row the dumbbells up, elbows back|Squeeze the shoulder blades together|Lower slowly','Craning the neck up'],
+ 'band-row':['Upper back and lats','Anchor the band at chest height|Sit or stand tall with arms straight|Row the hands to the ribs|Return slowly','Leaning back instead of rowing'],
+ 'inverted-row':['Upper back, lats and biceps','Hang under a bar or rings with heels on the floor, body straight|Pull your chest to the bar|Squeeze the shoulder blades together|Lower to straight arms; walk feet forward to make it easier','Letting the hips sag'],
+ 'lat-pulldown':['Lats and biceps','Set the thigh pad so you are locked in|Grip just wider than shoulders|Pull the bar to the upper chest, elbows driving down|Return slowly to straight arms','Leaning far back and turning it into a row'],
+ 'close-pulldown':['Lats and biceps','Use a close or neutral handle and lock your thighs in|Start with arms straight|Pull to the upper chest, elbows close to the body|Return slowly','Using momentum by rocking the torso'],
+ 'straight-arm-pd':['Lats','Stand facing a high pulley with a bar or rope|Hinge slightly with arms straight|Sweep the hands down to the thighs|Return slowly with straight arms','Bending the elbows so it becomes a pushdown'],
+ 'band-pulldown':['Lats','Anchor the band high and kneel facing it|Start with arms straight overhead|Pull the hands down to the shoulders|Return slowly','Shrugging the shoulders'],
+ 'assisted-pullup':['Lats and biceps','Set the weight to assist you; more weight means more help|Kneel or stand on the pad and grip the handles|Pull until your chin passes the handles|Lower to straight arms','Using so much assistance the reps are too easy to build strength'],
+ 'band-pullup':['Lats and biceps','Loop a band over the bar and put a foot or knee in it|Start from a full hang|Pull until your chin is over the bar|Lower under control; use a lighter band over time','Letting the band fling you up from the bottom'],
+ 'shrug':['Upper traps','Hold dumbbells at your sides|Lift the shoulders straight up towards the ears|Pause at the top|Lower slowly','Rolling the shoulders in circles'],
+ 'bb-shrug':['Upper traps','Hold the bar in front of the thighs|Lift the shoulders straight up|Pause, then lower slowly|Keep the arms straight','Bending the elbows to help'],
+ 'trap-shrug':['Upper traps','Stand in the trap bar holding the handles|Lift the shoulders straight up|Pause at the top|Lower slowly','Jerking the weight up'],
+ 'curl':['Biceps','Hold the bar at shoulder width with elbows at your sides|Curl up without moving the elbows forward|Squeeze at the top|Lower slowly to straight arms','Swinging the body to lift the bar'],
+ 'ez-curl':['Biceps','Hold the angled grips of the EZ bar|Keep the elbows pinned at your sides|Curl to shoulder height|Lower all the way under control','Cutting the range short at the bottom'],
+ 'db-curl':['Biceps','Stand with dumbbells at your sides, palms forward|Curl up, keeping the elbows still|Squeeze at the top|Lower slowly','Swinging the weights up'],
+ 'hammer':['Biceps and forearms (brachialis)','Hold dumbbells with palms facing each other|Curl up with the thumbs on top|Keep the elbows at your sides|Lower slowly','Letting the elbows travel forward'],
+ 'incline-curl':['Biceps (long head stretch)','Sit back on an incline bench with arms hanging straight|Curl up keeping the upper arms vertical|Squeeze at the top|Lower to a full stretch','Bringing the elbows forward to shorten the stretch'],
+ 'preacher':['Biceps','Rest the backs of your upper arms on the pad|Start with the arms nearly straight|Curl up and squeeze|Lower slowly; do not drop into the bottom','Bouncing out of the bottom, which stresses the elbow'],
+ 'cable-curl':['Biceps','Stand facing a low pulley with a bar or rope|Elbows at your sides|Curl up and squeeze|Lower slowly against the cable','Leaning back to move the weight'],
+ 'conc-curl':['Biceps','Sit with the elbow braced against the inside of the thigh|Curl the dumbbell towards the shoulder|Squeeze at the top|Lower slowly','Lifting the elbow off the thigh'],
+ 'kb-curl':['Biceps and grip','Hold the kettlebell by the horns or handle|Keep the elbows at your sides|Curl up and squeeze|Lower slowly','Swinging the bell'],
+ 'band-curl':['Biceps','Stand on the band holding the ends|Elbows at your sides|Curl up and squeeze|Lower slowly','Letting the elbows drift forward'],
+ 'tri-pushdown':['Triceps','Stand facing a high pulley with a bar|Elbows pinned to your sides|Push down until the arms are straight|Return slowly to about 90 degrees','Leaning over the bar and using bodyweight'],
+ 'rope-pushdown':['Triceps','Hold the rope ends with elbows at your sides|Push down and spread the rope at the bottom|Lock the elbows out|Return slowly','Letting the elbows flare forward'],
+ 'skull':['Triceps','Lie on a bench holding the weight over your chest|Bend at the elbows to lower it towards your forehead or just behind the head|Keep the upper arms still|Extend back to straight arms','Letting the elbows flare wide'],
+ 'oh-ext':['Triceps (long head)','Face away from a low pulley with a rope overhead|Keep the elbows close to the head|Extend the arms forward and up|Return slowly to a deep stretch','Arching the lower back'],
+ 'db-oh-ext':['Triceps (long head)','Hold one dumbbell overhead with both hands|Lower it behind your head, elbows pointing up|Keep the upper arms still|Extend back to straight arms','Letting the elbows splay out wide'],
+ 'kickback':['Triceps','Hinge forward with the upper arm parallel to the floor|Extend the forearm back until the arm is straight|Pause and squeeze|Lower slowly','Swinging the upper arm'],
+ 'band-pushdown':['Triceps','Anchor the band high|Elbows at your sides|Push down to straight arms|Return slowly','Moving the elbows'],
+ 'bw-tri-ext':['Triceps','Hands on a bench or bar at hip height, body straight like a plank|Bend at the elbows to lower your head below the bar|Keep the elbows pointing forward|Extend back to straight arms; lower the bar to make it harder','Letting the hips pike up'],
+ 'wrist-curl':['Forearm flexors','Sit with forearms on your thighs, palms up|Let the weight roll down to the fingers|Curl the wrist up as far as you can|Lower slowly','Using the arms instead of the wrists'],
+ 'reverse-curl':['Forearms and brachialis','Hold the weight with palms down|Elbows at your sides|Curl up keeping the wrists straight|Lower slowly','Letting the wrists bend back'],
+ 'squat':['Quads, glutes and adductors','Bar on the upper back, hands just outside the shoulders, feet about shoulder width|Brace, then sit down between your heels, knees following the toes|Go to at least parallel with a neutral back|Drive up through the whole foot','Knees caving in or the chest collapsing forward'],
+ 'front-squat':['Quads, glutes and upper back','Rest the bar on the front of the shoulders, elbows high|Keep the chest up and sit straight down|Go as deep as you can with elbows up|Drive up, leading with the elbows','Elbows dropping so the bar rolls forward'],
+ 'goblet':['Quads and glutes','Hold a dumbbell or kettlebell at your chest|Sit down between your heels, elbows inside the knees|Keep the chest up|Stand up through the whole foot','Leaning forward so the weight pulls you over'],
+ 'smith-squat':['Quads and glutes','Set the bar on your upper back with feet slightly in front|Unhook and squat down to at least parallel|Keep the back flat|Push up and rehook at the top','Feet too far forward, which strains the lower back'],
+ 'hack-squat':['Quads','Stand on the platform with shoulders under the pads|Release the safeties and lower as deep as you can|Keep the back against the pad|Push up without locking the knees hard','Lifting the heels off the platform'],
+ 'leg-press':['Quads and glutes','Sit with the back flat on the pad, feet shoulder width on the platform|Lower until the knees reach about 90 degrees or deeper|Keep the lower back on the pad|Press up without slamming the knees straight','Lowering so far the hips curl off the pad'],
+ 'lunge':['Quads and glutes','Hold dumbbells at your sides and step forward|Lower until the back knee nearly touches the floor|Push through the front foot and step into the next lunge|Keep the torso upright','Taking short steps so the front knee is under strain'],
+ 'reverse-lunge':['Quads and glutes','Hold the weights and step back with one leg|Lower until the back knee nearly touches the floor|Push through the front heel to return|Alternate legs','Leaning forward over the front leg'],
+ 'bb-lunge':['Quads and glutes','Bar on the upper back, step forward|Lower until the back knee nearly touches the floor|Keep the torso upright|Push back up and alternate','Losing balance from steps that are too narrow'],
+ 'split-squat':['Quads and glutes','Back foot on a bench, holding dumbbells|Lower until the back knee nearly touches the floor|Keep the front heel down|Drive up through the front foot','Front foot too close to the bench'],
+ 'rdl':['Hamstrings and glutes','Hold the bar at your hips with soft knees|Push the hips back and slide the bar down the thighs|Stop when you feel a strong hamstring stretch, back flat|Drive the hips forward to stand','Rounding the back or bending the knees into a squat'],
+ 'db-rdl':['Hamstrings and glutes','Hold dumbbells in front of the thighs|Push the hips back, keeping the weights close|Lower to a deep hamstring stretch with a flat back|Stand by driving the hips forward','Letting the dumbbells drift away from the legs'],
+ 'kb-swing':['Glutes, hamstrings and conditioning','Stand with the bell in front of you, feet a bit wider than hips|Hike it back between the legs with a flat back|Snap the hips forward to float it to chest height|Let it fall back and hinge again','Squatting the swing or lifting with the arms'],
+ 'leg-curl':['Hamstrings','Set the pad just above the heels|Curl the heels towards your bum|Squeeze at the end|Return slowly','Lifting the hips off the pad'],
+ 'glute-ham':['Hamstrings and glutes','Lock your ankles in with knees just behind the pad|Lower the body forward with hips straight|Pull back up with the hamstrings|Use your hands to help at first','Bending at the hips to shorten the lever'],
+ 'band-leg-curl':['Hamstrings','Anchor the band low and loop it around your ankle|Lie face down or stand|Curl the heel towards your bum|Return slowly','Arching the lower back'],
+ 'leg-ext':['Quads','Set the pad on the lower shins and the knee at the pivot|Extend the legs until straight|Squeeze the quads at the top|Lower slowly','Kicking the weight up with momentum'],
+ 'calf':['Calves','Stand with the balls of your feet on the edge|Lower the heels as far as you can|Rise as high as possible onto your toes|Pause at the top and bottom','Bouncing through short reps'],
+ 'seated-calf':['Calves (soleus)','Sit with the pad on your lower thighs and the balls of your feet on the platform|Lower the heels for a full stretch|Raise as high as you can|Pause at both ends','Using momentum instead of control'],
+ 'db-calf':['Calves','Hold a dumbbell and stand on a step|Lower the heels below the step|Rise onto your toes|Pause at the top','Bending the knees to help'],
+ 'hip-thrust':['Glutes','Sit with your upper back against a bench, bar over the hips with a pad|Feet flat about shoulder width|Drive the hips up until the body is flat from shoulders to knees|Pause and squeeze, then lower','Arching the lower back instead of extending the hips'],
+ 'db-hip-thrust':['Glutes','Upper back on a bench, dumbbell on the hips|Feet flat, knees bent|Drive the hips up and squeeze|Lower slowly','Pushing through the toes instead of the heels'],
+ 'hip-thrust-machine':['Glutes','Set the pad across the hips|Feet flat, shins vertical at the top|Drive the hips up and squeeze|Lower under control','Overarching the back at the top'],
+ 'cable-kickback':['Glutes','Attach the ankle strap and face the pulley|Brace with a slight forward lean|Kick the leg back, squeezing the glute|Return slowly','Arching the lower back to kick higher'],
+ 'hip-abduction':['Outer glutes','Sit with the pads on the outside of the knees|Push the knees apart|Pause at the widest point|Return slowly','Letting the weight snap back'],
+ 'band-walk':['Outer glutes','Put a band around the knees or ankles|Sink into a quarter squat|Step sideways keeping tension in the band|Keep the toes forward; go both ways','Letting the knees cave in'],
+ 'pallof':['Core (anti-rotation)','Stand side-on to a cable or band at chest height|Hold the handle at your chest|Press it straight out and hold without twisting|Bring it back; do both sides','Rotating towards the anchor'],
+ 'woodchop':['Obliques and core','Set the cable high and stand side-on|Pull diagonally across your body to the opposite hip|Rotate through the trunk and pivot the back foot|Return slowly','Pulling only with the arms'],
+ 'cable-crunch':['Abs','Kneel facing a high pulley, rope by your head|Crunch the ribs down towards the hips|Keep the hips still|Return slowly','Sitting back and pulling with the hips'],
+ 'decline-situp':['Abs and hip flexors','Hook your feet and lie back on the decline bench|Curl up, ribs to hips|Lower slowly under control|Hold a plate to make it harder','Yanking on the neck'],
+ 'clean':['Full body power: legs, hips and upper back','Start as for a deadlift, bar over mid-foot|Pull to above the knees, then jump the hips through|Pull yourself under and catch the bar on the front of the shoulders|Stand up; learn with a coach or light weights first','Pulling with the arms early instead of extending the hips'],
+ 'snatch':['Full body power','Take a wide grip, bar over mid-foot|Pull past the knees, then explode the hips|Pull under and catch the bar overhead with arms locked|Stand up; learn with a coach or a light bar first','Pressing the bar out instead of locking it overhead'],
+ 'clean-press':['Full body: legs, hips, shoulders','Clean the bar to the front of the shoulders|Reset your stance and brace|Press overhead to lockout|Lower to the shoulders, then to the floor','Leaning back on the press'],
+ 'thruster':['Quads, glutes and shoulders','Hold the weight at your shoulders|Squeeze to at least parallel|Drive up and use the momentum to press overhead|Lower to the shoulders as you go into the next squat','Pressing before the legs finish driving'],
+ 'tgu':['Shoulder stability, core and hips','Lie down holding the weight straight up over your shoulder|Roll to the elbow, then the hand, then lift the hips|Sweep the leg through to a kneel, then stand|Reverse each step slowly, eyes on the weight','Bending the weighted arm'],
+ 'wall-ball':['Legs, shoulders and conditioning','Hold the ball at your chest facing a wall|Squat to at least parallel|Drive up and throw the ball to the target|Catch it and go straight into the next squat','Throwing with the arms only'],
+ 'ball-slam':['Full body power and conditioning','Lift the ball overhead, rising onto your toes|Slam it into the floor as hard as you can|Hinge and squat to pick it up|Repeat quickly','Rounding the back to pick the ball up'],
  'towel-oap':['Lats, biceps and grip, mostly one side','Loop a towel over the bar next to your working hand|Grip the bar with one hand and the towel with the other, towel hand at eye level or lower|Pull mainly with the bar arm, using the towel hand only as much as you need|Lower slowly to a full hang and switch sides','Pulling hard with the towel arm, which turns it back into a normal pull-up'],
  'oap-pull-neg':['Lats, biceps and grip, one side','Get your chin over the bar with both hands, or jump up|Let go with one hand and keep the elbow of the working arm tight to your side|Lower as slowly as you can to a full hang; log the lowering time in seconds|Stop if you drop fast at the bottom; that part is the hardest on the elbow','Starting these before a 3-rep towel-assisted pull-up; they load the elbow heavily'],
  'false-grip-hang':['Wrist flexors and grip, for ring muscle-ups','Set the rings so the heel of your palm sits on top of the ring, wrists bent over|Hang with straight arms and shoulders pulled down|Keep the false grip the whole time; log the hold in seconds|Use your feet on the floor to take some weight at first','Letting the grip slide back into a normal hang'],
@@ -1536,7 +1700,7 @@ function platesFor(total, bar=20){
 
 /* ---------- views ---------- */
 const view=document.getElementById('view');
-function tab(){ const h=(location.hash||'#workout').slice(1); return ['workout','history','progress','routines','settings','programmes'].includes(h)?h:'workout'; }
+function tab(){ const h=(location.hash||'#workout').slice(1); return ['workout','history','progress','routines','settings','programmes','library'].includes(h)?h:'workout'; }
 
 /* appearance: follow the phone, or always light / always dark */
 function applyTheme(){
@@ -1549,13 +1713,14 @@ function applyTheme(){
 function render(){
   applyTheme();
   const t=tab();
-  document.querySelectorAll('.tabs a').forEach(a=>a.setAttribute('aria-current', a.dataset.tab===(t==='programmes'?'routines':t)?'page':'false'));
+  document.querySelectorAll('.tabs a').forEach(a=>a.setAttribute('aria-current', a.dataset.tab===(t==='programmes'||t==='library'?'routines':t)?'page':'false'));
   if(t==='workout') view.innerHTML = S.active ? vActive() : vStart();
   if(t==='history') view.innerHTML = vHistory();
   if(t==='progress') view.innerHTML = vProgress();
   if(t==='routines') view.innerHTML = vRoutines();
   if(t==='settings') view.innerHTML = vSettings();
   if(t==='programmes') view.innerHTML = vProgrammesScreen();
+  if(t==='library'){ view.innerHTML = vLibrary(); libFilterRows(); }
   const g=document.querySelector('.gear'); if(g) g.setAttribute('aria-current', t==='settings'?'page':'false');
   maybeTour();
   tick();
@@ -1784,6 +1949,11 @@ function vProgEntry(){
     <div class="spread nowrap"><div style="min-width:0"><b class="pe-title">${PROGRAMS.length} by goal · ${SKILLS.length} calisthenics skills</b><div class="muted" style="font-size:13px">Strength, muscle, mobility and step-by-step skills</div></div>
       <span class="pe-arrow" aria-hidden="true">${ICON.down}</span></div>
     ${live.length?`<div class="pe-live">${live.map(sk=>{ const i=skillStage(sk.id); return `<button type="button" class="pe-skill" data-act="skill-view" data-id="${esc(sk.id)}"><span>${esc(sk.title)}</span><span class="muted num">Stage ${i+1} of ${sk.stages.length}</span></button>`; }).join('')}</div>`:''}
+  </div>
+  <div class="section-h"><h2>Exercises</h2><a class="btn ghost" href="#library">Browse ${ICON.down.replace('<svg','<svg class="chev-r"')}</a></div>
+  <div class="card prog-entry" data-act="go-library" role="link" tabindex="0" aria-label="Browse the exercise library">
+    <div class="spread nowrap"><div style="min-width:0"><b class="pe-title">${allEx().length} exercises</b><div class="muted" style="font-size:13px">Form guides, your history and add to a routine</div></div>
+      <span class="pe-arrow" aria-hidden="true">${ICON.down}</span></div>
   </div>`;
 }
 function vProgrammesScreen(){
@@ -1819,6 +1989,49 @@ function holdTick(){
     const sec=Math.floor((Date.now()-holdT.start)/1000); el.textContent=String(sec);
     if(holdT.target && sec>=holdT.target && !holdT.beeped){ holdT.beeped=true; beep(); el.classList.add('hit'); if(sub) sub.textContent='Target reached'; }
   }
+}
+
+/* ---------- exercise library screen ---------- */
+const LIB_CHIPS=['All','Calisthenics','Mobility','Chest','Shoulders','Back','Arms','Legs','Core','Full body','Cardio'];
+function libMatch(e,f){ if(f==='All') return true; if(f==='Calisthenics') return !!e.cali && e.pattern!=='prep'; if(f==='Mobility') return e.pattern==='prep'; if(f==='Mine') return isCustomId(e.id); return (e.group||'Custom')===f; }
+function vLibrary(){
+  const f=S.libFilter||'All'; const onlyMine=S.libAll?false:Array.isArray(S.settings.equipment);
+  const chips=[...LIB_CHIPS,...(S.custom.length?['Mine']:[])].map(c=>`<button type="button" class="fchip" data-act="lib-filter" data-v="${c}" aria-pressed="${f===c}">${c}</button>`).join('');
+  const list=allEx().filter(e=>libMatch(e,f)).sort((a,b)=>a.name.localeCompare(b.name));
+  const rows=list.map(e=>{ const ok=canDo(e); return `<button type="button" class="lib-row ${ok?'':'na'}" data-act="lib-open" data-id="${esc(e.id)}" data-name="${esc(e.name.toLowerCase())}${KOT.has(e.id)?' knees over toes kot':''}" data-ok="${ok?1:0}">
+      <span class="lib-txt"><b>${esc(e.name)}</b><small>${esc(e.pattern==='prep'?'Mobility':(e.group||'Custom'))}${e.needs&&e.needs.length?` · ${esc(needsText(e))}`:' · no equipment'}</small></span>${hasHow(e.id)?`<span class="lib-i" aria-hidden="true">${ICON.info}</span>`:''}</button>`; }).join('');
+  return `<div class="section-h back-row"><a class="back-link" href="#routines">${ICON.down}<span>Routines</span></a></div>
+  <div class="section-h"><h2>Exercises</h2><span class="muted num" style="font-size:14px">${allEx().length}</span></div>
+  <div class="field"><label class="label" for="lib-q">Search</label><input id="lib-q" type="search" placeholder="e.g. row, pistol, stretch" autocomplete="off" value="${esc(S.libQ||'')}"></div>
+  <div class="fchips" role="group" aria-label="Filter exercises">${chips}</div>
+  ${Array.isArray(S.settings.equipment)?`<label class="check-row"><input type="checkbox" id="lib-all" ${S.libAll?'checked':''}> Include exercises my equipment can't do</label>`:''}
+  <div class="lib-list" id="lib-list" data-only="${onlyMine?1:0}">${rows}</div>
+  <p class="note" id="lib-none" hidden>Nothing matches. Try another filter or search.</p>`;
+}
+function needsText(e){ const names={}; EQUIP.forEach(([,items])=>items.forEach(([k,l])=>{ names[k]=l; })); return e.needs.map(tok=>tok.split('|').map(t=>names[t]||t).join(' or ')).join(', '); }
+function libFilterRows(){
+  const list=document.getElementById('lib-list'); if(!list) return;
+  const q=(document.getElementById('lib-q')?.value||'').trim().toLowerCase(); S.libQ=q; const only=list.dataset.only==='1'; let shown=0;
+  list.querySelectorAll('.lib-row').forEach(b=>{ const m=(!q||b.dataset.name.includes(q)) && (!only||b.dataset.ok==='1'); b.hidden=!m; if(m) shown++; });
+  const none=document.getElementById('lib-none'); if(none) none.hidden=shown>0;
+}
+document.addEventListener('input', ev=>{ if(ev.target&&ev.target.id==='lib-q') libFilterRows(); }, true);
+document.addEventListener('change', ev=>{ if(ev.target&&ev.target.id==='lib-all'){ S.libAll=ev.target.checked; render(); } }, true);
+function sheetExInfo(ex){
+  if(!ex) return '<p class="muted">Exercise not found.</p>';
+  const m=exerciseStats().find(x=>x.exId===ex.id);
+  const guide = hasHow(ex.id) ? sheetHowto(ex) : `<p class="muted" style="margin:0">No guide for this one${ex.type==='cardio'?': it is cardio, log the time and distance':''}.</p><a class="btn block" href="https://www.youtube.com/results?search_query=${encodeURIComponent(ex.name+' tutorial')}" target="_blank" rel="noopener">${ICON.play}<span>Find a video</span></a>`;
+  const miss=missing(ex);
+  return `${miss.length?`<div class="warn"><span>Needs ${esc(miss.join(', '))}, which isn't in your equipment.</span></div>`:''}
+  ${guide}
+  <div class="card spread nowrap" style="padding:10px 12px"><div style="min-width:0"><b>Your history</b><div class="muted" style="font-size:13px">${m?`${m.sessions.length} session${m.sessions.length===1?'':'s'} · last ${shortDate(m.sessions[m.sessions.length-1].t)}`:'Not logged yet'}</div></div>${m?`<button type="button" class="btn" data-act="ex-hist" data-id="${esc(ex.id)}">View</button>`:''}</div>
+  <button type="button" class="btn primary block" data-act="addto-open" data-id="${esc(ex.id)}">${ICON.plus} Add to a routine</button>`;
+}
+function sheetAddTo(){
+  const ex=exById(sheet.exId);
+  return `<p class="muted" style="margin:0;font-size:14px">Add <b style="color:var(--ink)">${esc(ex?ex.name:'')}</b> to:</p>
+  <div class="cx-list">${S.routines.map(r=>`<button type="button" class="cx-row" data-act="addto-pick" data-id="${esc(r.id)}"><b>${esc(r.name)}</b><small class="muted">${r.exercises.length} exercise${r.exercises.length===1?'':'s'}${r.exercises.some(x=>x.exId===sheet.exId)?' · already in it':''}</small></button>`).join('')}</div>
+  <button type="button" class="btn block" data-act="addto-new">${ICON.plus} New routine with this exercise</button>`;
 }
 function vStart(){
   const now=Date.now(), ws=weekStart(now);
@@ -1904,7 +2117,7 @@ function doneCount(w){ let n=0; for(const e of w.exercises) for(const s of e.set
 /* field layout per exercise type: [first field, label, second field, label] */
 function fieldsFor(e){
   if(e.type==='cardio') return ['min','Minutes','km','km'];
-  if(e.type==='hold') return ['w','+kg','sec','Seconds'];
+  if(e.type==='hold') return ['w',isBw(e)?'+kg':'kg','sec','Seconds'];
   const bc=barCfg(e.exId);
   return ['w', isBw(e)?'+kg':(bc?BAR_LABEL[bc.mode]:'kg'), 'r','Reps'];
 }
@@ -2362,7 +2575,7 @@ function vSettings(){
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=33;
+const APP_VERSION=35;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const items=S.routines.map(r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
@@ -2406,6 +2619,8 @@ function renderSheet(){
   if(sheet.kind==='cx-list'){ title='My exercises'; body=sheetCxList(); }
   if(sheet.kind==='clear'){ title='Clear data'; body=sheetClear(); }
   if(sheet.kind==='tour'){ title=''; body=sheetTour(); }
+  if(sheet.kind==='exinfo'){ const ex=exById(sheet.id); title=ex?ex.name:'Exercise'; body=sheetExInfo(ex); }
+  if(sheet.kind==='addto'){ title='Add to a routine'; body=sheetAddTo(); }
   if(sheet.kind==='bw-all'){ title='Bodyweight'; body=sheetBwAll(); }
   if(sheet.kind==='export'){ title='Your export'; body=sheetExport(); }
   if(sheet.kind==='install'){ title='Add to home screen'; body=sheetInstall(); }
@@ -3079,6 +3294,13 @@ document.addEventListener('click', async ev=>{
     case 'rt-reorder': S.rtReorder=!S.rtReorder; render(); break;
     case 'rt-move': { const list=S.routines; const k=list.findIndex(r=>r.id===b.dataset.id), d=+b.dataset.d, n=k+d; if(k<0||n<0||n>=list.length) break;
       [list[k],list[n]]=[list[n],list[k]]; list.forEach((r,idx)=>{ if(r.order!==idx){ r.order=idx; putRoutine(r); } }); render(); break; }
+    case 'go-library': location.hash='#library'; break;
+    case 'lib-filter': S.libFilter=b.dataset.v; render(); break;
+    case 'lib-open': openSheet({kind:'exinfo', id:b.dataset.id}); break;
+    case 'addto-open': openSheet({kind:'addto', exId:b.dataset.id, back:sheet}); break;
+    case 'addto-pick': { const ex=exById(sheet.exId), r=S.routines.find(x=>x.id===b.dataset.id); if(!ex||!r) break;
+      const nr=JSON.parse(JSON.stringify(r)); nr.exercises.push(routineItem(ex)); putRoutine(nr); closeSheet(); render(); toast(`Added to ${r.name}`); break; }
+    case 'addto-new': { const ex=exById(sheet.exId); if(!ex) break; openSheet({kind:'routine', r:{id:uid(),name:'',order:S.routines.length,exercises:[routineItem(ex)]}}); break; }
     case 'goal-open': openSheet({kind:'goal'}); break;
     case 'goal-pick': { const v=+b.dataset.v; const st=Object.assign({},S.settings); if(v) st.weekGoal=v; else delete st.weekGoal; S.settings=st; putSettings(); closeSheet(); render(); break; }
     case 'howto': { const sb=document.querySelector('#sheet-root .sheet-b');
