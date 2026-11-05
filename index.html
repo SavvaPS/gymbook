@@ -2576,7 +2576,7 @@ function vSettings(){
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=36;
+const APP_VERSION=37;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const items=S.routines.map(r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
@@ -3034,7 +3034,7 @@ document.addEventListener('change', ev=>{
   const t=ev.target;
   if(t.matches && t.matches('[data-vest]')){ const id=t.closest('.bar-ctl').dataset.exid; const v=num(t.value); if(v>0&&v<=100) setVestPref(id,{kg:v}); else t.value=r2(vestCfg(id).kg); return; }
   if(t.matches && t.matches('[data-bar]')){ const id=t.closest('.bar-ctl').dataset.exid; const v=num(t.value); if(v>=0&&v<=100) setBarPref(id,{bar:v}); else t.value=r2(barCfg(id).bar); return; }
-  if(t.id==='set-rpe'){ S.settings.rpe=t.checked; putSettings(); toast(t.checked?'Effort (RPE) column on':'Effort (RPE) column off'); return; }
+  if(t.id==='set-rpe'){ S.settings.rpe=t.checked; putSettings(); return; }
   if(t.id==='pick-all'){ sheet.showAll=t.checked; filterPicker(); }
   if(t.dataset && t.dataset.eq) updateEqCount();
 });
@@ -3166,7 +3166,7 @@ document.addEventListener('click', async ev=>{
     case 'equip-preset': { const set=new Set(PRESETS[+b.dataset.i][1]); document.querySelectorAll('[data-eq]').forEach(c=>{ c.checked=set.has(c.dataset.eq); }); updateEqCount(); break; }
     case 'equip-save': {
       S.settings.equipment=[...document.querySelectorAll('[data-eq]')].filter(c=>c.checked).map(c=>c.dataset.eq);
-      await putSettings(); const back=sheet&&sheet.back; if(back){ openSheet(back); render(); } else { closeSheet(); render(); } toast('Equipment saved'); break;
+      await putSettings(); const back=sheet&&sheet.back; if(back){ openSheet(back); render(); } else { closeSheet(); render(); } break;
     }
     case 'vest-on': setVestPref(b.closest('.bar-ctl').dataset.exid, {on:b.dataset.v==='1'}); break;
     case 'rt-rest': { const r=sheet.r; r.rest=Math.max(15,Math.min(600,(r.rest||S.settings.rest||90)+(+b.dataset.d))); renderSheet(); break; }
@@ -3215,7 +3215,7 @@ document.addEventListener('click', async ev=>{
     case 'rest-skip': stopRest(); break;
 
     case 'hist-toggle': S.openHist = S.openHist===b.dataset.id?null:b.dataset.id; render(); break;
-    case 'hist-del': { if(!armed(b,'Tap again to delete')) break; await delWorkout(b.dataset.id); recomputePRs(); render(); toast('Workout deleted'); break; }
+    case 'hist-del': { if(!armed(b,'Tap again to delete')) break; await delWorkout(b.dataset.id); recomputePRs(); render(); break; }
     case 'hist-repeat': {
       if(S.active){ toast('Finish or discard your current workout first.'); break; }
       const w=S.workouts.find(x=>x.id===b.dataset.id); if(!w) break;
@@ -3253,7 +3253,7 @@ document.addEventListener('click', async ev=>{
       const nw=b.dataset.w, from=b.dataset.from;
       for(const st of e.sets){ if(st.done||st.wu) continue; const cur=st.w===''||st.w==null ? (st.t1??'') : st.w;
         if(cur===''||!num(cur)||from===''||num(cur)===num(from)) { st.w=nw; if(st.t1!==undefined) st.t1=nw; } }
-      touch(); render(); toast(`Working sets set to ${fmtKg(num(nw))} kg`); break;
+      touch(); render(); break;
     }
     case 'hint-swap': { const ex=exById(b.dataset.id); if(ex){ swapEntry(e, ex); touch(); render(); } break; }
     case 'rt-wu': { const x=sheet.r.exercises[+b.closest('.rt-ex').dataset.i]; const p=x.plan[+b.closest('.plan-row').dataset.j]; if(p.wu) delete p.wu; else p.wu=true; renderSheet(); break; }
@@ -3281,7 +3281,7 @@ document.addEventListener('click', async ev=>{
       openSheet({kind:'cx', id:ex.id, name:ex.name, type:ex.type, group:CX_GROUPS.includes(ex.group)?ex.group:'Legs', bw:!!ex.bw, note:ex.note||'', back:back||(sheet&&sheet.kind==='howto'?null:null)}); break; }
     case 'cx-type': cxRead(); sheet.type=b.dataset.v; renderSheet(); break;
     case 'cx-save': await cxSave(); break;
-    case 'cx-del': { if(!armed(b,'Tap again to delete')) break; const id=sheet.id; S.custom=S.custom.filter(x=>x.id!==id); putCustom(); const back=sheet.back; if(back) openSheet(back); else closeSheet(); render(); toast('Exercise deleted'); break; }
+    case 'cx-del': { if(!armed(b,'Tap again to delete')) break; const id=sheet.id; S.custom=S.custom.filter(x=>x.id!==id); putCustom(); const back=sheet.back; if(back) openSheet(back); else closeSheet(); render(); break; }
     case 'clear-open': openSheet({kind:'clear', what:'history'}); break;
     case 'clear-what': sheet.what=b.dataset.v; renderSheet(); break;
     case 'clear-backup': await doBackup(); renderSheet(); break;
@@ -3311,7 +3311,7 @@ document.addEventListener('click', async ev=>{
     case 'skill-reset': { const sk=SKILLS.find(x=>x.id===b.dataset.id); if(!sk) break;
       if(!armed(b,'Tap again: clears stages, passes and its routine')) break;
       const ids=resetSkill(sk); for(const id of ids) await delRoutine(id);
-      sheet.open=null; renderSheet(); render(); toast(`${sk.title} reset to the start`); break; }
+      sheet.open=null; renderSheet(); render(); break; }
     case 'stage-toggle': { const i=+b.dataset.i; sheet.open = (sheet.open!=null?sheet.open:Math.max(0,skillStage(sheet.id)))===i ? -1 : i; renderSheet(); break; }
     case 'stage-start': {
       const sk=SKILLS.find(x=>x.id===b.dataset.skill); const i=+b.dataset.i;
@@ -3323,7 +3323,7 @@ document.addEventListener('click', async ev=>{
     case 'pre-tick': { const id=b.dataset.id; const d=Object.assign({},S.settings.preDone||{}); if(d[id]) delete d[id]; else d[id]=Date.now(); S.settings.preDone=d; putSettings(); renderSheet(); render(); break; }
     case 'skill-master': { const sk=SKILLS.find(x=>x.id===b.dataset.id); if(!sk) break;
       S.settings.skillsDone=Object.assign({},S.settings.skillsDone||{},{[sk.id]:Date.now()});
-      S.settings.skills=Object.assign({},S.settings.skills||{},{[sk.id]:sk.stages.length-1}); putSettings(); renderSheet(); render(); toast(`${sk.title} marked as mastered`); break; }
+      S.settings.skills=Object.assign({},S.settings.skills||{},{[sk.id]:sk.stages.length-1}); putSettings(); renderSheet(); render(); break; }
     case 'skill-unmaster': { const sk=SKILLS.find(x=>x.id===b.dataset.id); if(!sk) break;
       const d=Object.assign({},S.settings.skillsDone||{}); delete d[sk.id]; S.settings.skillsDone=d; putSettings(); renderSheet(); render(); break; }
     case 'prog-add': {
@@ -3347,9 +3347,9 @@ document.addEventListener('click', async ev=>{
       if(!r.name.trim()){ err.hidden=false; err.textContent='Give the routine a name.'; document.getElementById('rt-name').focus(); break; }
       if(!r.exercises.length){ err.hidden=false; err.textContent='Add at least one exercise.'; break; }
       r.name=r.name.trim(); r.exercises.forEach(x=>{ ensurePlan(x); x.sets=x.plan.length; x.reps=planReps(x); });
-      await putRoutine(r); closeSheet(); render(); toast('Routine saved'); break;
+      await putRoutine(r); closeSheet(); render(); break;
     }
-    case 'rt-del': { if(!armed(b,'Tap again to delete')) break; await delRoutine(sheet.r.id); closeSheet(); render(); toast('Routine deleted'); break; }
+    case 'rt-del': { if(!armed(b,'Tap again to delete')) break; await delRoutine(sheet.r.id); closeSheet(); render(); break; }
     case 'rest-def': { S.settings.rest=Math.max(15,Math.min(600,(S.settings.rest||90)+(+b.dataset.d))); document.getElementById('rest-def').textContent=fmtDur(S.settings.rest*1000); putSettings(); break; }
   }
 });
@@ -3358,7 +3358,9 @@ document.addEventListener('submit', async ev=>{
   const kg=num(document.getElementById('bw-kg').value); const ds=document.getElementById('bw-date').value||todayISO();
   if(!(kg>20&&kg<400)){ toast('Enter your weight in kg, e.g. 80.5'); document.getElementById('bw-kg').focus(); return; }
   const t=new Date(ds+'T12:00').getTime();
-  await putBw({id:'d'+ds, t, kg:Math.round(kg*10)/10}); render(); toast(`Logged ${fmtKg(Math.round(kg*10)/10)} kg`);
+  await putBw({id:'d'+ds, t, kg:Math.round(kg*10)/10}); render();
+  /* the card already shows the newest weigh-in; only confirm an older date, which doesn't appear there */
+  if(S.bw.length && S.bw[S.bw.length-1].t!==t) toast(`Logged ${fmtKg(Math.round(kg*10)/10)} kg for ${shortDate(t)}`);
 });
 document.addEventListener('keydown', ev=>{ if(ev.key==='Escape' && sheet) closeSheet(); });
 window.addEventListener('hashchange', ()=>{ render(); window.scrollTo(0,0); });
