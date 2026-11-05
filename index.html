@@ -6,6 +6,7 @@
 <title>GymBook</title>
 <script>try{var _t=localStorage.getItem('gymbook.theme');if(_t==='light'||_t==='dark')document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
 <meta name="description" content="Log workouts, routines, calisthenics and progress. Works offline.">
+<meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#ECEEF1" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0E1115" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2575,7 +2576,7 @@ function vSettings(){
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=35;
+const APP_VERSION=36;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const items=S.routines.map(r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
