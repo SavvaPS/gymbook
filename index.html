@@ -605,6 +605,37 @@ input:not([type="checkbox"]):not([type="radio"]):focus,input:not([type="checkbox
 .rg-n{font-size:13px;font-weight:600}
 .rt-group-h{font-weight:700;font-size:15px;color:var(--muted);margin:6px 2px -4px}
 .all-rt{align-self:flex-start;text-decoration:none;gap:4px}
+.mstats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ms{display:flex;flex-direction:column;gap:1px;padding:10px 12px;border-radius:10px;background:var(--sunk)}
+.ms b{font-family:var(--f-display);font-size:26px;line-height:1.1}
+.ms span{font-size:13px;color:var(--muted)}
+.dl{font-size:12px;font-weight:700;margin-top:2px}
+.dl.up{color:var(--ok)}.dl.down{color:var(--pr)}.dl.same{color:var(--muted)}
+.mc-foot{display:flex;flex-direction:column;gap:3px;font-size:14px}
+.mc-foot b{color:var(--ink)}
+.mc-vs{font-size:12px}
+.mrow-m{grid-template-columns:56px 1fr 28px}
+.mrow-sub{font-size:12px;margin:-4px 0 4px 64px}
+.stall-list{display:flex;flex-direction:column;gap:6px}
+.stall{all:unset;box-sizing:border-box;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;background:var(--warn-soft)}
+.stall b{font-size:15px;min-width:0}
+.stall span{font-size:13px;font-weight:600;white-space:nowrap}
+.pr-tl{display:flex;flex-direction:column}
+.pr-row{display:grid;grid-template-columns:1fr auto 52px;gap:8px;align-items:baseline;padding:7px 0;border-top:1px solid var(--line);font-size:15px}
+.pr-row:first-child{border-top:0}
+.pr-n{font-weight:600;min-width:0;overflow-wrap:break-word}
+.pr-v{font-weight:600}
+.pr-d{font-size:13px;text-align:right}
+.mrow.tap{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:76px 1fr 28px;gap:8px;align-items:center;font-size:13px;min-height:28px;width:100%}
+.ex-chart{display:flex;flex-direction:column;gap:4px}
+.cal .icon-btn svg{transform:rotate(90deg)}
+.cal .icon-btn[data-d="1"] svg{transform:rotate(-90deg)}
+.cal .icon-btn:disabled{opacity:.3}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal-h span{font-size:11px;font-weight:700;color:var(--muted)}
+.cal-grid>span,.cal-grid>button{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;height:36px;border-radius:10px;font-size:14px;font-variant-numeric:tabular-nums;color:var(--muted)}
+.cal-grid>button.on{background:var(--accent);color:var(--accent-ink);font-weight:700;cursor:pointer}
+.cal-grid>.today{outline:2px solid var(--accent);outline-offset:-2px;color:var(--ink);font-weight:700}
 .toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top,0px));bottom:auto;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
 table.sess{width:100%;border-collapse:collapse;font-size:14px}
 table.sess th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
@@ -2066,6 +2097,138 @@ function startPicks(){
   for(const r of S.routines){ if(out.length>=4) break; if(r.id!==skip && !out.includes(r)) out.push(r); }
   return out;
 }
+
+/* ---------- progress: month in review, stalled lifts, PRs, trends, calendar ---------- */
+const MONTH_FULL=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function workoutSets(w){ let n=0; for(const e of (w.exercises||[])) if(e.type!=='cardio') n+=working(e.sets).length; return n; }
+function periodStats(from, to){
+  const ws=S.workouts.filter(w=>w.startedAt>=from&&w.startedAt<to);
+  const mus={}; let sets=0, vol=0, prs=0;
+  for(const w of ws){ vol+=workoutVolume(w); sets+=workoutSets(w); prs+=(w.prs||[]).length;
+    for(const e of (w.exercises||[])){ if(e.type==='cardio') continue; const ex=exById(e.exId); const g=ex?ex.group:null; if(!MUSCLES.includes(g)) continue; mus[g]=(mus[g]||0)+working(e.sets).length; } }
+  return {n:ws.length, sets, vol, prs, mus};
+}
+function monthRange(y,m){ return [new Date(y,m,1).getTime(), new Date(y,m+1,1).getTime()]; }
+function delta(cur, prev, fmt){ const d=cur-prev; if(!prev&&!cur) return ''; if(d===0) return `<small class="dl same">same</small>`; return `<small class="dl ${d>0?'up':'down'}">${d>0?'▲':'▼'} ${fmt?fmt(Math.abs(d)):Math.abs(d)}</small>`; }
+function monthCard(){
+  const now=new Date(), y=now.getFullYear(), m=now.getMonth(), day=now.getDate();
+  const [a,b]=monthRange(y,m); const cur=periodStats(a,b);
+  /* compare with the same number of days of last month, so the 5th isn't judged against a whole month */
+  const pa=new Date(y,m-1,1).getTime(), pd=Math.min(day, new Date(y,m,0).getDate()), pb=new Date(y,m-1,pd+1).getTime();
+  const prev=periodStats(pa,pb); const pm=MON[(m+11)%12];
+  const tr=MUSCLES.map(g=>[g,cur.mus[g]||0]).sort((x,z)=>z[1]-x[1]);
+  const most=tr[0]&&tr[0][1]?tr[0]:null, least=tr.filter(x=>x[1]===tr[tr.length-1][1]).map(x=>x[0]);
+  let goalLine='';
+  const g=num(S.settings.weekGoal);
+  if(g){ let hit=0, tot=0; const wc=weekCounts(); for(let k=weekStart(a); k<b && k<=Date.now(); k+=7*864e5){ const kk=weekStart(k+864e5*3); if(kk+7*864e5>Date.now() && (wc.get(kk)||0)<g) continue; tot++; if((wc.get(kk)||0)>=g) hit++; } if(tot) goalLine=`<span>Weekly goal hit <b>${hit} of ${tot}</b> weeks</span>`; }
+  return `<div class="card stack month-card" style="gap:10px">
+    <div class="spread nowrap"><span class="label">${MONTH_FULL[m]} so far</span><button type="button" class="btn ghost small" data-act="months-open">Past months</button></div>
+    <div class="mstats">
+      <div class="ms"><b class="num">${cur.n}</b><span>workouts</span>${delta(cur.n,prev.n)}</div>
+      <div class="ms"><b class="num">${cur.sets}</b><span>working sets</span>${delta(cur.sets,prev.sets)}</div>
+      <div class="ms"><b class="num">${fmtVol(cur.vol)}</b><span>kg volume</span>${delta(Math.round(cur.vol),Math.round(prev.vol),fmtVol)}</div>
+      <div class="ms"><b class="num">${cur.prs}</b><span>new bests</span>${delta(cur.prs,prev.prs)}</div>
+    </div>
+    <div class="mc-foot muted">${cur.n?`<span>Most trained <b>${esc(most?most[0]:'—')}</b>${least.length&&least.length<MUSCLES.length?` · least <b>${esc(least.slice(0,2).join(', '))}</b>`:''}</span>`:'<span>No workouts yet this month.</span>'}${goalLine}<span class="mc-vs">Arrows compare with the same days of ${pm}.</span></div>
+  </div>`;
+}
+function sheetMonths(){
+  const now=new Date(); const rows=[];
+  const first=S.workouts.length?Math.min(...S.workouts.map(w=>w.startedAt)):Date.now(); const f0=new Date(first); const firstM=new Date(f0.getFullYear(), f0.getMonth(), 1).getTime();
+  for(let i=0;i<12;i++){ const d=new Date(now.getFullYear(), now.getMonth()-i, 1); if(d.getTime()<firstM) break; const [a,b]=monthRange(d.getFullYear(), d.getMonth()); rows.push({d,st:periodStats(a,b)}); }
+  const mx=Math.max(1,...rows.map(r=>r.st.n));
+  return `<div class="mlist">${rows.map(({d,st})=>`<div class="mrow mrow-m"><span class="mname">${MON[d.getMonth()]} ${String(d.getFullYear()).slice(2)}</span><div class="mbar" aria-hidden="true"><div class="mfill" style="width:${(st.n/mx*100).toFixed(1)}%"></div></div><span class="mnum num">${st.n}</span></div>
+    <div class="mrow-sub muted num">${st.sets} sets · ${fmtVol(st.vol)} kg · ${st.prs} new best${st.prs===1?'':'s'}</div>`).join('')}</div>`;
+}
+/* lifts with no new best for 4+ weeks while still being trained */
+function stalledLifts(){
+  const now=Date.now(), D=864e5, out=[];
+  for(const m of exerciseStats()){
+    if(m.type==='cardio'||m.kind==='hold') continue;
+    const val=s=>m.kind==='bw'?(s.e1||s.reps0):s.e1; const ss=m.sessions.filter(s=>val(s)>0);
+    const recent=ss.filter(s=>s.t>=now-42*D); if(recent.length<3) continue;
+    let best=0, bestT=0; for(const s of ss){ if(val(s)>best+1e-9){ best=val(s); bestT=s.t; } }
+    if(!bestT || bestT>=now-28*D) continue;
+    out.push({m, weeks:Math.floor((now-bestT)/(7*D)), best});
+  }
+  return out.sort((a,b)=>b.weeks-a.weeks).slice(0,3);
+}
+function stalledCard(){
+  const list=stalledLifts(); if(!list.length) return '';
+  return `<div class="card stack" style="gap:8px">
+    <span class="label">Stalled lifts</span>
+    <div class="stall-list">${list.map(x=>`<button type="button" class="stall" data-act="prog-open" data-id="${esc(x.m.exId)}"><b>${esc(x.m.name)}</b><span class="muted num">No new best in ${x.weeks} weeks</span></button>`).join('')}</div>
+    <p class="muted" style="margin:0;font-size:13px">Still training these but not improving. Try a lighter week, a different rep range, or a close variation for a few weeks.</p>
+  </div>`;
+}
+function allPRs(){ const out=[]; for(const w of S.workouts) for(const p of (w.prs||[])) out.push({...p, t:p.t||w.startedAt, wid:w.id}); return out.sort((a,b)=>b.t-a.t); }
+function prCard(){
+  const list=allPRs(); if(!list.length) return '';
+  return `<div class="card stack" style="gap:8px">
+    <div class="spread nowrap"><span class="label">Recent personal bests</span>${list.length>5?`<button type="button" class="btn ghost small" data-act="prs-open">All ${list.length}</button>`:''}</div>
+    <div class="pr-tl">${list.slice(0,5).map(p=>`<div class="pr-row"><span class="pr-n">${esc(p.name)}</span><span class="pr-v num">${esc(prText(p))}</span><span class="pr-d muted num">${shortDate(p.t)}</span></div>`).join('')}</div>
+  </div>`;
+}
+function sheetPRs(){
+  const all=allPRs(); const names=[...new Set(all.map(p=>p.name))].sort(); const f=sheet.f||'';
+  const list=f?all.filter(p=>p.name===f):all; let cur='', out='';
+  for(const p of list){ const d=new Date(p.t), mk=`${MONTH_FULL[d.getMonth()]} ${d.getFullYear()}`; if(mk!==cur){ out+=`<div class="month">${mk}</div>`; cur=mk; }
+    out+=`<div class="pr-row"><span class="pr-n">${esc(p.name)}</span><span class="pr-v num">${esc(prText(p))}</span><span class="pr-d muted num">${shortDate(p.t)}</span></div>`; }
+  return `<div class="field"><label class="label" for="pr-f">Exercise</label><select id="pr-f"><option value="">All exercises</option>${names.map(n=>`<option ${n===f?'selected':''}>${esc(n)}</option>`).join('')}</select></div>
+  <div class="pr-tl">${out}</div>`;
+}
+document.addEventListener('change', ev=>{ if(ev.target&&ev.target.id==='pr-f'&&sheet&&sheet.kind==='prs'){ sheet.f=ev.target.value; renderSheet(); } }, true);
+/* weekly working sets for one muscle group, last 12 weeks */
+function sheetMuscle(){
+  const g=sheet.g, W=12, ws=weekStart(Date.now()); const counts=[];
+  for(let i=W-1;i>=0;i--){ const a=ws-i*7*864e5, b=a+7*864e5; let n=0; for(const w of S.workouts){ if(w.startedAt<a||w.startedAt>=b) continue; for(const e of (w.exercises||[])){ if(e.type==='cardio') continue; const ex=exById(e.exId); if(ex&&ex.group===g) n+=working(e.sets).length; } } counts.push({a,n}); }
+  const mx=Math.max(20,...counts.map(c=>c.n)); const cw=320, ch=140, bw=cw/W, top=12, base=ch-18;
+  const y=v=>base-(v/mx)*(base-top);
+  const bars=counts.map((c,i)=>{ const x=i*bw+4, h=base-y(c.n); return `<rect x="${x.toFixed(1)}" y="${(base-h).toFixed(1)}" width="${(bw-8).toFixed(1)}" height="${Math.max(h,c.n?0:2).toFixed(1)}" rx="3" fill="${i===W-1?'var(--accent)':c.n?'var(--muted)':'var(--line)'}"/>${c.n?`<text x="${(x+(bw-8)/2).toFixed(1)}" y="${(base-h-4).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="600" fill="var(--ink)">${c.n}</text>`:''}${i%3===2||i===W-1?`<text x="${(x+(bw-8)/2).toFixed(1)}" y="${ch-4}" text-anchor="middle" font-size="9" fill="var(--muted)">${shortDate(c.a)}</text>`:''}`; }).join('');
+  const band=[10,20].map(v=>`<line x1="0" x2="${cw}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--ok)" stroke-dasharray="4 4" stroke-width="1" opacity=".7"/><text x="${cw-2}" y="${(y(v)-3).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--ok)">${v}</text>`).join('');
+  const avg=Math.round(counts.reduce((s,c)=>s+c.n,0)/W);
+  return `<svg viewBox="0 0 ${cw} ${ch}" role="img" aria-label="Weekly working sets for ${esc(g)}, last 12 weeks">${band}${bars}</svg>
+  <p class="muted" style="margin:0;font-size:14px">Average <b style="color:var(--ink)">${avg} sets a week</b> over 12 weeks. The green dashed lines mark 10 and 20 sets, a common weekly range per muscle group.</p>`;
+}
+/* simple trend line for one exercise, with a time range */
+const RANGES=[['3m','3M',91],['6m','6M',182],['1y','1Y',365],['all','All',0]];
+function exChart(m){
+  const rk=S.exRange||'6m'; const r=RANGES.find(x=>x[0]===rk)||RANGES[3]; const from=r[2]?Date.now()-r[2]*864e5:0;
+  const pts=m.sessions.filter(s=>s.t>=from&&s.val>0);
+  const label=m.type==='cardio'?(pts.some(s=>s.km)?'Distance, km':'Minutes'):m.kind==='hold'?'Longest hold, seconds':m.kind==='bw'?'Best (reps or estimated max)':'Estimated one-rep max, kg';
+  const seg=`<div class="seg seg-wide" role="group" aria-label="Time range">${RANGES.map(([k,l])=>`<button type="button" data-act="ex-range" data-v="${k}" aria-pressed="${rk===k}">${l}</button>`).join('')}</div>`;
+  if(pts.length<2) return `${seg}<p class="muted" style="margin:0;font-size:14px">${pts.length?'Only one session in this range.':'No sessions in this range.'}</p>`;
+  const cw=320, ch=150, L=34, R=10, T=10, B=22; const t0=pts[0].t, t1=pts[pts.length-1].t;
+  const vals=pts.map(s=>s.val); let lo=Math.min(...vals), hi=Math.max(...vals); if(hi===lo){ hi+=1; lo=Math.max(0,lo-1); } const pad=(hi-lo)*0.1; lo=Math.max(0,lo-pad); hi+=pad;
+  const X=t=>L+(t1===t0?0.5:(t-t0)/(t1-t0))*(cw-L-R), Y=v=>T+(1-(v-lo)/(hi-lo))*(ch-T-B);
+  const path=pts.map((s,i)=>`${i?'L':'M'}${X(s.t).toFixed(1)},${Y(s.val).toFixed(1)}`).join(' ');
+  const bi=vals.indexOf(Math.max(...vals)); const f=v=>fmtKg(Math.round(v*2)/2);
+  return `${seg}<div class="ex-chart"><span class="label" style="font-size:11px">${label}</span>
+  <svg viewBox="0 0 ${cw} ${ch}" role="img" aria-label="${label} over time">
+    <line x1="${L}" x2="${cw-R}" y1="${Y(hi).toFixed(1)}" y2="${Y(hi).toFixed(1)}" stroke="var(--line)"/><line x1="${L}" x2="${cw-R}" y1="${Y(lo).toFixed(1)}" y2="${Y(lo).toFixed(1)}" stroke="var(--line)"/>
+    <text x="${L-6}" y="${(Y(hi)+4).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--muted)">${f(hi)}</text><text x="${L-6}" y="${(Y(lo)+4).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--muted)">${f(lo)}</text>
+    <path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    ${pts.map((s,i)=>`<circle cx="${X(s.t).toFixed(1)}" cy="${Y(s.val).toFixed(1)}" r="${i===bi?4.5:2.5}" fill="${i===bi?'var(--ok)':'var(--accent)'}"/>`).join('')}
+    <text x="${L}" y="${ch-6}" font-size="10" fill="var(--muted)">${shortDate(t0)}</text><text x="${cw-R}" y="${ch-6}" text-anchor="end" font-size="10" fill="var(--muted)">${shortDate(t1)}</text>
+  </svg><small class="muted">Green dot: best in this range</small></div>`;
+}
+/* history calendar */
+function calendarCard(){
+  const off=S.calOff||0; const base=new Date(); const d0=new Date(base.getFullYear(), base.getMonth()+off, 1);
+  const y=d0.getFullYear(), m=d0.getMonth(); const days=new Date(y,m+1,0).getDate(); const lead=(d0.getDay()+6)%7;
+  const byDay={}; for(const w of S.workouts){ const d=new Date(w.startedAt); if(d.getFullYear()===y&&d.getMonth()===m){ (byDay[d.getDate()]=byDay[d.getDate()]||[]).push(w); } }
+  const today=new Date(); const isNow=today.getFullYear()===y&&today.getMonth()===m;
+  let cells=''; for(let i=0;i<lead;i++) cells+='<span></span>';
+  for(let dd=1; dd<=days; dd++){ const ws=byDay[dd]; const cls=`${ws?'on':''} ${isNow&&dd===today.getDate()?'today':''}`;
+    cells+= ws?`<button type="button" class="${cls}" data-act="cal-day" data-id="${esc(ws[0].id)}" aria-label="${dd} ${MON[m]}: ${esc(ws.map(w=>w.name).join(', '))}">${dd}</button>`:`<span class="${cls}">${dd}</span>`; }
+  const n=Object.values(byDay).reduce((a,v)=>a+v.length,0);
+  return `<div class="card stack cal" style="gap:8px">
+    <div class="spread nowrap"><button type="button" class="icon-btn" data-act="cal-nav" data-d="-1" aria-label="Previous month">${ICON.down}</button><b>${MONTH_FULL[m]} ${y}</b><button type="button" class="icon-btn" data-act="cal-nav" data-d="1" aria-label="Next month" ${off>=0?'disabled':''}>${ICON.down}</button></div>
+    <div class="cal-grid cal-h">${['M','T','W','T','F','S','S'].map(x=>`<span>${x}</span>`).join('')}</div>
+    <div class="cal-grid">${cells}</div>
+    <small class="muted num" style="text-align:center">${n} workout${n===1?'':'s'} · tap a day to open it</small>
+  </div>`;
+}
 function vStart(){
   const now=Date.now(), ws=weekStart(now);
   const days=[0,1,2,3,4,5,6].map(i=>{ const s=ws+i*864e5, e=s+864e5; const on=S.workouts.some(w=>w.startedAt>=s&&w.startedAt<e);
@@ -2343,7 +2506,7 @@ function vHistory(){
   const logBtn=`<button type="button" class="btn ghost" data-act="log-past">${ICON.plus} Log past workout</button>`;
   if(!S.workouts.length) return `<div class="section-h"><h2>History</h2>${logBtn}</div>
     <div class="card empty"><h3>No workouts yet</h3><p style="margin:0 0 12px">Finished workouts show up here with every set, the time taken and total volume. Forgot to track one? Log it with its date.</p><a class="btn primary" href="#workout">Start a workout</a></div>`;
-  let out=`<div class="section-h"><h2>History</h2>${logBtn}</div><p class="muted num" style="margin:-6px 0 0;font-size:14px">${S.workouts.length} workouts</p>`;
+  let out=`<div class="section-h"><h2>History</h2>${logBtn}</div>${calendarCard()}<p class="muted num" style="margin:4px 0 0;font-size:14px">${S.workouts.length} workouts</p>`;
   let curM='';
   for(const w of S.workouts){
     const d=new Date(w.startedAt); const m=`${MON[d.getMonth()]} ${d.getFullYear()}`;
@@ -2466,11 +2629,11 @@ function muscleCard(){
   const avg=g=>(prev[g]||0)/4;
   const max=Math.max(20,...MUSCLES.map(g=>Math.max(cur[g]||0,avg(g))));
   const rows=MUSCLES.map(g=>{ const c=cur[g]||0, a=avg(g);
-    return `<div class="mrow"><span class="mname">${g}</span><div class="mbar" aria-hidden="true"><div class="mfill" style="width:${(c/max*100).toFixed(1)}%"></div>${a?`<div class="mavg" style="left:${(a/max*100).toFixed(1)}%"></div>`:''}</div><span class="mnum num">${c}</span></div>`; }).join('');
+    return `<button type="button" class="mrow tap" data-act="muscle-open" data-g="${g}" aria-label="${g}: ${c} sets this week. Show 12-week trend"><span class="mname">${g}</span><div class="mbar" aria-hidden="true"><div class="mfill" style="width:${(c/max*100).toFixed(1)}%"></div>${a?`<div class="mavg" style="left:${(a/max*100).toFixed(1)}%"></div>`:''}</div><span class="mnum num">${c}</span></button>`; }).join('');
   return `<div class="card stack" style="gap:8px">
     <div class="spread"><span class="label">Working sets this week</span><span class="legend"><i class="lg-fill"></i>This week <i class="lg-avg"></i>4-week average</span></div>
     <div class="mlist" role="table" aria-label="Working sets per muscle group this week">${rows}</div>
-    ${more('How this works','<p>Working sets only; warm-ups aren\'t counted. Many programmes aim for roughly 10–20 hard sets per muscle group each week.</p>')}
+    ${more('How this works','<p>Working sets only; warm-ups aren\'t counted. Many programmes aim for roughly 10–20 hard sets per muscle group each week. Tap a muscle group to see its last 12 weeks.</p>')}
   </div>`;
 }
 function skillsCard(){
@@ -2522,12 +2685,10 @@ function vProgress(){
     return `<button type="button" class="prog" data-act="prog-open" data-id="${esc(m.exId)}"><div class="prog-txt"><h3>${esc(m.name)}</h3><div class="prog-main num">${main}</div><div class="sub num">${extra}</div></div>${spark(m.sessions.map(s=>s.val),72,32)}</button>`;
   }).join('') : `<p class="note">No ${S.progTab} exercises logged yet.</p>`;
   return `${head}
-  <div class="stats">
-    <div class="stat"><b class="num">${wk.length}</b><small>workouts<br>this week</small></div>
-    <div class="stat"><b class="num">${mo.length}</b><small>workouts<br>this month</small></div>
-    <div class="stat"><b class="num">${prs}</b><small>PRs<br>this month</small></div>
-  </div>
+  ${monthCard()}
   ${muscleCard()}
+  ${stalledCard()}
+  ${prCard()}
   ${relCard()}
   ${skillsCard()}
   <div class="card weeks"><div class="label" style="margin-bottom:6px">Workouts per week</div>${weeksChart()}</div>
@@ -2609,7 +2770,7 @@ function vSettings(){
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=38;
+const APP_VERSION=39;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const card=r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
@@ -2656,6 +2817,9 @@ function renderSheet(){
   if(sheet.kind==='tour'){ title=''; body=sheetTour(); }
   if(sheet.kind==='exinfo'){ const ex=exById(sheet.id); title=ex?ex.name:'Exercise'; body=sheetExInfo(ex); }
   if(sheet.kind==='addto'){ title='Add to a routine'; body=sheetAddTo(); }
+  if(sheet.kind==='months'){ title='Past months'; body=sheetMonths(); }
+  if(sheet.kind==='prs'){ title='Personal bests'; body=sheetPRs(); }
+  if(sheet.kind==='muscle'){ title=sheet.g; body=sheetMuscle(); }
   if(sheet.kind==='bw-all'){ title='Bodyweight'; body=sheetBwAll(); }
   if(sheet.kind==='export'){ title='Your export'; body=sheetExport(); }
   if(sheet.kind==='install'){ title='Add to home screen'; body=sheetInstall(); }
@@ -2861,12 +3025,14 @@ function sheetSummary(){
 function sheetExercise(m){
   if(!m) return '<p class="note">No sessions.</p>';
   const rows=[...m.sessions].reverse();
-  if(m.type==='cardio') return `<table class="sess"><thead><tr><th>Date</th><th>Time</th><th>Distance</th><th>Pace</th></tr></thead><tbody>${rows.map(s=>`<tr><td>${shortDate(s.t)}</td><td class="num">${s.min?s.min+' min':'—'}</td><td class="num">${s.km?fmtKg(s.km)+' km':'—'}</td><td class="num">${s.pace?`${Math.floor(s.pace)}:${String(Math.round(s.pace%1*60)).padStart(2,'0')}/km`:'—'}</td></tr>`).join('')}</tbody></table>`;
-  if(m.kind==='hold') return `<table class="sess"><thead><tr><th>Date</th><th>Longest hold</th><th>Sets</th></tr></thead><tbody>${rows.map(s=>`<tr><td>${shortDate(s.t)}</td><td class="num">${s.sec} s</td><td class="num">${s.sets}</td></tr>`).join('')}</tbody></table>`;
+  const chart=exChart(m);
+  if(m.type==='cardio') return `${chart}<table class="sess"><thead><tr><th>Date</th><th>Time</th><th>Distance</th><th>Pace</th></tr></thead><tbody>${rows.map(s=>`<tr><td>${shortDate(s.t)}</td><td class="num">${s.min?s.min+' min':'—'}</td><td class="num">${s.km?fmtKg(s.km)+' km':'—'}</td><td class="num">${s.pace?`${Math.floor(s.pace)}:${String(Math.round(s.pace%1*60)).padStart(2,'0')}/km`:'—'}</td></tr>`).join('')}</tbody></table>`;
+  if(m.kind==='hold') return `${chart}<table class="sess"><thead><tr><th>Date</th><th>Longest hold</th><th>Sets</th></tr></thead><tbody>${rows.map(s=>`<tr><td>${shortDate(s.t)}</td><td class="num">${s.sec} s</td><td class="num">${s.sets}</td></tr>`).join('')}</tbody></table>`;
   if(m.kind==='bw') return `<div class="stats">
       <div class="stat"><b class="num">${Math.max(...m.sessions.map(s=>s.reps0))||'—'}</b><small>best reps (bodyweight)</small></div>
       <div class="stat"><b class="num">${fmtKg(Math.max(...m.sessions.map(s=>s.heavy)))||'—'}</b><small>most added kg</small></div>
       <div class="stat"><b class="num">${fmtX(Math.max(...m.sessions.map(s=>s.rel||0)))}</b><small>bodyweight, best</small></div></div>
+    ${chart}
     ${S.bw.length?more('How this works','<p>Relative strength counts your bodyweight plus any added kg, as an estimated one-rep max divided by bodyweight.</p>'):''}
     <div style="overflow-x:auto"><table class="sess"><thead><tr><th>Date</th><th>Best set</th><th>Total reps</th><th>Bodyweight</th><th>× BW</th></tr></thead><tbody>${rows.map(s=>{ const b=bwAt(s.t); return `<tr><td>${shortDate(s.t)}</td><td class="num">${s.bestSet&&num(s.bestSet.w)?`+${fmtKg(num(s.bestSet.w))}×${s.bestSet.r}`:`${s.reps0} reps`}</td><td class="num">${s.totalReps}</td><td class="num">${b!=null?fmtKg(num(b))+' kg':'—'}</td><td class="num">${fmtX(s.rel)}</td></tr>`; }).join('')}</tbody></table></div>
     ${S.bw.length?'':'<p class="muted" style="margin:0;font-size:13px">Log your bodyweight in Progress to see it here.</p>'}`;
@@ -2875,6 +3041,7 @@ function sheetExercise(m){
       <div class="stat"><b class="num">${fmtKg(Math.round(best*2)/2)}</b><small>est. 1RM kg</small></div>
       <div class="stat"><b class="num">${fmtKg(Math.max(...m.sessions.map(s=>s.heavy)))}</b><small>heaviest kg</small></div>
       <div class="stat"><b class="num">${fmtX(Math.max(...m.sessions.map(s=>s.rel||0)))}</b><small>bodyweight, best</small></div></div>
+    ${chart}
     ${more('How this works',`<p>Estimated 1RM uses the Epley formula: weight × (1 + reps ÷ 30). × BW is that estimate divided by your bodyweight at the time${S.bw.length?'':' (log your bodyweight in Progress to see it)'}.</p>`)}
     <div style="overflow-x:auto"><table class="sess"><thead><tr><th>Date</th><th>Best set</th><th>e1RM</th><th>× BW</th><th>Volume</th></tr></thead><tbody>${rows.map(s=>`<tr><td>${shortDate(s.t)}</td><td class="num">${s.bestSet?`${fmtKg(num(s.bestSet.w))}×${s.bestSet.r}`:'—'}</td><td class="num">${s.e1?fmtKg(Math.round(s.e1*2)/2):'—'}</td><td class="num">${fmtX(s.rel)}</td><td class="num">${fmtVol(s.vol)} kg</td></tr>`).join('')}</tbody></table></div>`;
 }
@@ -3338,6 +3505,12 @@ document.addEventListener('click', async ev=>{
       const nr=JSON.parse(JSON.stringify(r)); nr.exercises.push(routineItem(ex)); putRoutine(nr); closeSheet(); render(); toast(`Added to ${r.name}`); break; }
     case 'addto-new': { const ex=exById(sheet.exId); if(!ex) break; openSheet({kind:'routine', r:{id:uid(),name:'',order:S.routines.length,exercises:[routineItem(ex)]}}); break; }
     case 'rt-group': { const k=b.dataset.k; S.settings=Object.assign({},S.settings,{rtGroups:Object.assign({},S.settings.rtGroups||{},{[k]:!rtGroupOpen(k)})}); putSettings(); render(); break; }
+    case 'months-open': openSheet({kind:'months'}); break;
+    case 'prs-open': openSheet({kind:'prs'}); break;
+    case 'muscle-open': openSheet({kind:'muscle', g:b.dataset.g}); break;
+    case 'ex-range': S.exRange=b.dataset.v; renderSheet(); break;
+    case 'cal-nav': S.calOff=Math.min(0,(S.calOff||0)+(+b.dataset.d)); render(); break;
+    case 'cal-day': { S.openHist=b.dataset.id; render(); const el=document.querySelector(`[data-act="hist-toggle"][data-id="${b.dataset.id}"]`); if(el) el.scrollIntoView({block:'start',behavior:'smooth'}); break; }
     case 'goal-open': openSheet({kind:'goal'}); break;
     case 'goal-pick': { const v=+b.dataset.v; const st=Object.assign({},S.settings); if(v) st.weekGoal=v; else delete st.weekGoal; S.settings=st; putSettings(); closeSheet(); render(); break; }
     case 'howto': { const sb=document.querySelector('#sheet-root .sheet-b');
