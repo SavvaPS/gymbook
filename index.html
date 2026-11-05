@@ -598,6 +598,13 @@ input:not([type="checkbox"]):not([type="radio"]):focus,input:not([type="checkbox
 .lib-txt small{font-size:13px;color:var(--muted)}
 .lib-i{flex:none;color:var(--accent);display:inline-flex}
 .lib-i svg{width:18px;height:18px}
+.rt-group{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:4px 2px;margin-top:4px}
+.rt-group svg{width:20px;height:20px;flex:none;color:var(--muted);transition:transform .15s}
+.rt-group[aria-expanded="false"] svg{transform:rotate(-90deg)}
+.rg-title{font-weight:700;font-size:17px;flex:1;min-width:0}
+.rg-n{font-size:13px;font-weight:600}
+.rt-group-h{font-weight:700;font-size:15px;color:var(--muted);margin:6px 2px -4px}
+.all-rt{align-self:flex-start;text-decoration:none;gap:4px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top,0px));bottom:auto;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
 table.sess{width:100%;border-collapse:collapse;font-size:14px}
 table.sess th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
@@ -2034,13 +2041,39 @@ function sheetAddTo(){
   <div class="cx-list">${S.routines.map(r=>`<button type="button" class="cx-row" data-act="addto-pick" data-id="${esc(r.id)}"><b>${esc(r.name)}</b><small class="muted">${r.exercises.length} exercise${r.exercises.length===1?'':'s'}${r.exercises.some(x=>x.exId===sheet.exId)?' · already in it':''}</small></button>`).join('')}</div>
   <button type="button" class="btn block" data-act="addto-new">${ICON.plus} New routine with this exercise</button>`;
 }
+
+/* ---------- routines grouped: yours, each programme, skills ---------- */
+function rtKey(r){ return r.src&&r.src.program?'p:'+r.src.program : r.src&&r.src.skill?'skills':'own'; }
+function rtGroups(){
+  const map=new Map();
+  for(const r of S.routines){ const k=rtKey(r); if(!map.has(k)) map.set(k,[]); map.get(k).push(r); }
+  const title=k=>k==='own'?'My routines':k==='skills'?'Calisthenics skills':((PROGRAMS.find(p=>'p:'+p.id===k)||{}).title||'Programme');
+  const keys=[...map.keys()].sort((a,b)=>(a==='own'?-1:b==='own'?1:a==='skills'?1:b==='skills'?-1:0));
+  return keys.map(k=>({key:k, title:title(k), list:map.get(k)}));
+}
+function rtGroupOpen(k){ const g=S.settings.rtGroups||{}; return g[k]!=null ? !!g[k] : k==='own'; }
+function rtGrouped(card){
+  const gs=rtGroups(); if(!gs.length) return '';
+  if(gs.length===1 && gs[0].key==='own') return gs[0].list.map(card).join('');
+  return gs.map(g=>{ const open=rtGroupOpen(g.key);
+    return `<button type="button" class="rt-group" data-act="rt-group" data-k="${esc(g.key)}" aria-expanded="${open}">${ICON.down}<span class="rg-title">${esc(g.title)}</span><span class="rg-n muted num">${g.list.length} routine${g.list.length===1?'':'s'}</span></button>
+    ${open?g.list.map(card).join(''):''}`; }).join('');
+}
+/* Workout screen: recently used routines (not the one in Next up), topped up in your order */
+function startPicks(){
+  const nu=nextUp(); const skip=nu&&nu.r?nu.r.id:null; const out=[];
+  for(const w of S.workouts){ const r=routineOf(w, S.routines); if(r && r.id!==skip && !out.includes(r)) out.push(r); if(out.length>=4) break; }
+  for(const r of S.routines){ if(out.length>=4) break; if(r.id!==skip && !out.includes(r)) out.push(r); }
+  return out;
+}
 function vStart(){
   const now=Date.now(), ws=weekStart(now);
   const days=[0,1,2,3,4,5,6].map(i=>{ const s=ws+i*864e5, e=s+864e5; const on=S.workouts.some(w=>w.startedAt>=s&&w.startedAt<e);
     const today=now>=s&&now<e; return `<div class="${on?'on':''} ${today?'today':''}">${DAY[(i+1)%7].slice(0,1)}</div>`; }).join('');
   const thisWeek=S.workouts.filter(w=>w.startedAt>=ws);
-  const routines = S.routines.length ? `<div class="routine-pick">${S.routines.map(r=>`
-      <button type="button" data-act="start-routine" data-id="${esc(r.id)}"><b>${esc(r.name)}</b><small class="num" style="font-weight:600">${estText(r)}</small><small>${esc(r.exercises.slice(0,3).map(x=>x.name).join(', '))}${r.exercises.length>3?` +${r.exercises.length-3}`:''}</small>${swapCount(r)?`<small class="warn-txt">${swapCount(r)} need a swap</small>`:''}</button>`).join('')}</div>`
+  const picks=S.routines.length?startPicks():[];
+  const routines = S.routines.length ? `<div class="routine-pick">${picks.map(r=>`
+      <button type="button" data-act="start-routine" data-id="${esc(r.id)}"><b>${esc(r.name)}</b><small class="num" style="font-weight:600">${estText(r)}</small><small>${esc(r.exercises.slice(0,3).map(x=>x.name).join(', '))}${r.exercises.length>3?` +${r.exercises.length-3}`:''}</small>${swapCount(r)?`<small class="warn-txt">${swapCount(r)} need a swap</small>`:''}</button>`).join('')}</div>${S.routines.length>picks.length+(nextUp()?1:0)?`<a class="btn ghost all-rt" href="#routines">All routines (${S.routines.length}) ${ICON.down.replace('<svg','<svg class="chev-r"')}</a>`:''}`
     : (S.loaded.r ? `<p class="note">No routines yet. Make one in the Routines tab to start it in one tap.</p>` : '');
   const last=S.workouts[0]; const nu=vNextUp();
   return `
@@ -2576,10 +2609,10 @@ function vSettings(){
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=37;
+const APP_VERSION=38;
 function vRoutines(){
   const rest=S.settings.rest||90;
-  const items=S.routines.map(r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
+  const card=r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
       <div class="rt-top"><div class="rt-left"><button type="button" class="ex-toggle rt-tg" data-act="rt-fold" data-id="${esc(r.id)}" aria-expanded="${open}">${ICON.down}<span class="rt-name">${esc(r.name)}</span></button>
         <span class="rt-meta muted num">${estText(r)} · ${r.exercises.length} exercise${r.exercises.length===1?'':'s'} · ${r.rest?`${fmtDur(r.rest*1000)} rest`:'default rest'}</span>
         ${srcTag(r)}</div>
@@ -2587,12 +2620,13 @@ function vRoutines(){
       ${open?`<ol>${r.exercises.map(x=>{ const ex=exById(x.exId); const bad=ex&&!canDo(ex);
         return `<li>${esc(x.name)} <span class="num">${esc(planSummary(x))}</span>${bad?' <span class="warn-txt">needs swap</span>':''}</li>`; }).join('')}</ol>
       <div class="row"><button type="button" class="btn primary" data-act="start-routine" data-id="${esc(r.id)}">${ICON.play} Start</button><button type="button" class="btn" data-act="rt-edit" data-id="${esc(r.id)}">Edit</button></div>`:''}
-    </div>`; }).join('');
+    </div>`; };
+  const items=rtGrouped(card);
   if(S.rtReorder && S.routines.length>1){
     const list=S.routines;
     return `<div class="section-h"><h2>Routines</h2><button type="button" class="btn ghost" data-act="rt-reorder">Done</button></div>
     <p class="muted" style="margin:-6px 0 0;font-size:14px">Move routines up or down. Next up follows this order.</p>
-    ${list.map((r,k)=>`<div class="card rt reorder"><div class="rt-top"><span class="rt-name">${esc(r.name)}</span><span class="rt-move"><button type="button" class="icon-btn" data-act="rt-move" data-id="${esc(r.id)}" data-d="-1" aria-label="Move ${esc(r.name)} up" ${k===0?'disabled':''}>${ICON.up}</button><button type="button" class="icon-btn" data-act="rt-move" data-id="${esc(r.id)}" data-d="1" aria-label="Move ${esc(r.name)} down" ${k===list.length-1?'disabled':''}>${ICON.down}</button></span></div></div>`).join('')}
+    ${rtGroups().map(g=>`${rtGroups().length>1?`<div class="rt-group-h">${esc(g.title)}</div>`:''}${g.list.map((r,k,list)=>`<div class="card rt reorder"><div class="rt-top"><span class="rt-name">${esc(r.name)}</span><span class="rt-move"><button type="button" class="icon-btn" data-act="rt-move" data-id="${esc(r.id)}" data-d="-1" aria-label="Move ${esc(r.name)} up" ${k===0?'disabled':''}>${ICON.up}</button><button type="button" class="icon-btn" data-act="rt-move" data-id="${esc(r.id)}" data-d="1" aria-label="Move ${esc(r.name)} down" ${k===list.length-1?'disabled':''}>${ICON.down}</button></span></div></div>`).join('')}`).join('')}
     ${vProgEntry()}`;
   }
   return `<div class="section-h"><h2>Routines</h2><span class="row" style="gap:4px;flex-wrap:nowrap">${S.routines.length>1?`<button type="button" class="btn ghost" data-act="rt-reorder">Reorder</button>`:''}<button type="button" class="btn ghost" data-act="rt-new">${ICON.plus} New</button></span></div>
@@ -3293,7 +3327,8 @@ document.addEventListener('click', async ev=>{
     case 'prog-filter': { const k=S.progKind==='skills'?'skills':'goals'; S.progFilter=Object.assign({},S.progFilter||{},{[k]:b.dataset.v}); render(); break; }
     case 'go-programmes': location.hash='#programmes'; break;
     case 'rt-reorder': S.rtReorder=!S.rtReorder; render(); break;
-    case 'rt-move': { const list=S.routines; const k=list.findIndex(r=>r.id===b.dataset.id), d=+b.dataset.d, n=k+d; if(k<0||n<0||n>=list.length) break;
+    case 'rt-move': { const list=S.routines; const k=list.findIndex(r=>r.id===b.dataset.id), d=+b.dataset.d; if(k<0) break; const key=rtKey(list[k]);
+      let n=k+d; while(n>=0&&n<list.length&&rtKey(list[n])!==key) n+=d; if(n<0||n>=list.length) break;
       [list[k],list[n]]=[list[n],list[k]]; list.forEach((r,idx)=>{ if(r.order!==idx){ r.order=idx; putRoutine(r); } }); render(); break; }
     case 'go-library': location.hash='#library'; break;
     case 'lib-filter': S.libFilter=b.dataset.v; render(); break;
@@ -3302,6 +3337,7 @@ document.addEventListener('click', async ev=>{
     case 'addto-pick': { const ex=exById(sheet.exId), r=S.routines.find(x=>x.id===b.dataset.id); if(!ex||!r) break;
       const nr=JSON.parse(JSON.stringify(r)); nr.exercises.push(routineItem(ex)); putRoutine(nr); closeSheet(); render(); toast(`Added to ${r.name}`); break; }
     case 'addto-new': { const ex=exById(sheet.exId); if(!ex) break; openSheet({kind:'routine', r:{id:uid(),name:'',order:S.routines.length,exercises:[routineItem(ex)]}}); break; }
+    case 'rt-group': { const k=b.dataset.k; S.settings=Object.assign({},S.settings,{rtGroups:Object.assign({},S.settings.rtGroups||{},{[k]:!rtGroupOpen(k)})}); putSettings(); render(); break; }
     case 'goal-open': openSheet({kind:'goal'}); break;
     case 'goal-pick': { const v=+b.dataset.v; const st=Object.assign({},S.settings); if(v) st.weekGoal=v; else delete st.weekGoal; S.settings=st; putSettings(); closeSheet(); render(); break; }
     case 'howto': { const sb=document.querySelector('#sheet-root .sheet-b');
