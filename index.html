@@ -576,6 +576,18 @@ input:not([type="checkbox"]):not([type="radio"]):focus,input:not([type="checkbox
 .back-link{display:inline-flex;align-items:center;gap:4px;color:var(--accent);font-weight:600;text-decoration:none;min-height:40px}
 .back-link svg{width:18px;height:18px;transform:rotate(90deg)}
 .prog-chips{order:0}
+.ex-links{display:flex;flex-wrap:wrap;gap:4px 16px}
+.ex-links .how-link{margin:-4px 0 4px}
+.hold-timer{display:flex;flex-direction:column;align-items:center;gap:6px;margin:10px 0 4px;padding:14px;border-radius:14px;background:var(--accent-soft)}
+.ht-num{font-family:var(--f-display);font-weight:700;font-size:64px;line-height:1;color:var(--ink)}
+.ht-num.hit{color:var(--ok)}
+.ht-sub{font-size:14px;font-weight:600;color:var(--muted)}
+.ht-btns{display:grid;grid-template-columns:2fr 1fr;gap:8px;width:100%;margin-top:4px}
+.ht-btns .btn{width:100%}
+.rt-move{display:flex;gap:6px;flex:none}
+.rt-move .icon-btn{border:1px solid var(--line);border-radius:10px;width:44px;height:44px}
+.rt-move .icon-btn:disabled{opacity:.3}
+.rt.reorder{padding-block:8px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top,0px));bottom:auto;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
 table.sess{width:100%;border-collapse:collapse;font-size:14px}
 table.sess th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
@@ -1551,6 +1563,8 @@ function render(){
 }
 
 const ICON = {
+  chart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19h16M6 15l4-4 3 3 5-6"/></svg>',
+  timer:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4"/></svg>',
   gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>',
   dumbbell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 7v10M3 9.5v5M18 7v10M21 9.5v5M6 12h12"/></svg>',
   list:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg>',
@@ -1780,6 +1794,32 @@ function vProgrammesScreen(){
   return `<div class="section-h back-row"><a class="back-link" href="#routines">${ICON.down}<span>Routines</span></a></div>
   ${vPrograms(f).replace('<!--chips-->', `<div class="fchips prog-chips" role="group" aria-label="Filter programmes">${chips}</div>`)}`;
 }
+
+/* ---------- hold timer: counts a timed hold and fills in the next set ---------- */
+let holdT=null; // {i, ready, start, target, beeped}
+function holdTarget(e){ const s=e.sets.find(x=>!x.done); if(!s) return 0; return num(s.t2)||num(e.targetR)||0; }
+function vHoldTimer(e,i){
+  if(!holdT||holdT.i!==i||!S.active||e.type!=='hold') return '';
+  const tgt=holdT.target;
+  return `<div class="hold-timer" aria-live="polite">
+    <div class="ht-num num" id="hold-t">${holdT.start?'0':holdT.ready?String(holdT.ready):'0'}</div>
+    <div class="ht-sub" id="hold-sub">${holdT.start?(tgt?`Target ${tgt} s`:'Holding'):holdT.ready?'Get ready':(tgt?`Target ${tgt} s`:'Press Start, then get into position')}</div>
+    <div class="ht-btns">${holdT.start||holdT.ready?`<button type="button" class="btn primary big" data-act="hold-stop">Stop and log</button>`:`<button type="button" class="btn primary big" data-act="hold-go">${ICON.play} Start</button>`}
+      <button type="button" class="btn" data-act="hold-cancel">Cancel</button></div>
+  </div>`;
+}
+function holdTick(){
+  if(!holdT) return; const el=document.getElementById('hold-t'), sub=document.getElementById('hold-sub'); if(!el) return;
+  if(holdT.ready && !holdT.start){
+    const left=Math.ceil((holdT.readyEnd-Date.now())/1000);
+    if(left<=0){ holdT.start=Date.now(); holdT.ready=0; render(); return; }
+    el.textContent=String(left); return;
+  }
+  if(holdT.start){
+    const sec=Math.floor((Date.now()-holdT.start)/1000); el.textContent=String(sec);
+    if(holdT.target && sec>=holdT.target && !holdT.beeped){ holdT.beeped=true; beep(); el.classList.add('hit'); if(sub) sub.textContent='Target reached'; }
+  }
+}
 function vStart(){
   const now=Date.now(), ws=weekStart(now);
   const days=[0,1,2,3,4,5,6].map(i=>{ const s=ws+i*864e5, e=s+864e5; const on=S.workouts.some(w=>w.startedAt>=s&&w.startedAt<e);
@@ -1975,7 +2015,7 @@ function vExercise(e,i,ssi,total){
     ${ssi?`<div class="ss-tag">Superset ${ssi.L} · ${ssi.pos} of ${ssi.size} · ${ssi.nextSame?'straight on to the next':'rest after this one'}</div>`:''}
     <header>
       <div style="min-width:0"><button type="button" class="ex-toggle" data-act="ex-toggle" aria-expanded="${!e.collapsed}" aria-label="${e.collapsed?'Expand':'Collapse'} ${esc(e.name)}">${ICON.down}<span class="ex-name">${esc(e.name)}</span></button>
-      ${e.collapsed?`<p class="ex-sum num ${e.type!=='cardio'&&workN&&doneN===workN?'all-done':''}">${e.type!=='cardio'&&workN&&doneN===workN?ICON.check:''}${e.type==='cardio'?`${e.sets.length} entr${e.sets.length===1?'y':'ies'}`:`${doneN} of ${workN} sets done`}${e.sets.some(x=>x.wu)?` · ${e.sets.filter(x=>x.wu).length} warm-up`:''}</p>`:`<p class="last">${prev?`Last (${shortDate(prev.w.startedAt)}): ${esc(setsSummary(prev.e))}`:'First time logging this'}</p>${hasHow(e.exId)?`<button type="button" class="how-link" data-act="howto" data-id="${esc(e.exId)}">${ICON.info}How to do it</button>`:''}
+      ${e.collapsed?`<p class="ex-sum num ${e.type!=='cardio'&&workN&&doneN===workN?'all-done':''}">${e.type!=='cardio'&&workN&&doneN===workN?ICON.check:''}${e.type==='cardio'?`${e.sets.length} entr${e.sets.length===1?'y':'ies'}`:`${doneN} of ${workN} sets done`}${e.sets.some(x=>x.wu)?` · ${e.sets.filter(x=>x.wu).length} warm-up`:''}</p>`:`<p class="last">${prev?`Last (${shortDate(prev.w.startedAt)}): ${esc(setsSummary(prev.e))}`:'First time logging this'}</p>${hasHow(e.exId)||prev?`<div class="ex-links">${hasHow(e.exId)?`<button type="button" class="how-link" data-act="howto" data-id="${esc(e.exId)}">${ICON.info}How to do it</button>`:''}${prev?`<button type="button" class="how-link" data-act="ex-hist" data-id="${esc(e.exId)}">${ICON.chart}History</button>`:''}</div>`:''}
       ${prev&&prev.e.note?`<p class="last"><i>Note: ${esc(prev.e.note)}</i></p>`:''}`}</div>
       <div class="row" style="flex-wrap:nowrap;gap:0">
         ${ex&&ex.pattern?`<button type="button" class="icon-btn" data-act="ex-swap" aria-label="Swap ${esc(e.name)} for a variation">${ICON.swap}</button>`:''}
@@ -1993,9 +2033,11 @@ function vExercise(e,i,ssi,total){
     </div>
     ${e.note!=null?`<textarea class="ex-note" data-note rows="2" placeholder="Note for ${esc(e.name)}, e.g. seat height 4, left shoulder tight" aria-label="Note for ${esc(e.name)}">${esc(e.note)}</textarea>`:''}
     ${bc?`<p class="plates" data-plates>${platesText(e)}</p>`:''}
+    ${vHoldTimer(e,i)}
     <div class="ex-actions">
       <button type="button" class="act act-main" data-act="add-set">${ICON.plus}<span>Add set</span></button>
       ${e.sets.length>1?`<button type="button" class="act" data-act="del-set">${ICON.minus}<span>Remove</span></button>`:''}
+      ${e.type==='hold'&&!(S.active&&S.active.mode)&&!(holdT&&holdT.i===i)?`<button type="button" class="act" data-act="hold-open">${ICON.timer}<span>Timer</span></button>`:''}
       ${e.note==null?`<button type="button" class="act" data-act="ex-note">${ICON.note}<span>Note</span></button>`:''}
       ${ssi?`<button type="button" class="act" data-act="ss-leave" aria-label="Leave superset">${ICON.unlink}<span>Unlink</span></button>`:''}
       ${(!ssi||!ssi.nextSame)&&i<total-1?`<button type="button" class="act" data-act="ss-link" aria-label="Superset with the next exercise">${ICON.link}<span>Superset</span></button>`:''}
@@ -2320,7 +2362,7 @@ function vSettings(){
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=32;
+const APP_VERSION=33;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const items=S.routines.map(r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
@@ -2332,7 +2374,14 @@ function vRoutines(){
         return `<li>${esc(x.name)} <span class="num">${esc(planSummary(x))}</span>${bad?' <span class="warn-txt">needs swap</span>':''}</li>`; }).join('')}</ol>
       <div class="row"><button type="button" class="btn primary" data-act="start-routine" data-id="${esc(r.id)}">${ICON.play} Start</button><button type="button" class="btn" data-act="rt-edit" data-id="${esc(r.id)}">Edit</button></div>`:''}
     </div>`; }).join('');
-  return `<div class="section-h"><h2>Routines</h2><button type="button" class="btn ghost" data-act="rt-new">${ICON.plus} New</button></div>
+  if(S.rtReorder && S.routines.length>1){
+    const list=S.routines;
+    return `<div class="section-h"><h2>Routines</h2><button type="button" class="btn ghost" data-act="rt-reorder">Done</button></div>
+    <p class="muted" style="margin:-6px 0 0;font-size:14px">Move routines up or down. Next up follows this order.</p>
+    ${list.map((r,k)=>`<div class="card rt reorder"><div class="rt-top"><span class="rt-name">${esc(r.name)}</span><span class="rt-move"><button type="button" class="icon-btn" data-act="rt-move" data-id="${esc(r.id)}" data-d="-1" aria-label="Move ${esc(r.name)} up" ${k===0?'disabled':''}>${ICON.up}</button><button type="button" class="icon-btn" data-act="rt-move" data-id="${esc(r.id)}" data-d="1" aria-label="Move ${esc(r.name)} down" ${k===list.length-1?'disabled':''}>${ICON.down}</button></span></div></div>`).join('')}
+    ${vProgEntry()}`;
+  }
+  return `<div class="section-h"><h2>Routines</h2><span class="row" style="gap:4px;flex-wrap:nowrap">${S.routines.length>1?`<button type="button" class="btn ghost" data-act="rt-reorder">Reorder</button>`:''}<button type="button" class="btn ghost" data-act="rt-new">${ICON.plus} New</button></span></div>
   ${items || (S.loaded.r?`<div class="card empty"><h3>No routines yet</h3><p style="margin:0 0 12px">Save a workout plan like Push, Pull or Legs and start it in one tap.</p><button type="button" class="btn primary" data-act="rt-new">Create a routine</button></div>`:'')}
   ${vProgEntry()}`;
 }
@@ -2623,6 +2672,7 @@ function planSummary(x){
   return x.plan.map(fmt).join(' · ');
 }
 function startWorkout(name, exercises, rest, src){
+  holdT=null;
   S.active={id:uid(),name:name||defaultName(),startedAt:null,updatedAt:Date.now(),exercises:exercises||[]};
   if(rest) S.active.rest=rest;
   if(src) S.active.src=src;
@@ -2700,6 +2750,7 @@ function beep(){
     o.start(); o.stop(audioCtx.currentTime+0.55); }catch(e){}
 }
 function tick(){
+  holdTick();
   if(S.active && S.active.startedAt && !S.active.mode){ const el=document.getElementById('elapsed'); if(el) el.textContent=fmtDur(Date.now()-S.active.startedAt); }
   if(rest){
     const left=rest.end-Date.now(); const el=document.getElementById('rest');
@@ -2926,10 +2977,21 @@ document.addEventListener('click', async ev=>{
       const pl=art.querySelector('[data-plates]'); if(pl) pl.innerHTML=platesText(e);
       touch(); break;
     }
+    case 'hold-open': { if(!S.active.startedAt){ toast('Press Start workout first.'); break; } if(!e.sets.some(x=>!x.done)) e.sets.push(blankSet(e.type, e.sets[e.sets.length-1]));
+      holdT={i:+art.dataset.ex, ready:0, start:0, target:holdTarget(e), beeped:false}; render(); art.scrollIntoView({block:'center'}); break; }
+    case 'hold-go': { try{ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); else if(audioCtx.state==='suspended') audioCtx.resume(); }catch(_){}
+      stopRest(); holdT.ready=3; holdT.readyEnd=Date.now()+3000; render(); break; }
+    case 'hold-cancel': holdT=null; render(); break;
+    case 'hold-stop': { const i=holdT.i, sec=holdT.start?Math.floor((Date.now()-holdT.start)/1000):0; holdT=null;
+      if(sec<1){ render(); toast('Timer stopped before the hold began.'); break; }
+      const ex=S.active&&S.active.exercises[i]; if(!ex){ render(); break; } let j=ex.sets.findIndex(x=>!x.done); if(j<0){ ex.sets.push(blankSet(ex.type, ex.sets[ex.sets.length-1])); j=ex.sets.length-1; }
+      ex.sets[j].sec=String(sec); touch(); render();
+      document.querySelector(`.ex[data-ex="${i}"] .set-row[data-set="${j}"] [data-act="done"]`)?.click(); break; }
+    case 'ex-hist': openSheet({kind:'exercise',exId:b.dataset.id}); break;
     case 'add-set': { e.sets.push(blankSet(e.type, e.sets[e.sets.length-1])); touch(); render(); break; }
     case 'del-set': e.sets.pop(); touch(); render(); break;
-    case 'ex-del': { if(!armed(b,'Remove?')) break; S.active.exercises.splice(+art.dataset.ex,1); touch(); render(); break; }
-    case 'ex-up': { const i=+art.dataset.ex; if(i>0){ const a=S.active.exercises; [a[i-1],a[i]]=[a[i],a[i-1]]; touch(); render(); } break; }
+    case 'ex-del': { if(!armed(b,'Remove?')) break; holdT=null; S.active.exercises.splice(+art.dataset.ex,1); touch(); render(); break; }
+    case 'ex-up': { holdT=null; const i=+art.dataset.ex; if(i>0){ const a=S.active.exercises; [a[i-1],a[i]]=[a[i],a[i-1]]; touch(); render(); } break; }
     case 'finish': await finishWorkout(); break;
     case 'discard': { const ready=!S.active.startedAt||!!S.active.mode; if(!ready && !armed(b,'Confirm?')) break; S.active=null; saveActive(); stopRest(); render(); break; }
     case 'rest-minus': if(rest){ rest.end-=15000; rest.total=Math.max(15,rest.total-15); rest.beeped=false; tick(); } break;
@@ -3014,6 +3076,9 @@ document.addEventListener('click', async ev=>{
     case 'tour-do': { if(!S.settings.tour){ S.settings=Object.assign({},S.settings,{tour:1}); putSettings(); } const next=Math.min(TOUR.length-1,(sheet.i||0)+1); openSheet({kind:b.dataset.v, back:{kind:'tour', i:next}}); break; }
     case 'prog-filter': { const k=S.progKind==='skills'?'skills':'goals'; S.progFilter=Object.assign({},S.progFilter||{},{[k]:b.dataset.v}); render(); break; }
     case 'go-programmes': location.hash='#programmes'; break;
+    case 'rt-reorder': S.rtReorder=!S.rtReorder; render(); break;
+    case 'rt-move': { const list=S.routines; const k=list.findIndex(r=>r.id===b.dataset.id), d=+b.dataset.d, n=k+d; if(k<0||n<0||n>=list.length) break;
+      [list[k],list[n]]=[list[n],list[k]]; list.forEach((r,idx)=>{ if(r.order!==idx){ r.order=idx; putRoutine(r); } }); render(); break; }
     case 'goal-open': openSheet({kind:'goal'}); break;
     case 'goal-pick': { const v=+b.dataset.v; const st=Object.assign({},S.settings); if(v) st.weekGoal=v; else delete st.weekGoal; S.settings=st; putSettings(); closeSheet(); render(); break; }
     case 'howto': { const sb=document.querySelector('#sheet-root .sheet-b');
