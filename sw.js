@@ -1,6 +1,6 @@
 /* GymBook service worker: keeps the app working with no signal.
    Bump VERSION whenever you upload changed files, so phones pick up the update. */
-const VERSION = 'gymbook-v40';
+const VERSION = 'gymbook-v41';
 const SHELL = [
   './',
   './index.html',
@@ -15,7 +15,8 @@ const SHELL = [
 const FONT_CACHE = 'gymbook-fonts';
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)));
+  // cache: 'reload' skips the phone's own saved copies, so an update always gets the fresh files
+  event.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' })))));
 });
 
 self.addEventListener('activate', event => {
