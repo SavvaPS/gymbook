@@ -539,6 +539,24 @@ input:not([type="checkbox"]):not([type="radio"]):focus,input:not([type="checkbox
 @media (max-width:430px){ .pc-title{font-size:19px;overflow-wrap:normal;word-break:normal;-webkit-hyphens:auto;hyphens:auto} }
 .btn.danger-fill{background:var(--pr);border-color:var(--pr);color:#fff}
 .btn.danger-fill:disabled{opacity:.4}
+.top-r{display:flex;align-items:center;gap:6px;min-width:0}
+.gear{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;margin:-8px -8px -8px 0;border-radius:10px;color:var(--muted);flex:none}
+.gear svg{width:22px;height:22px}
+.gear[aria-current="page"]{color:var(--accent);background:var(--accent-soft)}
+.top{align-items:center}
+.sheet-tour .sheet-h{border-bottom:0;padding-bottom:0;margin-bottom:-12px}
+.sheet-tour .sheet-h h2{display:none}
+.sheet-tour .sheet-h .icon-btn{margin-left:auto}
+.tour{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:8px 4px 4px}
+.tour-ic{width:72px;height:72px;border-radius:20px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}
+.tour-ic svg{width:36px;height:36px}
+.tour-t{margin:4px 0 0;font-family:var(--f-display);font-size:26px;text-transform:uppercase;letter-spacing:.02em;line-height:1.1}
+.tour-b{margin:0;font-size:16px;line-height:1.5;color:var(--muted);max-width:34ch}
+.tour-dots{display:flex;gap:6px;margin-top:4px}
+.tour-dots span{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.tour-dots span.on{background:var(--accent);width:20px;border-radius:4px}
+.tour-nav{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-top:4px}
+.tour-nav .btn{width:100%}
 .toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top,0px));bottom:auto;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
 table.sess{width:100%;border-collapse:collapse;font-size:14px}
 table.sess th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
@@ -550,7 +568,7 @@ table.sess td{padding:8px 4px;border-bottom:1px solid var(--line);vertical-align
 <div class="app">
   <header class="top">
     <div class="brand">Gym<span>Book</span></div>
-    <div class="sync" id="sync">Loading…</div>
+    <div class="top-r"><div class="sync" id="sync">Loading…</div><a class="gear" href="#settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a></div>
   </header>
   <main id="view" class="stack"></main>
 </div>
@@ -1430,7 +1448,7 @@ async function boot(){
     S.bw=overlay('bodyweight', snap.docs.map(d=>Object.assign({id:d.id},clone(d.data())))).sort((a,b)=>a.t-b.t); softRender();
   }, e=>console.warn(e));
   db.doc('library/custom').onSnapshot(s=>{ const p=pendingDoc('library/custom'); S.custom=clone(p&&p.body?p.body.items:((s.exists && s.data().items)||[])); softRender(); }, e=>console.warn(e));
-  db.doc('settings/main').onSnapshot(s=>{ const p=pendingDoc('settings/main'); if(p&&p.body) S.settings=Object.assign({rest:90},clone(p.body)); else if(s.exists) S.settings=Object.assign({rest:90},clone(s.data())); softRender(); }, e=>console.warn(e));
+  db.doc('settings/main').onSnapshot(s=>{ S.settingsLoaded=true; const p=pendingDoc('settings/main'); if(p&&p.body) S.settings=Object.assign({rest:90},clone(p.body)); else if(s.exists) S.settings=Object.assign({rest:90},clone(s.data())); softRender(); }, e=>console.warn(e));
   try{
     const a=await withTimeout(db.doc('state/active').get(), 8000);
     const remote = a.exists ? a.data() : null;
@@ -1487,7 +1505,7 @@ function platesFor(total, bar=20){
 
 /* ---------- views ---------- */
 const view=document.getElementById('view');
-function tab(){ const h=(location.hash||'#workout').slice(1); return ['workout','history','progress','routines'].includes(h)?h:'workout'; }
+function tab(){ const h=(location.hash||'#workout').slice(1); return ['workout','history','progress','routines','settings'].includes(h)?h:'workout'; }
 
 /* appearance: follow the phone, or always light / always dark */
 function applyTheme(){
@@ -1505,11 +1523,18 @@ function render(){
   if(t==='history') view.innerHTML = vHistory();
   if(t==='progress') view.innerHTML = vProgress();
   if(t==='routines') view.innerHTML = vRoutines();
+  if(t==='settings') view.innerHTML = vSettings();
+  const g=document.querySelector('.gear'); if(g) g.setAttribute('aria-current', t==='settings'?'page':'false');
+  maybeTour();
   tick();
   updateWakeLock();
 }
 
 const ICON = {
+  gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>',
+  dumbbell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 7v10M3 9.5v5M18 7v10M21 9.5v5M6 12h12"/></svg>',
+  list:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
   cal:'<svg class="dt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
   info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg>',
   play:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>',
@@ -1684,6 +1709,34 @@ function clearData(what){
   saveLocalAll();
 }
 document.addEventListener('input', ev=>{ if(ev.target&&ev.target.id==='clear-confirm'){ const b=document.getElementById('clear-go'); if(b) b.disabled=ev.target.value.trim().toUpperCase()!=='DELETE'; } }, true);
+
+/* ---------- first-run tour ---------- */
+const TOUR=[
+  {ic:'dumbbell', t:'Welcome to GymBook', b:'Log your workouts, follow routines and programmes, and track your progress. It works without signal and keeps everything on this phone.'},
+  {ic:'gear', t:'Tell it your equipment', b:'Pick what is in your gym, home setup or bar park. Exercises you can\'t do are hidden, and programmes swap in versions that fit your kit.', act:['equip','Choose equipment']},
+  {ic:'list', t:'Routines and programmes', b:'Save your own routines, or add a ready-made programme or calisthenics skill from the Routines tab. Next up on the Workout screen shows what is due.'},
+  {ic:'check', t:'Logging a workout', b:'Start a routine, type the weight and reps, and tick each set. Ticking starts the rest timer. Tap How to do it on any calisthenics exercise for form cues.'},
+  {ic:'shield', t:'Keep a backup', b:'Your log lives only on this phone. Back up now and then from Settings (the gear at the top right), and add GymBook to your home screen to use it like an app.'}
+];
+let tourShown=false;
+function maybeTour(){
+  if(tourShown || sheet || S.active || (S.settings.tour) || S.workouts.length || !S.loaded.w) return;
+  if(S.mode==='cloud' && !S.settingsLoaded) return;
+  tourShown=true; setTimeout(()=>{ if(sheet) return; S.settings=Object.assign({},S.settings,{tour:1}); putSettings(); openSheet({kind:'tour', i:0}); }, 300);
+}
+function sheetTour(){
+  const i=Math.max(0,Math.min(TOUR.length-1,sheet.i||0)), st=TOUR[i], last=i===TOUR.length-1;
+  return `<div class="tour">
+    <div class="tour-ic">${ICON[st.ic]||''}</div>
+    <h3 class="tour-t">${esc(st.t)}</h3>
+    <p class="tour-b">${esc(st.b)}</p>
+    ${st.act?`<button type="button" class="btn" data-act="tour-do" data-v="${st.act[0]}">${esc(st.act[1])}</button>`:''}
+    <div class="tour-dots" aria-label="Step ${i+1} of ${TOUR.length}">${TOUR.map((_,k)=>`<span class="${k===i?'on':''}"></span>`).join('')}</div>
+    <div class="tour-nav">${i?`<button type="button" class="btn" data-act="tour-step" data-v="${i-1}">Back</button>`:`<button type="button" class="btn ghost quiet" data-act="tour-end">Skip</button>`}
+      <button type="button" class="btn primary" data-act="${last?'tour-end':'tour-step'}" data-v="${i+1}">${last?'Get started':'Next'}</button></div>
+  </div>`;
+}
+function endTour(){ if(!S.settings.tour){ S.settings=Object.assign({},S.settings,{tour:1}); putSettings(); } closeSheet(); render(); }
 function vStart(){
   const now=Date.now(), ws=weekStart(now);
   const days=[0,1,2,3,4,5,6].map(i=>{ const s=ws+i*864e5, e=s+864e5; const on=S.workouts.some(w=>w.startedAt>=s&&w.startedAt<e);
@@ -2186,24 +2239,9 @@ function vPrograms(){
   ${kind==='skills'?tip('skills','Pick your stage and GymBook builds the session, then tells you when to move on.'):tip('goals','Ready-made routines, adjusted to your equipment. Add one, then edit anything.')}
   ${body}`;
 }
-if(!S.rtOpen) S.rtOpen=new Set();
-/* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=27;
-function vRoutines(){
+function vSettings(){
   const rest=S.settings.rest||90;
-  const items=S.routines.map(r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
-      <div class="rt-top"><button type="button" class="ex-toggle rt-tg" data-act="rt-fold" data-id="${esc(r.id)}" aria-expanded="${open}">${ICON.down}<span class="rt-name">${esc(r.name)}</span></button>
-        ${open?'':`<button type="button" class="btn primary small" data-act="start-routine" data-id="${esc(r.id)}">${ICON.play} Start</button>`}</div>
-      <span class="rt-meta muted num">${estText(r)} · ${r.exercises.length} exercise${r.exercises.length===1?'':'s'} · ${r.rest?`${fmtDur(r.rest*1000)} rest`:'default rest'}</span>
-      ${srcTag(r)}
-      ${open?`<ol>${r.exercises.map(x=>{ const ex=exById(x.exId); const bad=ex&&!canDo(ex);
-        return `<li>${esc(x.name)} <span class="num">${esc(planSummary(x))}</span>${bad?' <span class="warn-txt">needs swap</span>':''}</li>`; }).join('')}</ol>
-      <div class="row"><button type="button" class="btn primary" data-act="start-routine" data-id="${esc(r.id)}">${ICON.play} Start</button><button type="button" class="btn" data-act="rt-edit" data-id="${esc(r.id)}">Edit</button></div>`:''}
-    </div>`; }).join('');
-  return `<div class="section-h"><h2>Routines</h2><button type="button" class="btn ghost" data-act="rt-new">${ICON.plus} New</button></div>
-  ${items || (S.loaded.r?`<div class="card empty"><h3>No routines yet</h3><p style="margin:0 0 12px">Save a workout plan like Push, Pull or Legs and start it in one tap.</p><button type="button" class="btn primary" data-act="rt-new">Create a routine</button></div>`:'')}
-  ${vPrograms()}
-  <div class="section-h"><h2>Settings</h2></div>
+  return `<div class="section-h"><h2>Settings</h2></div>
   <div class="card spread">
     <div style="min-width:0"><b>My equipment</b><div class="muted" style="font-size:13px">${Array.isArray(S.settings.equipment)?(S.settings.equipment.length?`${S.settings.equipment.length} items · ${LIB.filter(x=>canDo(x)).length} of ${LIB.length} exercises available`:`Bodyweight only · ${LIB.filter(x=>canDo(x)).length} exercises available`):'Not set: showing every exercise'}</div></div>
     <button type="button" class="btn" data-act="equip-open">Edit</button>
@@ -2229,9 +2267,28 @@ function vRoutines(){
     <div class="btn-grid"><button type="button" class="btn primary" data-act="export-json">Back up now</button><button type="button" class="btn" data-act="import">Import backup</button><button type="button" class="btn span2" data-act="export-csv">Spreadsheet (CSV)</button></div>
   </div>
   <div class="card spread nowrap"><div style="min-width:0"><b>Add to home screen</b><div class="muted" style="font-size:13px">${isStandalone()?'Installed. You are using GymBook as an app.':'Open GymBook like an app, full screen and offline.'}</div></div>${isStandalone()?'':`<button type="button" class="btn" data-act="install-help">How</button>`}</div>
+  <div class="card spread nowrap"><div style="min-width:0"><b>App tour</b><div class="muted" style="font-size:13px">A quick look at how GymBook works</div></div><button type="button" class="btn" data-act="tour-open">Show</button></div>
   <div class="card spread nowrap"><div style="min-width:0"><b>Clear data</b><div class="muted" style="font-size:13px">Remove workout history, or everything, from this phone</div></div><button type="button" class="btn danger" data-act="clear-open">Clear…</button></div>
   <p class="note">Everything is saved on this phone and works without signal. Nothing is sent anywhere.</p>
   <p class="muted num" style="margin:0;font-size:12px;text-align:center">GymBook version ${APP_VERSION}</p>`;
+}
+if(!S.rtOpen) S.rtOpen=new Set();
+/* keep in step with VERSION in sw.js, so you can see which version is running */
+const APP_VERSION=29;
+function vRoutines(){
+  const rest=S.settings.rest||90;
+  const items=S.routines.map(r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
+      <div class="rt-top"><button type="button" class="ex-toggle rt-tg" data-act="rt-fold" data-id="${esc(r.id)}" aria-expanded="${open}">${ICON.down}<span class="rt-name">${esc(r.name)}</span></button>
+        ${open?'':`<button type="button" class="btn primary small" data-act="start-routine" data-id="${esc(r.id)}">${ICON.play} Start</button>`}</div>
+      <span class="rt-meta muted num">${estText(r)} · ${r.exercises.length} exercise${r.exercises.length===1?'':'s'} · ${r.rest?`${fmtDur(r.rest*1000)} rest`:'default rest'}</span>
+      ${srcTag(r)}
+      ${open?`<ol>${r.exercises.map(x=>{ const ex=exById(x.exId); const bad=ex&&!canDo(ex);
+        return `<li>${esc(x.name)} <span class="num">${esc(planSummary(x))}</span>${bad?' <span class="warn-txt">needs swap</span>':''}</li>`; }).join('')}</ol>
+      <div class="row"><button type="button" class="btn primary" data-act="start-routine" data-id="${esc(r.id)}">${ICON.play} Start</button><button type="button" class="btn" data-act="rt-edit" data-id="${esc(r.id)}">Edit</button></div>`:''}
+    </div>`; }).join('');
+  return `<div class="section-h"><h2>Routines</h2><button type="button" class="btn ghost" data-act="rt-new">${ICON.plus} New</button></div>
+  ${items || (S.loaded.r?`<div class="card empty"><h3>No routines yet</h3><p style="margin:0 0 12px">Save a workout plan like Push, Pull or Legs and start it in one tap.</p><button type="button" class="btn primary" data-act="rt-new">Create a routine</button></div>`:'')}
+  ${vPrograms()}`;
 }
 
 /* ---------- sheet (modal) ---------- */
@@ -2253,6 +2310,7 @@ function renderSheet(){
   if(sheet.kind==='cx'){ title=sheet.id?'Edit exercise':'New exercise'; body=sheetCx(); }
   if(sheet.kind==='cx-list'){ title='My exercises'; body=sheetCxList(); }
   if(sheet.kind==='clear'){ title='Clear data'; body=sheetClear(); }
+  if(sheet.kind==='tour'){ title=''; body=sheetTour(); }
   if(sheet.kind==='bw-all'){ title='Bodyweight'; body=sheetBwAll(); }
   if(sheet.kind==='export'){ title='Your export'; body=sheetExport(); }
   if(sheet.kind==='install'){ title='Add to home screen'; body=sheetInstall(); }
@@ -2260,7 +2318,7 @@ function renderSheet(){
   const keepQ = document.getElementById('pick-q'); const q = keepQ? keepQ.value : (sheet.q||'');
   const oldB=root.querySelector('.sheet-b'); const keepTop = oldB && root.dataset.kind===sheet.kind+(sheet.id||'') ? oldB.scrollTop : 0;
   root.dataset.kind=sheet.kind+(sheet.id||'');
-  root.innerHTML=`<div class="scrim" data-act="scrim"><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+  root.innerHTML=`<div class="scrim" data-act="scrim"><div class="sheet ${sheet.kind==='tour'?'sheet-tour':''}" role="dialog" aria-modal="true" aria-label="${esc(title||'GymBook tour')}">
     <div class="sheet-h"><h2>${esc(title)}</h2><button type="button" class="icon-btn" data-act="close" aria-label="Close">${ICON.x}</button></div>
     <div class="sheet-b">${body}</div></div></div>`;
   if(keepTop){ const nb=root.querySelector('.sheet-b'); if(nb) nb.scrollTop=keepTop; }
@@ -2795,7 +2853,7 @@ document.addEventListener('click', async ev=>{
     case 'equip-preset': { const set=new Set(PRESETS[+b.dataset.i][1]); document.querySelectorAll('[data-eq]').forEach(c=>{ c.checked=set.has(c.dataset.eq); }); updateEqCount(); break; }
     case 'equip-save': {
       S.settings.equipment=[...document.querySelectorAll('[data-eq]')].filter(c=>c.checked).map(c=>c.dataset.eq);
-      await putSettings(); closeSheet(); render(); toast('Equipment saved'); break;
+      await putSettings(); const back=sheet&&sheet.back; if(back){ openSheet(back); render(); } else { closeSheet(); render(); } toast('Equipment saved'); break;
     }
     case 'vest-on': setVestPref(b.closest('.bar-ctl').dataset.exid, {on:b.dataset.v==='1'}); break;
     case 'rt-rest': { const r=sheet.r; r.rest=Math.max(15,Math.min(600,(r.rest||S.settings.rest||90)+(+b.dataset.d))); renderSheet(); break; }
@@ -2904,6 +2962,10 @@ document.addEventListener('click', async ev=>{
     case 'clear-what': sheet.what=b.dataset.v; renderSheet(); break;
     case 'clear-backup': await doBackup(); renderSheet(); break;
     case 'clear-go': { const v=(document.getElementById('clear-confirm')?.value||'').trim().toUpperCase(); if(v!=='DELETE') break; const what=sheet.what; clearData(what); closeSheet(); location.hash='#workout'; render(); toast(what==='all'?'Everything cleared':'Workout history cleared'); break; }
+    case 'tour-open': openSheet({kind:'tour', i:0}); break;
+    case 'tour-step': sheet.i=+b.dataset.v; renderSheet(); break;
+    case 'tour-end': endTour(); break;
+    case 'tour-do': { if(!S.settings.tour){ S.settings=Object.assign({},S.settings,{tour:1}); putSettings(); } const next=Math.min(TOUR.length-1,(sheet.i||0)+1); openSheet({kind:b.dataset.v, back:{kind:'tour', i:next}}); break; }
     case 'goal-open': openSheet({kind:'goal'}); break;
     case 'goal-pick': { const v=+b.dataset.v; const st=Object.assign({},S.settings); if(v) st.weekGoal=v; else delete st.weekGoal; S.settings=st; putSettings(); closeSheet(); render(); break; }
     case 'howto': { const sb=document.querySelector('#sheet-root .sheet-b');
