@@ -514,7 +514,10 @@ a.btn svg{width:18px;height:18px}
 .rt-name{font-family:var(--f-display);font-weight:700;font-size:21px;line-height:1.15;text-transform:uppercase;letter-spacing:.02em;overflow-wrap:break-word;min-width:0}
 .rt-meta{font-size:13px;margin-left:26px}
 .rt .src-tag{margin-left:26px}
-.rt .btn.small{flex:none;gap:4px}
+.rt-left{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.rt-left .rt-tg{flex:none}
+.rt-start{flex:none;min-height:44px;padding:0 16px;gap:6px;font-size:15px}
+.rt-start svg{width:14px;height:14px}
 .rt .btn.small svg{width:14px;height:14px}
 .rt ol{margin:8px 0 10px 26px}
 .cx-seg button{padding:0 4px;white-space:nowrap;min-width:0}
@@ -557,6 +560,22 @@ input:not([type="checkbox"]):not([type="radio"]):focus,input:not([type="checkbox
 .tour-dots span.on{background:var(--accent);width:20px;border-radius:4px}
 .tour-nav{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-top:4px}
 .tour-nav .btn{width:100%}
+.prog-entry{display:flex;flex-direction:column;gap:10px}
+.pe-title{font-size:16px}
+.prog-entry{cursor:pointer}
+.prog-entry>.spread{flex-wrap:nowrap;align-items:center}
+.pe-arrow{flex:none;color:var(--muted);display:inline-flex}
+.pe-arrow svg{width:20px;height:20px;transform:rotate(-90deg)}
+.chev-r{width:16px;height:16px;transform:rotate(-90deg)}
+.section-h a.btn.ghost{text-decoration:none;gap:4px}
+.prog-entry .btn{flex:none;text-decoration:none}
+.pe-live{display:flex;flex-direction:column;gap:6px}
+.pe-skill{all:unset;box-sizing:border-box;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;background:var(--sunk);font-weight:600;font-size:15px}
+.pe-skill .muted{font-size:13px;font-weight:600}
+.section-h.back-row{margin-bottom:-18px}
+.back-link{display:inline-flex;align-items:center;gap:4px;color:var(--accent);font-weight:600;text-decoration:none;min-height:40px}
+.back-link svg{width:18px;height:18px;transform:rotate(90deg)}
+.prog-chips{order:0}
 .toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top,0px));bottom:auto;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
 table.sess{width:100%;border-collapse:collapse;font-size:14px}
 table.sess th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
@@ -1505,7 +1524,7 @@ function platesFor(total, bar=20){
 
 /* ---------- views ---------- */
 const view=document.getElementById('view');
-function tab(){ const h=(location.hash||'#workout').slice(1); return ['workout','history','progress','routines','settings'].includes(h)?h:'workout'; }
+function tab(){ const h=(location.hash||'#workout').slice(1); return ['workout','history','progress','routines','settings','programmes'].includes(h)?h:'workout'; }
 
 /* appearance: follow the phone, or always light / always dark */
 function applyTheme(){
@@ -1518,12 +1537,13 @@ function applyTheme(){
 function render(){
   applyTheme();
   const t=tab();
-  document.querySelectorAll('.tabs a').forEach(a=>a.setAttribute('aria-current', a.dataset.tab===t?'page':'false'));
+  document.querySelectorAll('.tabs a').forEach(a=>a.setAttribute('aria-current', a.dataset.tab===(t==='programmes'?'routines':t)?'page':'false'));
   if(t==='workout') view.innerHTML = S.active ? vActive() : vStart();
   if(t==='history') view.innerHTML = vHistory();
   if(t==='progress') view.innerHTML = vProgress();
   if(t==='routines') view.innerHTML = vRoutines();
   if(t==='settings') view.innerHTML = vSettings();
+  if(t==='programmes') view.innerHTML = vProgrammesScreen();
   const g=document.querySelector('.gear'); if(g) g.setAttribute('aria-current', t==='settings'?'page':'false');
   maybeTour();
   tick();
@@ -1737,6 +1757,29 @@ function sheetTour(){
   </div>`;
 }
 function endTour(){ if(!S.settings.tour){ S.settings=Object.assign({},S.settings,{tour:1}); putSettings(); } closeSheet(); render(); }
+
+/* ---------- programmes screen: filter chips, started skills first ---------- */
+const SKILL_CAT={oap:'Push',planche:'Push',handstand:'Push',hspu:'Push',flag:'Core','front-lever':'Pull','back-lever':'Pull','muscle-up':'Pull',pullup10:'Pull',oapu:'Pull',pistol:'Legs',nordic:'Legs','l-sit':'Core',dflag:'Core',elever:'Core',rmu:'Rings',cross:'Rings'};
+const GOAL_CATS=['Strength','Muscle','Calisthenics','Mobility','Core','Joints'];
+const SKILL_CATS=['Push','Pull','Core','Legs','Rings'];
+function skillsInProgress(){ return SKILLS.filter(sk=>skillStage(sk.id)>=0 && !skillMastery(sk).done); }
+function vProgEntry(){
+  const live=skillsInProgress();
+  return `<div class="section-h"><h2>Programmes</h2><a class="btn ghost" href="#programmes">Browse ${ICON.down.replace('<svg','<svg class="chev-r"')}</a></div>
+  <div class="card prog-entry" data-act="go-programmes" role="link" tabindex="0" aria-label="Browse programmes">
+    <div class="spread nowrap"><div style="min-width:0"><b class="pe-title">${PROGRAMS.length} by goal · ${SKILLS.length} calisthenics skills</b><div class="muted" style="font-size:13px">Strength, muscle, mobility and step-by-step skills</div></div>
+      <span class="pe-arrow" aria-hidden="true">${ICON.down}</span></div>
+    ${live.length?`<div class="pe-live">${live.map(sk=>{ const i=skillStage(sk.id); return `<button type="button" class="pe-skill" data-act="skill-view" data-id="${esc(sk.id)}"><span>${esc(sk.title)}</span><span class="muted num">Stage ${i+1} of ${sk.stages.length}</span></button>`; }).join('')}</div>`:''}
+  </div>`;
+}
+function vProgrammesScreen(){
+  const kind=S.progKind==='skills'?'skills':'goals';
+  const cats=kind==='skills'?SKILL_CATS:GOAL_CATS.filter(c=>PROGRAMS.some(p=>p.cat===c));
+  const f=(S.progFilter||{})[kind]||'All';
+  const chips=['All',...cats].map(c=>`<button type="button" class="fchip" data-act="prog-filter" data-v="${c}" aria-pressed="${f===c}">${c}</button>`).join('');
+  return `<div class="section-h back-row"><a class="back-link" href="#routines">${ICON.down}<span>Routines</span></a></div>
+  ${vPrograms(f).replace('<!--chips-->', `<div class="fchips prog-chips" role="group" aria-label="Filter programmes">${chips}</div>`)}`;
+}
 function vStart(){
   const now=Date.now(), ws=weekStart(now);
   const days=[0,1,2,3,4,5,6].map(i=>{ const s=ws+i*864e5, e=s+864e5; const on=S.workouts.some(w=>w.startedAt>=s&&w.startedAt<e);
@@ -2213,11 +2256,13 @@ function srcTag(r){
   return '';
 }
 function ladderDots(sk, cur){ return `<span class="ladder" aria-hidden="true">${sk.stages.map((_,i)=>`<i class="${i<cur?'done':i===cur?'cur':''}"></i>`).join('')}</span>`; }
-function vPrograms(){
+function vPrograms(filter){
+  filter=filter||'All';
   const kind=S.progKind;
   let body;
   if(kind==='skills'){
-    body=`<div class="pgrid skills">${SKILLS.map(sk=>{ const cur=skillStage(sk.id); const m=skillMastery(sk); const st=sk.stages[Math.max(0,cur)]; const miss=skillNeeds(sk);
+    const skList=SKILLS.filter(sk=>filter==='All'||SKILL_CAT[sk.id]===filter).map((sk,i)=>({sk,i,live:skillStage(sk.id)>=0&&!skillMastery(sk).done})).sort((a,b)=>(b.live-a.live)||(a.i-b.i)).map(x=>x.sk);
+    body=`<div class="pgrid skills">${skList.map(sk=>{ const cur=skillStage(sk.id); const m=skillMastery(sk); const st=sk.stages[Math.max(0,cur)]; const miss=skillNeeds(sk);
       return `<button type="button" class="pcard ${m.done?'mastered':''}" data-act="skill-view" data-id="${esc(sk.id)}">
         <span class="pc-top"><b class="pc-title">${esc(sk.title)}</b>${ladderDots(sk, m.done?sk.stages.length:cur)}</span>
         <span class="pc-meta">${m.done?`<span class="badge-ok">${ICON.check} Mastered</span> · ${shortDate(m.at)}`:cur>=0?`Stage ${cur+1} of ${sk.stages.length} · ${esc(st.name)}`:`${sk.stages.length} stages · starts with ${esc(sk.stages[0].name.toLowerCase())}`}</span>
@@ -2225,7 +2270,7 @@ function vPrograms(){
         ${!m.done&&miss.length?`<span class="pc-warn">Needs ${esc(miss.join(', ').toLowerCase())}</span>`:''}
       </button>`; }).join('')}</div>`;
   } else {
-    body=`<div class="pgrid">${PROGRAMS.map(p=>{ const added=S.routines.some(r=>r.src&&r.src.program===p.id);
+    body=`<div class="pgrid">${PROGRAMS.filter(p=>filter==='All'||p.cat===filter).map(p=>{ const added=S.routines.some(r=>r.src&&r.src.program===p.id);
       const mins=p.sessions.map(se=>estimateSec({rest:se.rest,exercises:adaptList(se.ex).items})); const avg=Math.round(mins.reduce((a,b)=>a+b,0)/mins.length/300)*5;
       return `<button type="button" class="pcard" data-act="prog-view" data-id="${esc(p.id)}">
         <span class="pc-cat">${esc(p.cat)}</span>
@@ -2236,6 +2281,7 @@ function vPrograms(){
   }
   return `<div class="section-h"><h2>Programmes</h2></div>
   <div class="seg seg-wide" role="group" aria-label="Programme type"><button type="button" data-act="prog-kind" data-v="goals" aria-pressed="${kind!=='skills'}">By goal</button><button type="button" data-act="prog-kind" data-v="skills" aria-pressed="${kind==='skills'}">Calisthenics skills</button></div>
+  <!--chips-->
   ${kind==='skills'?tip('skills','Pick your stage and GymBook builds the session, then tells you when to move on.'):tip('goals','Ready-made routines, adjusted to your equipment. Add one, then edit anything.')}
   ${body}`;
 }
@@ -2274,21 +2320,21 @@ function vSettings(){
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=29;
+const APP_VERSION=32;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const items=S.routines.map(r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
-      <div class="rt-top"><button type="button" class="ex-toggle rt-tg" data-act="rt-fold" data-id="${esc(r.id)}" aria-expanded="${open}">${ICON.down}<span class="rt-name">${esc(r.name)}</span></button>
-        ${open?'':`<button type="button" class="btn primary small" data-act="start-routine" data-id="${esc(r.id)}">${ICON.play} Start</button>`}</div>
-      <span class="rt-meta muted num">${estText(r)} · ${r.exercises.length} exercise${r.exercises.length===1?'':'s'} · ${r.rest?`${fmtDur(r.rest*1000)} rest`:'default rest'}</span>
-      ${srcTag(r)}
+      <div class="rt-top"><div class="rt-left"><button type="button" class="ex-toggle rt-tg" data-act="rt-fold" data-id="${esc(r.id)}" aria-expanded="${open}">${ICON.down}<span class="rt-name">${esc(r.name)}</span></button>
+        <span class="rt-meta muted num">${estText(r)} · ${r.exercises.length} exercise${r.exercises.length===1?'':'s'} · ${r.rest?`${fmtDur(r.rest*1000)} rest`:'default rest'}</span>
+        ${srcTag(r)}</div>
+        ${open?'':`<button type="button" class="btn primary rt-start" data-act="start-routine" data-id="${esc(r.id)}">${ICON.play} Start</button>`}</div>
       ${open?`<ol>${r.exercises.map(x=>{ const ex=exById(x.exId); const bad=ex&&!canDo(ex);
         return `<li>${esc(x.name)} <span class="num">${esc(planSummary(x))}</span>${bad?' <span class="warn-txt">needs swap</span>':''}</li>`; }).join('')}</ol>
       <div class="row"><button type="button" class="btn primary" data-act="start-routine" data-id="${esc(r.id)}">${ICON.play} Start</button><button type="button" class="btn" data-act="rt-edit" data-id="${esc(r.id)}">Edit</button></div>`:''}
     </div>`; }).join('');
   return `<div class="section-h"><h2>Routines</h2><button type="button" class="btn ghost" data-act="rt-new">${ICON.plus} New</button></div>
   ${items || (S.loaded.r?`<div class="card empty"><h3>No routines yet</h3><p style="margin:0 0 12px">Save a workout plan like Push, Pull or Legs and start it in one tap.</p><button type="button" class="btn primary" data-act="rt-new">Create a routine</button></div>`:'')}
-  ${vPrograms()}`;
+  ${vProgEntry()}`;
 }
 
 /* ---------- sheet (modal) ---------- */
@@ -2966,6 +3012,8 @@ document.addEventListener('click', async ev=>{
     case 'tour-step': sheet.i=+b.dataset.v; renderSheet(); break;
     case 'tour-end': endTour(); break;
     case 'tour-do': { if(!S.settings.tour){ S.settings=Object.assign({},S.settings,{tour:1}); putSettings(); } const next=Math.min(TOUR.length-1,(sheet.i||0)+1); openSheet({kind:b.dataset.v, back:{kind:'tour', i:next}}); break; }
+    case 'prog-filter': { const k=S.progKind==='skills'?'skills':'goals'; S.progFilter=Object.assign({},S.progFilter||{},{[k]:b.dataset.v}); render(); break; }
+    case 'go-programmes': location.hash='#programmes'; break;
     case 'goal-open': openSheet({kind:'goal'}); break;
     case 'goal-pick': { const v=+b.dataset.v; const st=Object.assign({},S.settings); if(v) st.weekGoal=v; else delete st.weekGoal; S.settings=st; putSettings(); closeSheet(); render(); break; }
     case 'howto': { const sb=document.querySelector('#sheet-root .sheet-b');
@@ -3050,8 +3098,9 @@ if('serviceWorker' in navigator && location.protocol!=='file:'){
       let lastCheck=Date.now();
       document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible' && Date.now()-lastCheck>30000){ lastCheck=Date.now(); reg.update().catch(()=>{}); } });
     }).catch(e=>console.warn('Offline support unavailable', e));
-    let reloaded=false;
-    navigator.serviceWorker.addEventListener('controllerchange', ()=>{ if(reloaded) return; reloaded=true; location.reload(); });
+    /* reload only when an update takes over, not when the app is installed for the first time */
+    let reloaded=false; const hadController=!!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', ()=>{ if(reloaded||!hadController) return; reloaded=true; location.reload(); });
   });
 }
 /* ask the browser not to clear our data when storage runs low */
