@@ -1,6 +1,6 @@
 /* GymBook service worker: keeps the app working with no signal.
    Bump VERSION whenever you upload changed files, so phones pick up the update. */
-const VERSION = 'gymbook-v41';
+const VERSION = 'gymbook-v42';
 const SHELL = [
   './',
   './index.html',
@@ -20,12 +20,17 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.filter(k => k !== VERSION && k !== FONT_CACHE).map(k => caches.delete(k))
-    )).then(() => self.clients.claim())
-  );
+  event.waitUntil(cleanup().then(() => self.clients.claim()));
 });
+
+/* delete saved copies from older versions (also re-run on each launch, in case the phone stopped it part-way) */
+function cleanup() {
+  return caches.keys().then(keys => Promise.all(
+    keys.filter(k => k !== VERSION && k !== FONT_CACHE).map(k => caches.delete(k))
+  ));
+}
+/* only ever read from this version's saved copy, never a leftover older one */
+const fromCache = req => caches.open(VERSION).then(c => c.match(req, { ignoreSearch: req.mode === 'navigate' }));
 
 /* the page asks the new version to take over when you tap "Reload" */
 self.addEventListener('message', event => {
@@ -57,10 +62,11 @@ self.addEventListener('fetch', event => {
 
   // Opening the app: serve the saved copy instantly, so it starts with no signal
   if (req.mode === 'navigate') {
-    event.respondWith(caches.match('./index.html').then(hit => hit || fetch(req)));
+    event.waitUntil(cleanup());
+    event.respondWith(fromCache('./index.html').then(hit => hit || fetch(req)));
     return;
   }
 
   // Everything else from the app: saved copy first, network as a fallback
-  event.respondWith(caches.match(req).then(hit => hit || fetch(req)));
+  event.respondWith(fromCache(req).then(hit => hit || fetch(req)));
 });
