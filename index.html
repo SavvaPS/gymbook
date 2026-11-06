@@ -486,6 +486,9 @@ button,a,input,select,label,textarea{touch-action:manipulation}
 .how-step small{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .how-step b{font-size:14px;overflow-wrap:break-word}
 .how-step:only-child{grid-column:1/-1}
+.how-sim{display:flex;flex-direction:column;gap:6px}
+.how-sim .how-step small{text-transform:none;letter-spacing:0;font-weight:500}
+.how-sim .how-step.na{opacity:.6}
 a.btn{text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px}
 a.btn svg{width:18px;height:18px}
 .wk-btns{display:grid;grid-template-columns:2fr 1fr;gap:10px;align-items:stretch}
@@ -1508,6 +1511,14 @@ function howLadder(ex){
   const hi=same.filter(x=>x.lvl>ex.lvl).sort((a,b)=>a.lvl-b.lvl)[0];
   return {lo,hi};
 }
+/* close alternatives: same movement pattern, ones you can do first, same muscle group next */
+function howSimilar(ex){
+  if(!ex||!ex.pattern||ex.pattern==='prep') return [];
+  return allEx().filter(x=>x.pattern===ex.pattern&&x.id!==ex.id&&HOWTO[x.id])
+    .map(x=>({x, s:(canDo(x)?4:0)+(x.group===ex.group?2:0)+(!!x.bw===!!ex.bw?1:0)}))
+    .sort((a,b)=>b.s-a.s||a.x.name.localeCompare(b.x.name)).slice(0,4).map(o=>o.x);
+}
+function needsShort(e){ const names={}; EQUIP.forEach(([,items])=>items.forEach(([k,l])=>{ names[k]=l; })); return e.needs.map(tok=>names[tok.split('|')[0]]||tok).join(', '); }
 function sheetHowto(ex){
   if(ex&&isCustomId(ex.id)) return sheetHowtoCustom(ex);
   const h=ex&&HOWTO[ex.id]; if(!h) return '<p class="muted">No notes for this exercise yet.</p>';
@@ -1516,7 +1527,7 @@ function sheetHowto(ex){
   return `<p class="how-works"><span class="label">Works</span>${esc(works)}</p>
   <ol class="how-cues">${cues.split('|').map(c=>`<li>${esc(c)}</li>`).join('')}</ol>
   <div class="callout safety"><b>Common mistake</b><span>${esc(mistake)}</span></div>
-  ${lo||hi?`<div class="how-ladder">${step(lo,'Easier')}${step(hi,'Harder')}</div>`:''}
+  ${lo||hi?`<div class="how-ladder">${step(lo,'Easier')}${step(hi,'Harder')}</div>`:(()=>{ const sim=howSimilar(ex); return sim.length?`<div class="how-sim"><span class="label">Similar exercises</span><div class="how-ladder">${sim.map(x=>`<button type="button" class="how-step ${canDo(x)?'':'na'}" data-act="howto" data-id="${esc(x.id)}"><b>${esc(x.name)}</b><small>${canDo(x)?esc(x.needs&&x.needs.length?needsShort(x):'No equipment'):'Not in your equipment'}</small></button>`).join('')}</div></div>`:''; })()}
   <a class="btn block" href="https://www.youtube.com/results?search_query=${encodeURIComponent(ex.name+' tutorial')}" target="_blank" rel="noopener">${ICON.play}<span>Find a video</span></a>
   ${sheet&&sheet.back?`<button type="button" class="btn ghost block" data-act="how-back">Back</button>`:''}`;
 }
@@ -2968,7 +2979,7 @@ function vSettings(){
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=46;
+const APP_VERSION=47;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const card=r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
