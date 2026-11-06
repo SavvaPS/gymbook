@@ -209,6 +209,7 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:.01em;margi
 .lg-row b{font-size:15px}.lg-v{font-size:14px;font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}.lg-v svg{width:16px;height:16px;color:var(--ok)}
 .lg-row small{font-size:12px}
 .hist-search{margin:8px 0 0}
+.ex-search{margin:0}
 .prog-line{display:flex;justify-content:space-between;gap:10px;font-size:14px}
 .cmp-list{display:flex;flex-direction:column;gap:6px}
 .cmp-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--sunk)}
@@ -2867,7 +2868,13 @@ function vProgress(){
     else { const best=Math.max(...m.sessions.map(s=>s.e1)); const heavy=Math.max(...m.sessions.map(s=>s.heavy)); const rx=Math.max(...m.sessions.map(s=>s.rel||0));
       main=best?`e1RM ${fmtKg(Math.round(best*2)/2)} kg${rx?` · ${fmtX(rx)} BW`:''}`:n; extra=[heavy?`heaviest ${fmtKg(heavy)} kg`:'', n, when].filter(Boolean).join(' · '); }
     return `<button type="button" class="prog" data-act="prog-open" data-id="${esc(m.exId)}"><div class="prog-txt"><h3>${esc(m.name)}</h3><div class="prog-main num">${main}</div><div class="sub num">${extra}</div></div>${spark(m.sessions.map(s=>s.val),72,32)}</button>`;
-  }).join('') : `<p class="note">No ${S.progTab} exercises logged yet.</p>`;
+  }) : null;
+  const allOpen=!!S.settings.exAll, q=allOpen?(S.exQ||''):'';
+  const listHtml=!list?`<p class="note">No ${S.progTab} exercises logged yet.</p>`
+    : `${allOpen&&list.length>5?`<div class="field ex-search"><input id="ex-q" type="search" placeholder="Search your exercises" aria-label="Search your exercises" autocomplete="off" value="${esc(q)}"></div>`:''}
+    <div class="stack" id="ex-list" style="gap:8px">${list.map((h,i)=>{ const nm=stats[i].name.toLowerCase(); const hide=allOpen?(q&&!nm.includes(q)):i>=5; return h.replace('<button type="button" class="prog"',`<button type="button" class="prog" data-n="${esc(nm)}" ${hide?'hidden':''}`); }).join('')}</div>
+    <p class="note" id="ex-none" ${allOpen&&q&&!stats.some(m=>m.name.toLowerCase().includes(q))?'':'hidden'}>No exercises match.</p>
+    ${list.length>5?`<button type="button" class="btn ghost block" data-act="ex-more" aria-expanded="${allOpen}">${allOpen?`${ICON.up} Show fewer`:`${ICON.down} Show all ${list.length}`}</button>`:''}`;
   return `${head}
   ${monthCard()}
   ${goalsCard()}
@@ -2880,8 +2887,9 @@ function vProgress(){
   ${vBodyweight()}
   <div class="spread"><span class="label">By exercise</span>
     <div class="seg" role="group" aria-label="Exercise type"><button type="button" data-act="prog-tab" data-v="strength" aria-pressed="${S.progTab==='strength'}">Strength</button><button type="button" data-act="prog-tab" data-v="cardio" aria-pressed="${S.progTab==='cardio'}">Cardio</button></div></div>
-  <div class="stack" style="gap:8px">${list}</div>`;
+  ${listHtml}`;
 }
+document.addEventListener('input', ev=>{ if(ev.target&&ev.target.id==='ex-q'){ const q=ev.target.value.trim().toLowerCase(); S.exQ=q; let n=0; document.querySelectorAll('#ex-list .prog[data-n]').forEach(b=>{ const m=!q||b.dataset.n.includes(q); b.hidden=!m; if(m) n++; }); const none=document.getElementById('ex-none'); if(none) none.hidden=n>0; } }, true);
 
 function srcTag(r){
   if(!r.src) return '';
@@ -2955,7 +2963,7 @@ function vSettings(){
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=44;
+const APP_VERSION=45;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const card=r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
@@ -3705,6 +3713,7 @@ document.addEventListener('click', async ev=>{
     case 'cal-nav': S.calOff=Math.min(0,(S.calOff||0)+(+b.dataset.d)); render(); break;
     case 'cal-day': { S.openHist=b.dataset.id; render(); const el=document.querySelector(`[data-act="hist-toggle"][data-id="${b.dataset.id}"]`); if(el) el.scrollIntoView({block:'start',behavior:'smooth'}); break; }
     case 'goal-open': openSheet({kind:'goal'}); break;
+    case 'ex-more': { S.settings=Object.assign({},S.settings,{exAll:!S.settings.exAll}); S.exQ=''; putSettings(); render(); if(!S.settings.exAll) requestAnimationFrame(()=>document.getElementById('ex-list')?.scrollIntoView({block:'nearest'})); break; }
     case 'lg-new': openSheet({kind:'lgoal'}); break;
     case 'lg-edit': openSheet({kind:'lgoal', id:b.dataset.id}); break;
     case 'lg-save': {
