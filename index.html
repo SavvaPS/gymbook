@@ -210,6 +210,7 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:.01em;margi
 .lg-row small{font-size:12px}
 .hist-search{margin:8px 0 0}
 .ex-search{margin:0}
+.pv-seg{margin:0 0 2px}
 .prog-line{display:flex;justify-content:space-between;gap:10px;font-size:14px}
 .cmp-list{display:flex;flex-direction:column;gap:6px}
 .cmp-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--sunk)}
@@ -2649,7 +2650,7 @@ function goalState(g){
       const sxy=rec.reduce((a,p)=>a+(p.t-mx)*(p.v-my),0), sxx=rec.reduce((a,p)=>a+(p.t-mx)**2,0);
       const slope=sxx?sxy/sxx:0; // per ms
       if(slope>0){ const t=Date.now()+(g.target-best)/slope; eta=t; note = t-Date.now()>730*864e5 ? 'More than 2 years away at your current rate' : `At your recent rate: about ${MON[new Date(t).getMonth()]} ${new Date(t).getFullYear()}`; }
-      else note='Not trending up lately: see Stalled lifts for ideas';
+      else note='Not trending up lately: see Stalled lifts on the Lifts tab';
     } else note='Log it a few more times over 2 weeks to see a projected date';
   }
   return {m, best, hit:hitP?hitP.t:null, pct:g.target?Math.min(1,best/g.target):0, note, eta};
@@ -2837,20 +2838,23 @@ function relCard(){
   const rows=list.map(m=>{ const rec=m.sessions.filter(s=>s.t>=cut&&s.rel); if(!rec.length) return null;
       const top=rec.reduce((a,b)=>b.rel>a.rel?b:a); const first=rec[0];
       return {name:m.name, exId:m.exId, rel:top.rel, kg:m.kind==='bw'?top.rel*top.bw:top.e1, n:m.sessions.length, change: rec.length>1 ? rec[rec.length-1].rel-first.rel : 0}; })
-    .filter(Boolean).sort((a,b)=>b.n-a.n).slice(0,8);
+    .filter(Boolean).sort((a,b)=>b.n-a.n);
   if(!rows.length) return '';
+  const allRel=rows.length>5&&!!S.settings.relAll, shown=allRel?rows:rows.slice(0,5);
   const max=Math.max(2,...rows.map(r=>r.rel));
   return `<div class="card stack" style="gap:8px">
     <div class="spread"><span class="label">Strength vs bodyweight</span><span class="muted" style="font-size:12px">best in 90 days</span></div>
-    <div class="mlist">${rows.map(r=>`<button type="button" class="relrow" data-act="prog-open" data-id="${esc(r.exId)}">
+    <div class="mlist">${shown.map(r=>`<button type="button" class="relrow" data-act="prog-open" data-id="${esc(r.exId)}">
       <span class="mname">${esc(r.name)}</span>
       <div class="mbar" aria-hidden="true"><div class="mfill" style="width:${(r.rel/max*100).toFixed(1)}%"></div><div class="mavg" style="left:${(1/max*100).toFixed(1)}%" title="1× bodyweight"></div></div>
       <span class="mnum num">${fmtX(r.rel)}</span></button>`).join('')}</div>
+    ${rows.length>5?`<button type="button" class="btn ghost block" data-act="rel-more" aria-expanded="${allRel}">${allRel?`${ICON.up} Show fewer`:`${ICON.down} Show all ${rows.length}`}</button>`:''}
     ${more('How this works','<p>Estimated one-rep max ÷ your bodyweight at the time. The line marks 1× bodyweight. Pull-ups, dips and other bodyweight moves include your body plus any added kg.</p>')}
   </div>`;
 }
 function vProgress(){
   const head=`<div class="section-h"><h2>Progress</h2></div>`;
+  const pv=['overview','lifts','body'].includes(S.settings.progView)?S.settings.progView:'overview';
   if(!S.workouts.length) return `${head}${vBodyweight()}
     <div class="card empty"><h3>Nothing to chart yet</h3><p style="margin:0">After your first workout you'll see personal bests, estimated one-rep maxes and a trend line for every exercise.</p></div>`;
   const ws=weekStart(Date.now()), ms=new Date(); ms.setDate(1); ms.setHours(0,0,0,0);
@@ -2876,18 +2880,19 @@ function vProgress(){
     <p class="note" id="ex-none" ${allOpen&&q&&!stats.some(m=>m.name.toLowerCase().includes(q))?'':'hidden'}>No exercises match.</p>
     ${list.length>5?`<button type="button" class="btn ghost block" data-act="ex-more" aria-expanded="${allOpen}">${allOpen?`${ICON.up} Show fewer`:`${ICON.down} Show all ${list.length}`}</button>`:''}`;
   return `${head}
-  ${monthCard()}
+  <div class="seg seg-wide pv-seg" role="group" aria-label="Progress view">${[['overview','Overview'],['lifts','Lifts'],['body','Body']].map(([v,l])=>`<button type="button" data-act="pv" data-v="${v}" aria-pressed="${pv===v}">${l}</button>`).join('')}</div>
+  ${pv==='overview'?`${monthCard()}
   ${goalsCard()}
   ${muscleCard()}
-  ${stalledCard()}
+  <div class="card weeks"><div class="label" style="margin-bottom:6px">Workouts per week</div>${weeksChart()}</div>`
+  :pv==='body'?`${skillsCard()||`<div class="card spread nowrap"><div style="min-width:0"><b>Calisthenics skills</b><div class="muted" style="font-size:13px">Start a skill to track its stages here.</div></div><a class="btn" href="#programmes">Browse</a></div>`}
+  ${vBodyweight()}`
+  :`${stalledCard()}
   ${prCard()}
   ${relCard()}
-  ${skillsCard()}
-  <div class="card weeks"><div class="label" style="margin-bottom:6px">Workouts per week</div>${weeksChart()}</div>
-  ${vBodyweight()}
   <div class="spread"><span class="label">By exercise</span>
     <div class="seg" role="group" aria-label="Exercise type"><button type="button" data-act="prog-tab" data-v="strength" aria-pressed="${S.progTab==='strength'}">Strength</button><button type="button" data-act="prog-tab" data-v="cardio" aria-pressed="${S.progTab==='cardio'}">Cardio</button></div></div>
-  ${listHtml}`;
+  ${listHtml}`}`;
 }
 document.addEventListener('input', ev=>{ if(ev.target&&ev.target.id==='ex-q'){ const q=ev.target.value.trim().toLowerCase(); S.exQ=q; let n=0; document.querySelectorAll('#ex-list .prog[data-n]').forEach(b=>{ const m=!q||b.dataset.n.includes(q); b.hidden=!m; if(m) n++; }); const none=document.getElementById('ex-none'); if(none) none.hidden=n>0; } }, true);
 
@@ -2963,7 +2968,7 @@ function vSettings(){
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=45;
+const APP_VERSION=46;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const card=r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
@@ -3714,6 +3719,8 @@ document.addEventListener('click', async ev=>{
     case 'cal-day': { S.openHist=b.dataset.id; render(); const el=document.querySelector(`[data-act="hist-toggle"][data-id="${b.dataset.id}"]`); if(el) el.scrollIntoView({block:'start',behavior:'smooth'}); break; }
     case 'goal-open': openSheet({kind:'goal'}); break;
     case 'ex-more': { S.settings=Object.assign({},S.settings,{exAll:!S.settings.exAll}); S.exQ=''; putSettings(); render(); if(!S.settings.exAll) requestAnimationFrame(()=>document.getElementById('ex-list')?.scrollIntoView({block:'nearest'})); break; }
+    case 'pv': { S.settings=Object.assign({},S.settings,{progView:b.dataset.v}); putSettings(); render(); window.scrollTo(0,0); break; }
+    case 'rel-more': { S.settings=Object.assign({},S.settings,{relAll:!S.settings.relAll}); putSettings(); render(); break; }
     case 'lg-new': openSheet({kind:'lgoal'}); break;
     case 'lg-edit': openSheet({kind:'lgoal', id:b.dataset.id}); break;
     case 'lg-save': {
