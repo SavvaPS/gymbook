@@ -432,6 +432,16 @@ input[type="date"]::-webkit-calendar-picker-indicator,input[type="datetime-local
 .mbar{position:relative;height:14px;border-radius:4px;background:var(--sunk)}
 .mfill{position:absolute;inset:0 auto 0 0;border-radius:4px;background:var(--accent)}
 .mavg{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--ink)}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.mcell{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:4px;min-width:0;padding:2px 0}
+.mcell .mc-top{display:flex;justify-content:space-between;gap:6px;font-size:13px;align-items:baseline}
+.mcell .mname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mcell .mbar{display:block;height:8px}
+.mcell .mfill{display:block}
+.mcell:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.m-ins{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:10px;background:var(--warn-soft);font-size:14px;line-height:1.35}
+.m-ins p{margin:0}.m-ins span{color:var(--muted)}
+.m-ins.ok{background:var(--ok-soft)}.m-ins.ok svg{width:16px;height:16px;color:var(--ok);vertical-align:-3px}
 .legend{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:2px}
 .lg-fill{background:var(--accent)}.lg-avg{width:2px!important;height:12px!important;background:var(--ink)}
@@ -744,7 +754,7 @@ const LIB_RAW = [
  ['pushup','Push-up','Chest','hpush','','s',2],['wide-pushup','Wide Push-up','Chest','hpush','','s',2],['diamond-pushup','Diamond Push-up','Chest','hpush','','s',3],
  ['decline-pushup','Decline Push-up','Chest','hpush','bench|box','s',3],['ring-pushup','Ring Push-up','Chest','hpush','rings|suspension','s',4],['archer-pushup','Archer Push-up','Chest','hpush','','s',4],
  ['clap-pushup','Clap Push-up','Chest','hpush','','s',4],['incline-oap','Incline One-Arm Push-up','Chest','hpush','bench|box','s',4],['oap-negative','One-Arm Push-up Negative','Chest','hpush','','s',5],['pseudo-planche','Pseudo Planche Push-up','Chest','hpush','','s',5],['one-arm-pushup','One-Arm Push-up','Chest','hpush','','s',6],
- ['machine-dip','Assisted Dip Machine','Chest','dip','machine','s',1],['bench-dip','Bench Dip','Arms','dip','bench|box','s',1],['dips','Parallel Bar Dip','Chest','dip','dip','s',3],
+ ['machine-dip','Assisted Dip Machine','Chest','dip','machine','s',1],['bench-dip','Bench Dip','Arms','dip','bench|box','s',1],['dips','Parallel Bar Dip','Chest','dip','dip','s',3],['tri-dip','Triceps Dip','Arms','dip','dip','s',3],['machine-tri-dip','Seated Dip Machine','Arms','dip','machine'],
  ['straight-bar-dip','Straight Bar Dip','Chest','dip','pullup','s',4],['ring-dip','Ring Dip','Chest','dip','rings','s',5],
  // Shoulders
  ['ohp','Overhead Press','Shoulders','vpush','barbell'],['push-press','Push Press','Shoulders','vpush','barbell'],['db-shoulder','Dumbbell Shoulder Press','Shoulders','vpush','dumbbell'],
@@ -823,7 +833,7 @@ const LIB_RAW = [
  ['worlds-greatest',"World's Greatest Stretch",'Legs','prep','','s',1],['pigeon','Pigeon Stretch','Legs','prep','','h',1],['thoracic-rot','Thoracic Rotation','Back','prep','','s',1],['knee-to-wall','Knee-to-Wall Ankle Mobility','Legs','prep','','s',1],['doorway-pec','Doorway Chest Stretch','Chest','prep','','h',1],['childs-pose',"Child's Pose",'Back','prep','','h',1],['shoulder-cars','Shoulder CARs','Shoulders','prep','','s',1],['sleeper-stretch','Sleeper Stretch','Shoulders','prep','','h',1],
  ['tuck-planche-pu','Tuck Planche Push-up','Shoulders','planche','','s',5],['ninety-pushup','90° Push-up','Shoulders','planche','','s',6],['korean-dip','Korean Dip','Chest','dip','dip|pullup','s',4],['impossible-dip','Impossible Dip','Arms','triceps','dip','s',5],
  ['fl-raise','Front Lever Raise','Back','lever','pullup|rings','s',5],['ice-cream','Ice Cream Maker','Back','lever','pullup|rings','s',5],['ring-lsit','Ring L-Sit','Core','lsit','rings','h',4],['straddle-press','Straddle Press to Handstand','Shoulders','handstand','','s',6],['oah-assisted','Assisted One-Arm Handstand','Shoulders','handstand','','h',6],
- ['jm-press','JM Press','Arms','triceps','barbell|ezbar|smith,bench'],['tate-press','Tate Press','Arms','triceps','dumbbell,bench'],['cable-kickback','Cable Kickback','Arms','triceps','cable'],['single-pushdown','Single-Arm Reverse-Grip Pushdown','Arms','triceps','cable'],['cross-cable-ext','Cross-Body Cable Extension','Arms','triceps','cable'],['ez-oh-ext','EZ-Bar Overhead Extension','Arms','triceps','ezbar|barbell'],['band-oh-ext','Band Overhead Extension','Arms','triceps','bands'],['tri-machine','Triceps Extension Machine','Arms','triceps','machine'],['landmine-tri-ext','Landmine Triceps Extension','Arms','triceps','landmine,barbell'],
+ ['jm-press','JM Press','Arms','triceps','barbell|ezbar|smith,bench'],['tate-press','Tate Press','Arms','triceps','dumbbell,bench'],['cable-tri-kickback','Cable Triceps Kickback','Arms','triceps','cable'],['single-pushdown','Single-Arm Reverse-Grip Pushdown','Arms','triceps','cable'],['cross-cable-ext','Cross-Body Cable Extension','Arms','triceps','cable'],['ez-oh-ext','EZ-Bar Overhead Extension','Arms','triceps','ezbar|barbell'],['band-oh-ext','Band Overhead Extension','Arms','triceps','bands'],['tri-machine','Triceps Extension Machine','Arms','triceps','machine'],['landmine-tri-ext','Landmine Triceps Extension','Arms','triceps','landmine,barbell'],
  ['half-kneel-landmine','Half-Kneeling Landmine Press','Shoulders','vpush','landmine,barbell'],['landmine-chest-press','Landmine Chest Press','Chest','hpush','landmine,barbell'],['landmine-row','Two-Hand Landmine Row','Back','hpull','landmine,barbell'],['landmine-rdl','Landmine Romanian Deadlift','Legs','hinge','landmine,barbell'],['landmine-lunge','Landmine Reverse Lunge','Legs','lunge','landmine,barbell'],['landmine-thruster','Landmine Thruster','Full body','power','landmine,barbell'],['landmine-lat-raise','Landmine Lateral Raise','Shoulders','latraise','landmine,barbell'],['landmine-shrug','Landmine Shrug','Back','shrug','landmine,barbell'],
  ['box-jump','Box Jump','Legs','plyo','box','s',2],['broad-jump','Broad Jump','Legs','plyo','','s',2],
  // Core
@@ -1186,6 +1196,8 @@ const HOWTO = {
  'one-arm-pushup':['Chest, shoulders, triceps and core, one side','Feet wide, working hand under your chest, free hand behind your back|Brace hard so hips stay level and square|Lower until your chest is a fist from the floor, elbow close to your side|Press up without twisting','Twisting the torso open or letting the hips sag'],
  'bench-dip':['Triceps and front shoulders','Hands on a bench edge behind you, fingers forward|Feet out in front, knees bent to make it easier|Lower until upper arms are about level with the floor|Press back up to straight arms','Going too deep, which strains the front of the shoulder'],
  'dips':['Chest, triceps and front shoulders','Start supported on parallel bars, arms locked, shoulders down|Lean slightly forward and lower until shoulders are just below elbows|Keep elbows pointing back, not out|Press to locked arms and push the shoulders down','Shrugging the shoulders up to the ears at the bottom'],
+ 'tri-dip':['Triceps, with chest helping','Start supported on parallel bars, arms locked, shoulders pushed down|Keep your body upright, legs under you rather than leaning forward|Lower until the elbows reach about 90 degrees, elbows pointing straight back|Press to locked arms by straightening the elbows','Leaning forward, which turns it into a chest dip'],
+ 'machine-tri-dip':['Triceps, with chest helping','Sit with your back against the pad and grip the handles by your sides|Set the seat so the handles start around chest height|Push the handles down until your arms are straight|Return slowly until the elbows reach about 90 degrees','Letting the shoulders roll forward and shrug up'],
  'straight-bar-dip':['Chest, triceps and front shoulders, for muscle-ups','Support on top of a straight bar, hands shoulder width|Lean forward and let your legs come slightly in front of the bar|Lower until the bar is near your chest|Press back up to straight arms','Hanging back from the bar, which makes the rep stall halfway'],
  'ring-dip':['Chest, triceps and shoulder stabilisers','Start in a ring support, arms locked, rings by your hips|Lower with the rings close to your body until shoulders are below elbows|Press up and turn the rings out at the top|Keep the rings from drifting forward','Letting the rings wander out to the sides'],
  'pike-pushup':['Shoulders and triceps, for handstand push-ups','Hands on the floor, hips high in an upside-down V|Walk your feet in so your hips are over your hands as much as you can|Lower the top of your head to a spot in front of your hands|Press back to straight arms','Lowering straight down, which turns it into a push-up. Head goes forward of the hands'],
@@ -1306,7 +1318,7 @@ const HOWTO = {
  'landmine-rotation':['Obliques and core','Hold the bar end at head height with straight arms|Rotate it in an arc down to one hip, pivoting the back foot|Bring it back over the top to the other side|Move from the hips and trunk, not the arms','Bending the arms and turning it into a press'],
  'jm-press':['Triceps','Lie on a bench with a close grip, about shoulder width|Lower the bar towards your chin by bending the elbows and letting them drift slightly forward|Stop a few cm above the chin, upper arms angled towards your feet|Press back up with the triceps','Turning it into a close-grip bench press by lowering to the chest'],
  'tate-press':['Triceps (inner range)','Lie on a bench with dumbbells pressed up, palms facing your feet|Bend the elbows out to the sides so the dumbbell ends touch your chest|Keep the upper arms still|Press back up by straightening the elbows; go light','Letting the elbows drop towards the floor'],
- 'cable-kickback':['Triceps (long head)','Set a cable low and hold the end with one hand|Hinge forward and pin the upper arm by your side, parallel to the floor|Straighten the elbow until the arm is fully extended behind you|Return slowly; keep the upper arm still','Swinging the upper arm to move the weight'],
+ 'cable-tri-kickback':['Triceps (long head)','Set a cable low and hold the end with one hand|Hinge forward and pin the upper arm by your side, parallel to the floor|Straighten the elbow until the arm is fully extended behind you|Return slowly; keep the upper arm still','Swinging the upper arm to move the weight'],
  'single-pushdown':['Triceps (lateral head)','Set a cable high and hold a single handle palm up|Tuck the elbow to your side|Push the handle down until the arm is straight|Return slowly; switch arms','Letting the elbow drift forward'],
  'cross-cable-ext':['Triceps (lateral head)','Set two cables at head height and cross them, holding the opposite handle in each hand|Start with elbows bent and hands near your face|Straighten the arms out to the sides|Return slowly; keep the elbows level','Turning it into a chest fly'],
  'ez-oh-ext':['Triceps (long head)','Sit or stand holding an EZ bar overhead with a close grip|Lower the bar behind your head by bending the elbows|Keep the elbows pointing forward, not out|Press back up to straight arms','Arching the lower back; brace the core'],
@@ -2166,7 +2178,7 @@ function periodStats(from, to){
   const ws=S.workouts.filter(w=>w.startedAt>=from&&w.startedAt<to);
   const mus={}; let sets=0, vol=0, prs=0;
   for(const w of ws){ vol+=workoutVolume(w); sets+=workoutSets(w); prs+=(w.prs||[]).length;
-    for(const e of (w.exercises||[])){ if(e.type==='cardio') continue; const ex=exById(e.exId); const g=ex?ex.group:null; if(!MUSCLES.includes(g)) continue; mus[g]=(mus[g]||0)+working(e.sets).length; } }
+    for(const e of (w.exercises||[])){ if(e.type==='cardio') continue; const k=working(e.sets).length*holdF(e); const mm=musOf(e.exId); for(const key in mm) mus[key]=(mus[key]||0)+k*mm[key]; } }
   return {n:ws.length, sets, vol, prs, mus};
 }
 function monthRange(y,m){ return [new Date(y,m,1).getTime(), new Date(y,m+1,1).getTime()]; }
@@ -2177,7 +2189,7 @@ function monthCard(){
   /* compare with the same number of days of last month, so the 5th isn't judged against a whole month */
   const pa=new Date(y,m-1,1).getTime(), pd=Math.min(day, new Date(y,m,0).getDate()), pb=new Date(y,m-1,pd+1).getTime();
   const prev=periodStats(pa,pb); const pm=MON[(m+11)%12];
-  const tr=MUSCLES.map(g=>[g,cur.mus[g]||0]).sort((x,z)=>z[1]-x[1]);
+  const tr=MUSC.filter(x=>x[2]).map(([k,nm])=>[nm,cur.mus[k]||0]).sort((x,z)=>z[1]-x[1]);
   const most=tr[0]&&tr[0][1]?tr[0]:null, least=tr.filter(x=>x[1]===tr[tr.length-1][1]).map(x=>x[0]);
   let goalLine='';
   const g=num(S.settings.weekGoal);
@@ -2190,7 +2202,7 @@ function monthCard(){
       <div class="ms"><b class="num">${fmtVol(cur.vol)}</b><span>kg volume</span>${delta(Math.round(cur.vol),Math.round(prev.vol),fmtVol)}</div>
       <div class="ms"><b class="num">${cur.prs}</b><span>new bests</span>${delta(cur.prs,prev.prs)}</div>
     </div>
-    <div class="mc-foot muted">${cur.n?`<span>Most trained <b>${esc(most?most[0]:'—')}</b>${least.length&&least.length<MUSCLES.length?` · least <b>${esc(least.slice(0,2).join(', '))}</b>`:''}</span>`:'<span>No workouts yet this month.</span>'}${goalLine}<span class="mc-vs">Arrows compare with the same days of ${pm}.</span></div>
+    <div class="mc-foot muted">${cur.n?`<span>Most trained <b>${esc(most?most[0]:'—')}</b>${least.length&&least.length<tr.length?` · least <b>${esc(least.slice(0,2).join(', '))}</b>`:''}</span>`:'<span>No workouts yet this month.</span>'}${goalLine}<span class="mc-vs">Arrows compare with the same days of ${pm}.</span></div>
   </div>`;
 }
 function sheetMonths(){
@@ -2242,14 +2254,14 @@ document.addEventListener('change', ev=>{ if(ev.target&&ev.target.id==='pr-f'&&s
 /* weekly working sets for one muscle group, last 12 weeks */
 function sheetMuscle(){
   const g=sheet.g, W=12, ws=weekStart(Date.now()); const counts=[];
-  for(let i=W-1;i>=0;i--){ const a=ws-i*7*864e5, b=a+7*864e5; let n=0; for(const w of S.workouts){ if(w.startedAt<a||w.startedAt>=b) continue; for(const e of (w.exercises||[])){ if(e.type==='cardio') continue; const ex=exById(e.exId); if(ex&&ex.group===g) n+=working(e.sets).length; } } counts.push({a,n}); }
+  for(let i=W-1;i>=0;i--){ const a=ws-i*7*864e5, b=a+7*864e5; let n=0; for(const w of S.workouts){ if(w.startedAt<a||w.startedAt>=b) continue; for(const e of (w.exercises||[])){ if(e.type==='cardio') continue; const wt=musOf(e.exId)[g]||0; if(wt) n+=wt*working(e.sets).length*holdF(e); } } counts.push({a,n:Math.round(n*2)/2}); }
   const mx=Math.max(20,...counts.map(c=>c.n)); const cw=320, ch=140, bw=cw/W, top=12, base=ch-18;
   const y=v=>base-(v/mx)*(base-top);
   const bars=counts.map((c,i)=>{ const x=i*bw+4, h=base-y(c.n); return `<rect x="${x.toFixed(1)}" y="${(base-h).toFixed(1)}" width="${(bw-8).toFixed(1)}" height="${Math.max(h,c.n?0:2).toFixed(1)}" rx="3" fill="${i===W-1?'var(--accent)':c.n?'var(--muted)':'var(--line)'}"/>${c.n?`<text x="${(x+(bw-8)/2).toFixed(1)}" y="${(base-h-4).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="600" fill="var(--ink)">${c.n}</text>`:''}${i%3===2||i===W-1?`<text x="${(x+(bw-8)/2).toFixed(1)}" y="${ch-4}" text-anchor="middle" font-size="9" fill="var(--muted)">${shortDate(c.a)}</text>`:''}`; }).join('');
   const band=[10,20].map(v=>`<line x1="0" x2="${cw}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--ok)" stroke-dasharray="4 4" stroke-width="1" opacity=".7"/><text x="${cw-2}" y="${(y(v)-3).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--ok)">${v}</text>`).join('');
-  const avg=Math.round(counts.reduce((s,c)=>s+c.n,0)/W);
-  return `<svg viewBox="0 0 ${cw} ${ch}" role="img" aria-label="Weekly working sets for ${esc(g)}, last 12 weeks">${band}${bars}</svg>
-  <p class="muted" style="margin:0;font-size:14px">Average <b style="color:var(--ink)">${avg} sets a week</b> over 12 weeks. The green dashed lines mark 10 and 20 sets, a common weekly range per muscle group.</p>`;
+  const avg=Math.round(counts.reduce((s,c)=>s+c.n,0)/W*2)/2;
+  return `<svg viewBox="0 0 ${cw} ${ch}" role="img" aria-label="Weekly working sets for ${esc(MUSC_NAME[g]||g)}, last 12 weeks">${band}${bars}</svg>
+  <p class="muted" style="margin:0;font-size:14px">Average <b style="color:var(--ink)">${avg} sets a week</b> over 12 weeks. The green dashed lines mark 10 and 20 sets, a common weekly range per muscle. Helper muscles count half a set.</p>`;
 }
 /* simple trend line for one exercise, with a time range */
 const RANGES=[['3m','3M',91],['6m','6M',182],['1y','1Y',365],['all','All',0]];
@@ -2818,19 +2830,92 @@ function vBodyweight(){
 }
 /* ---------- weekly working sets per muscle group ---------- */
 const MUSCLES=['Chest','Shoulders','Back','Arms','Legs','Core','Full body'];
+/* ---------- finer muscle tracking: each exercise counts 1 set for its main muscles and ½ for helpers ---------- */
+const MUSC=[['chest','Chest',1],['fdelt','Front delts',1],['sdelt','Side delts',1],['rdelt','Rear delts',1],['lats','Lats',1],['traps','Upper back',1],['lowback','Lower back',0],['biceps','Biceps',1],['triceps','Triceps',1],['forearms','Forearms',0],['abs','Abs & obliques',1],['glutes','Glutes',1],['quads','Quads',1],['hams','Hamstrings',1],['adductors','Adductors',0],['calves','Calves',0]];
+const MUSC_NAME=Object.fromEntries(MUSC.map(([k,n])=>[k,n]));
+const PAT_MUS={hpush:[['chest'],['fdelt','triceps']], fly:[['chest'],['fdelt']], dip:[['chest','triceps'],['fdelt']], vpush:[['fdelt'],['sdelt','triceps']], latraise:[['sdelt'],[]], reardelt:[['rdelt'],['traps']], cuff:[[],['rdelt']],
+ hpull:[['lats','traps'],['rdelt','biceps']], vpull:[['lats'],['biceps','traps']], shrug:[['traps'],['forearms']], biceps:[['biceps'],['forearms']], triceps:[['triceps'],[]], forearm:[['forearms'],[]],
+ squat:[['quads','glutes'],['adductors']], lunge:[['quads','glutes'],['adductors']], hinge:[['hams','glutes'],['lowback']], kneeflex:[['hams'],[]], kneeext:[['quads'],[]], glute:[['glutes'],['hams']], adductor:[['adductors'],['abs']], calf:[['calves'],[]],
+ antiext:[['abs'],[]], flexion:[['abs'],[]], rotation:[['abs'],[]], lsit:[['abs'],['triceps']], backext:[['lowback'],['glutes','hams']], carry:[['abs'],['forearms','traps']], hang:[['forearms'],['lats']],
+ conditioning:[[],['quads','chest','abs']], power:[['glutes','hams'],['quads','traps']], plyo:[['quads','glutes'],['calves']], sled:[['quads','glutes'],['calves']],
+ handstand:[['fdelt'],['triceps','traps']], planche:[['fdelt'],['chest','triceps','abs']], lever:[['lats'],['abs','rdelt']], elbowlever:[['abs'],['forearms']], flag:[['abs','lats'],['sdelt']], cross:[['chest','lats'],['biceps']], muscleup:[['lats'],['triceps','chest','biceps']]};
+const EX_MUS={
+ 'tri-dip':[['triceps'],['chest']], 'machine-tri-dip':[['triceps'],['chest']],
+ 'close-grip-bench':[['triceps','chest'],['fdelt']], 'diamond-pushup':[['triceps','chest'],['fdelt']], 'pseudo-planche':[['chest','fdelt'],['triceps','abs']], 'bench-dip':[['triceps'],['fdelt']], 'korean-dip':[['fdelt','chest'],['triceps']], 'machine-dip':[['triceps','chest'],['fdelt']],
+ 'landmine-press':[['fdelt'],['chest','triceps']], 'half-kneel-landmine':[['fdelt'],['chest','triceps','abs']], 'push-press':[['fdelt'],['triceps','quads']], 'arnold':[['fdelt','sdelt'],['triceps']],
+ 'front-raise':[['fdelt'],[]], 'upright-row':[['sdelt'],['traps','biceps']], 'landmine-lat-raise':[['sdelt'],[]], 'cuban-press':[['rdelt'],['sdelt']], 'ring-y':[['traps','rdelt'],[]], 'prone-ytw':[['traps','rdelt'],[]], 'face-pull':[['rdelt'],['traps']], 'band-pull-apart':[['rdelt'],['traps']],
+ 'chinup':[['lats','biceps'],['traps']], 'straight-arm-pd':[['lats'],[]], 'scap-pull':[['traps'],['lats']], 'fl-row':[['lats','traps'],['abs','biceps']], 'sled-rope':[['lats','biceps'],['forearms']],
+ 'hammer':[['biceps','forearms'],[]], 'reverse-curl':[['forearms'],['biceps']],
+ 'leg-press':[['quads'],['glutes','adductors']], 'hack-squat':[['quads'],['glutes']], 'smith-squat':[['quads'],['glutes']], 'wall-sit':[['quads'],[]], 'cossack':[['adductors','quads'],['glutes']], 'slant-squat':[['quads'],['glutes']], 'slant-goblet':[['quads'],['glutes']], 'front-squat':[['quads'],['glutes','abs']], 'jump-squat':[['quads','glutes'],['calves']],
+ 'deadlift':[['glutes','hams','lowback'],['traps','forearms','quads']], 'sumo-deadlift':[['glutes','adductors'],['hams','quads','lowback']], 'trap-deadlift':[['quads','glutes'],['hams','lowback','traps']], 'good-morning':[['hams'],['lowback','glutes']], 'kb-swing':[['glutes','hams'],['lowback']], 'jefferson-curl':[['lowback'],['hams']], 'elephant-walk':[['hams'],[]],
+ 'glute-ham':[['hams'],['glutes']], 'hip-abduction':[['glutes'],[]], 'band-walk':[['glutes'],[]], 'lateral-lunge':[['adductors'],['glutes','quads']],
+ 'back-ext':[['lowback','glutes'],['hams']], 'superman':[['lowback'],['glutes']], 'arch-hold':[['lowback'],['glutes']],
+ 'hanging-knee':[['abs'],['forearms']], 'hanging-leg':[['abs'],['forearms']], 'toes-to-bar':[['abs'],['lats','forearms']], 'dragon-flag':[['abs'],['lats']], 'ab-wheel':[['abs'],['lats']],
+ 'suitcase-carry':[['abs'],['forearms','traps']], 'overhead-carry':[['fdelt','abs'],['traps','triceps']], 'farmer':[['forearms','traps'],['abs']], 'active-hang':[['lats','traps'],['forearms']],
+ 'bear-crawl':[['abs'],['fdelt','quads']], 'clean':[['glutes','hams','traps'],['quads']], 'snatch':[['glutes','hams','traps'],['quads','sdelt']], 'clean-press':[['glutes','fdelt'],['quads','triceps','traps']], 'thruster':[['quads','fdelt'],['glutes','triceps']], 'landmine-thruster':[['quads','fdelt'],['glutes','triceps']], 'tgu':[['abs','fdelt'],['glutes']], 'wall-ball':[['quads','fdelt'],['glutes']], 'ball-slam':[['abs','lats'],[]],
+ 'sled-drag':[['glutes','hams'],['calves']], 'reverse-sled':[['quads'],['calves']], 'lateral-sled':[['adductors','glutes'],['quads']],
+ 'crow':[['fdelt'],['triceps','abs']], 'ninety-pushup':[['fdelt','triceps'],['chest']], 'tuck-planche-pu':[['fdelt','chest'],['triceps']],
+ 'tuck-bl':[['lats'],['chest','biceps']], 'adv-tuck-bl':[['lats'],['chest','biceps']], 'straddle-bl':[['lats'],['chest','biceps']], 'back-lever':[['lats'],['chest','biceps']], 'skin-cat':[['lats'],['biceps']], 'german-hang':[[],['chest','biceps']],
+ 'false-grip-hang':[['forearms'],['lats']], 'ring-mu-transition':[['chest','triceps'],['lats']], 'rto-support':[['chest'],['triceps','fdelt']],
+ 'tib-raise':[[],[]], 'soleus-raise':[['calves'],[]], 'backward-walk':[[],['quads']]
+};
+const CX_MUS={Chest:{chest:1}, Shoulders:{fdelt:.5,sdelt:.5}, Back:{lats:.5,traps:.5}, Arms:{biceps:.5,triceps:.5}, Legs:{quads:.4,glutes:.3,hams:.3}, Core:{abs:1}};
+const musCache=new Map();
+const holdF=e=>e.type==='hold'?0.5:1; // timed holds (planche, levers, planks, handstands) count as half a set
+function musOf(exId){
+  if(!isCustomId(exId)&&musCache.has(exId)) return musCache.get(exId);
+  const ex=exById(exId); let out={};
+  if(ex && ex.type!=='cardio' && ex.pattern!=='prep'){
+    const pm = EX_MUS[exId] || (ex.pattern && PAT_MUS[ex.pattern]);
+    if(pm){ for(const k of pm[0]) out[k]=1; for(const k of pm[1]) if(!out[k]) out[k]=0.5; }
+    else if(ex.group && CX_MUS[ex.group]) out=Object.assign({},CX_MUS[ex.group]);
+  }
+  musCache.set(exId,out); return out;
+}
+function musSets(from, to){
+  const m={}; let n=0;
+  for(const w of S.workouts){ if(w.startedAt<from||w.startedAt>=to) continue; n++;
+    for(const e of (w.exercises||[])){ if(e.type==='cardio') continue; const k=working(e.sets).length*holdF(e); if(!k) continue; const mm=musOf(e.exId); for(const key in mm) m[key]=(m[key]||0)+k*mm[key]; } }
+  return {m, n};
+}
+const fmtSets=v=>{ const r=Math.round(v*2)/2; return String(r); };
+const MUS_TRY={hams:['rdl','db-rdl','leg-curl','nordic','sl-rdl','glute-ham'], rdelt:['face-pull','rear-delt','band-pull-apart','reverse-pec-deck','prone-ytw'], pull:['db-row','row','pullup','lat-pulldown','seated-row','inverted-row','band-row'],
+ push:['bench','db-bench','pushup','ohp','db-shoulder'], triceps:['rope-pushdown','db-oh-ext','diamond-pushup','bench-dip','band-pushdown'], biceps:['db-curl','hammer','chinup','band-curl','ring-curl'],
+ quads:['goblet','squat','split-squat','leg-press','bw-bulgarian'], glutes:['hip-thrust','glute-bridge','db-hip-thrust','sl-glute-bridge'], sdelt:['lat-raise','cable-lat-raise','band-lat-raise'], abs:['hanging-knee','dead-bug','plank','cable-crunch','ab-wheel'],
+ chest:['bench','db-bench','pushup','dips'], lats:['pullup','lat-pulldown','db-row','band-pulldown'], traps:['face-pull','db-row','shrug','seated-row']};
+function musTry(key){ const ids=MUS_TRY[key]||[]; const out=[], pats=new Set(); for(const id of ids){ const ex=exById(id); if(!ex||!canDo(ex)||pats.has(ex.pattern)) continue; pats.add(ex.pattern); out.push(ex.name); if(out.length>=2) break; } if(out.length<2) for(const id of ids){ const ex=exById(id); if(ex&&canDo(ex)&&!out.includes(ex.name)){ out.push(ex.name); if(out.length>=2) break; } } return out; }
+/* one or two plain-English pointers, from the last 14 days */
+function muscleInsights(){
+  const now=Date.now(); const {m,n}=musSets(now-14*864e5, now+1); if(n<3) return null;
+  const v=k=>(m[k]||0)/2; // weekly average
+  const out=[];
+  const pair=(a,b,label,tryKey,min=5,ratio=2.5)=>{ const A=v(a), B=v(b); if(A>=min && A>ratio*Math.max(B,0.5)) out.push({k:tryKey, txt:`${label(B,A)}`, sev:A/Math.max(B,0.5)}); };
+  const t=x=>fmtSets(x);
+  pair('quads','hams',(B,A)=>`Hamstrings ${t(B)} sets a week vs quads ${t(A)}`,'hams');
+  pair('fdelt','rdelt',(B,A)=>`Rear delts ${t(B)} sets a week vs front delts ${t(A)}`,'rdelt',5,3);
+  const push=v('chest')+v('fdelt'), pull=v('lats')+v('traps');
+  if(push>=8 && push>1.6*Math.max(pull,0.5)) out.push({k:'pull', txt:`Pulling ${t(pull)} sets a week vs pushing ${t(push)}`, sev:push/Math.max(pull,0.5)});
+  if(pull>=8 && pull>2*Math.max(push,0.5)) out.push({k:'push', txt:`Pushing ${t(push)} sets a week vs pulling ${t(pull)}`, sev:pull/Math.max(push,0.5)});
+  pair('biceps','triceps',(B,A)=>`Triceps ${t(B)} sets a week vs biceps ${t(A)}`,'triceps',5,2.5);
+  pair('triceps','biceps',(B,A)=>`Biceps ${t(B)} sets a week vs triceps ${t(A)}`,'biceps',6,3);
+  if(!out.length){ const majors=MUSC.filter(x=>x[2]).map(x=>x[0]); const zero=majors.filter(k=>!m[k]);
+    const trained=majors.filter(k=>m[k]).length;
+    if(zero.length && trained>=4) zero.slice(0,1).forEach(k=>out.push({k, txt:`No ${MUSC_NAME[k].toLowerCase()} work in the last 2 weeks`, sev:1})); }
+  out.sort((a,b)=>b.sev-a.sev);
+  return out.slice(0,2).map(o=>{ const tr=musTry(o.k); return {...o, tip:tr.length?`try ${tr.join(' or ')}`:''}; });
+}
 function muscleCard(){
-  const ws=weekStart(Date.now()); const cur={}, prev={};
-  for(const w of S.workouts){ const inCur=w.startedAt>=ws, inPrev=!inCur&&w.startedAt>=ws-28*864e5; if(!inCur&&!inPrev) continue;
-    for(const e of (w.exercises||[])){ if(e.type==='cardio') continue; const ex=exById(e.exId); const g=ex?ex.group:null; if(!MUSCLES.includes(g)) continue;
-      const n=working(e.sets).length; if(inCur) cur[g]=(cur[g]||0)+n; else prev[g]=(prev[g]||0)+n; } }
-  const avg=g=>(prev[g]||0)/4;
-  const max=Math.max(20,...MUSCLES.map(g=>Math.max(cur[g]||0,avg(g))));
-  const rows=MUSCLES.map(g=>{ const c=cur[g]||0, a=avg(g);
-    return `<button type="button" class="mrow tap" data-act="muscle-open" data-g="${g}" aria-label="${g}: ${c} sets this week. Show 12-week trend"><span class="mname">${g}</span><div class="mbar" aria-hidden="true"><div class="mfill" style="width:${(c/max*100).toFixed(1)}%"></div>${a?`<div class="mavg" style="left:${(a/max*100).toFixed(1)}%"></div>`:''}</div><span class="mnum num">${c}</span></button>`; }).join('');
-  return `<div class="card stack" style="gap:8px">
-    <div class="spread"><span class="label">Working sets this week</span><span class="legend"><i class="lg-fill"></i>This week <i class="lg-avg"></i>4-week average</span></div>
-    <div class="mlist" role="table" aria-label="Working sets per muscle group this week">${rows}</div>
-    ${more('How this works','<p>Working sets only; warm-ups aren\'t counted. Many programmes aim for roughly 10–20 hard sets per muscle group each week. Tap a muscle group to see its last 12 weeks.</p>')}
+  const ws=weekStart(Date.now()); const cur=musSets(ws, Date.now()+1).m, prev=musSets(ws-28*864e5, ws).m;
+  const avg=k=>(prev[k]||0)/4;
+  const max=Math.max(20,...MUSC.map(([k])=>Math.max(cur[k]||0,avg(k))));
+  const ins=muscleInsights();
+  const cells=MUSC.map(([k,name])=>{ const c=cur[k]||0, a=avg(k);
+    return `<button type="button" class="mcell tap" data-act="muscle-open" data-g="${k}" aria-label="${esc(name)}: ${fmtSets(c)} sets this week. Show 12-week trend"><span class="mc-top"><span class="mname">${esc(name)}</span><span class="mnum num">${fmtSets(c)}</span></span><span class="mbar" aria-hidden="true"><span class="mfill" style="width:${(c/max*100).toFixed(1)}%"></span>${a?`<span class="mavg" style="left:${(a/max*100).toFixed(1)}%"></span>`:''}</span></button>`; }).join('');
+  return `<div class="card stack" style="gap:10px">
+    <div class="spread"><span class="label">Working sets this week</span><span class="legend"><i class="lg-fill"></i>This week <i class="lg-avg"></i>4-week avg</span></div>
+    ${ins?`<div class="m-ins ${ins.length?'':'ok'}">${ins.length?ins.map(i=>`<p><b>${esc(i.txt)}</b>${i.tip?`<span>: ${esc(i.tip)}.</span>`:''}</p>`).join(''):`<p>${ICON.check} <b>Well balanced</b><span> over the last 2 weeks.</span></p>`}</div>`:''}
+    <div class="mgrid" role="list" aria-label="Working sets per muscle this week">${cells}</div>
+    ${more('How this works','<p>Working sets only; warm-ups aren\'t counted. Each set counts once for the main muscles and half for the helpers: a bench press set is 1 for chest and ½ each for front delts and triceps. Timed holds count half as much again. Many programmes aim for roughly 10–20 sets per muscle each week. The tip at the top looks at the last 2 weeks. Tap a muscle to see its last 12 weeks.</p>')}
   </div>`;
 }
 function skillsCard(){
@@ -2979,7 +3064,7 @@ function vSettings(){
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=47;
+const APP_VERSION=48;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const card=r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
@@ -3029,7 +3114,7 @@ function renderSheet(){
   if(sheet.kind==='addto'){ title='Add to a routine'; body=sheetAddTo(); }
   if(sheet.kind==='months'){ title='Past months'; body=sheetMonths(); }
   if(sheet.kind==='prs'){ title='Personal bests'; body=sheetPRs(); }
-  if(sheet.kind==='muscle'){ title=sheet.g; body=sheetMuscle(); }
+  if(sheet.kind==='muscle'){ title=MUSC_NAME[sheet.g]||sheet.g; body=sheetMuscle(); }
   if(sheet.kind==='bw-all'){ title='Bodyweight'; body=sheetBwAll(); }
   if(sheet.kind==='export'){ title='Your export'; body=sheetExport(); }
   if(sheet.kind==='install'){ title='Add to home screen'; body=sheetInstall(); }
