@@ -2912,13 +2912,14 @@ function muscleCard(){
   const avg=k=>(prev[k]||0)/4;
   const max=Math.max(20,...MUSC.map(([k])=>Math.max(cur[k]||0,avg(k))));
   const ins=muscleInsights();
-  const cells=MUSC.map(([k,name])=>{ const c=cur[k]||0, a=avg(k);
+  /* minor muscles (lower back, forearms, adductors) mostly get helper work; hide them when untrained this week so they don't look like gaps */
+  const cells=MUSC.filter(([k,,major])=>major||(cur[k]||0)>0).map(([k,name])=>{ const c=cur[k]||0, a=avg(k);
     return `<button type="button" class="mcell tap" data-act="muscle-open" data-g="${k}" aria-label="${esc(name)}: ${fmtSets(c)} sets this week. Show 12-week trend"><span class="mc-top"><span class="mname">${esc(name)}</span><span class="mnum num">${fmtSets(c)}</span></span><span class="mbar" aria-hidden="true"><span class="mfill" style="width:${(c/max*100).toFixed(1)}%"></span>${a?`<span class="mavg" style="left:${(a/max*100).toFixed(1)}%"></span>`:''}</span></button>`; }).join('');
   return `<div class="card stack" style="gap:10px">
     <div class="spread"><span class="label">Working sets this week</span><span class="legend"><i class="lg-fill"></i>This week <i class="lg-avg"></i>4-week avg</span></div>
     ${ins?`<div class="m-ins ${ins.length?'':'ok'}">${ins.length?ins.map(i=>`<p><b>${esc(i.txt)}</b>${i.tip?`<span>: ${esc(i.tip)}.</span>`:''}</p>`).join(''):`<p>${ICON.check} <b>Well balanced</b><span> over the last 2 weeks.</span></p>`}</div>`:''}
     <div class="mgrid" role="list" aria-label="Working sets per muscle this week">${cells}</div>
-    ${more('How this works','<p>Working sets only; warm-ups aren\'t counted. Each set counts once for the main muscles and half for the helpers: a bench press set is 1 for chest and ½ each for front delts and triceps. Timed holds count half as much again. Many programmes aim for roughly 10–20 sets per muscle each week. The tip at the top looks at the last 2 weeks. Tap a muscle to see its last 12 weeks.</p>')}
+    ${more('How this works','<p>Working sets only; warm-ups aren\'t counted. Each set counts once for the main muscles and half for the helpers: a bench press set is 1 for chest and ½ each for front delts and triceps. Timed holds count half as much again. Many programmes aim for roughly 10–20 sets per muscle each week. The tip at the top looks at the last 2 weeks. Lower back, forearms and adductors only show once they have sets this week. Tap a muscle to see its last 12 weeks.</p>')}
   </div>`;
 }
 function skillsCard(){
@@ -3067,7 +3068,7 @@ function vSettings(){
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=50;
+const APP_VERSION=53;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const card=r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
