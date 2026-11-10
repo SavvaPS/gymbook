@@ -1,6 +1,6 @@
 {
-  "name": "GymBook",
-  "short_name": "GymBook",
+  "name": "GymSmith",
+  "short_name": "GymSmith",
   "description": "Log workouts, routines, calisthenics and progress. Works offline.",
   "id": "./",
   "start_url": "./#workout",

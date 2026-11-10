@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>GymBook</title>
+<title>GymSmith</title>
 <script>try{var _t=localStorage.getItem('gymbook.theme');if(_t==='light'||_t==='dark')document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
 <meta name="description" content="Log workouts, routines, calisthenics and progress. Works offline.">
 <meta name="robots" content="noindex, nofollow">
@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#0E1115" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="GymBook">
+<meta name="apple-mobile-web-app-title" content="GymSmith">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
@@ -693,7 +693,7 @@ table.sess td{padding:8px 4px;border-bottom:1px solid var(--line);vertical-align
 <body>
 <div class="app">
   <header class="top">
-    <div class="brand">Gym<span>Book</span></div>
+    <div class="brand">Gym<span>Smith</span></div>
     <div class="top-r"><div class="sync" id="sync">Loading…</div><a class="gear" href="#settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a></div>
   </header>
   <main id="view" class="stack"></main>
@@ -909,7 +909,7 @@ const HYPER_REFS=['vol','freq','fail','load'];
    Each session is done once a week, so weekly sets per target muscle stay roughly 10–20. */
 const PROGRAMS = [
  {id:'kot', cat:'Joints', title:'Knees Over Toes', days:3, weeks:'8–12 weeks', refs:['kotA1'],
-  blurb:'Strong, resilient knees and ankles from Knees Over Toes (ATG) exercises: backward walking, tibialis and soleus work, step-ups and full-range squats and split squats. The exercises come from the method; the session layout is GymBook\'s own.',
+  blurb:'Strong, resilient knees and ankles from Knees Over Toes (ATG) exercises: backward walking, tibialis and soleus work, step-ups and full-range squats and split squats. The exercises come from the method; the session layout is GymSmith\'s own.',
   progress:'Stay in a pain-free range: no worse than about 2–3 out of 10. Earn range before load: use more slant or support, or a raised front foot, until every rep reaches full depth, then lower the support and add reps. Only then add weight (dumbbell or vest). Keep the Jefferson curl very light and build up slowly. Regress Nordics with a band or a shorter range.',
   sessions:[
    {name:'A', rest:60, ex:[['backward-walk',1,10],['tib-raise',3,20],['soleus-raise',3,20],['patrick-step',3,15],['poliquin-step',3,10],['slant-squat',3,15],['couch-stretch',2,45]]},
@@ -1603,7 +1603,7 @@ function preBlock(sk){
 function fullDate(t){ const d=new Date(t); return `${d.getDate()} ${MON[d.getMonth()]} ${d.getFullYear()}`; }
 function sourcesBlock(keys, own){
   const list=(keys||[]).map(k=>REF[k]).filter(Boolean); if(!list.length) return '';
-  return `<details class="sources"><summary>Based on</summary><ul>${list.map(r=>`<li><a href="${esc(r.u)}" target="_blank" rel="noopener">${esc(r.t)}</a><span>${esc(r.n)}</span></li>`).join('')}</ul>${own?`<p>The order of stages follows these sources; the pass marks are GymBook's own, as the sources don't set any.</p>`:''}</details>`;
+  return `<details class="sources"><summary>Based on</summary><ul>${list.map(r=>`<li><a href="${esc(r.u)}" target="_blank" rel="noopener">${esc(r.t)}</a><span>${esc(r.n)}</span></li>`).join('')}</ul>${own?`<p>The order of stages follows these sources; the pass marks are GymSmith's own, as the sources don't set any.</p>`:''}</details>`;
 }
 function skillNeeds(sk){ const miss=new Set(); for(const st of sk.stages){ const ex=exById(st.key); if(ex) missing(ex).forEach(m=>miss.add(m)); } return [...miss]; }
 
@@ -2003,7 +2003,7 @@ function sheetClear(){
   const what=sheet.what||'history'; const age=backupAgeDays();
   return `<p class="muted" style="margin:0;font-size:14px">This can't be undone. Back up first if you might want any of it again.</p>
   <div class="seg seg-wide" role="group" aria-label="What to clear"><button type="button" data-act="clear-what" data-v="history" aria-pressed="${what==='history'}">Workout history</button><button type="button" data-act="clear-what" data-v="all" aria-pressed="${what==='all'}">Everything</button></div>
-  <p style="margin:0;font-size:14px">${what==='all'?'Removes workouts, routines, your own exercises, bodyweight, skill progress and settings. GymBook goes back to a fresh start.':'Removes every logged workout and the workout in progress. Routines, your own exercises, bodyweight, equipment and settings stay.'}</p>
+  <p style="margin:0;font-size:14px">${what==='all'?'Removes workouts, routines, your own exercises, bodyweight, skill progress and settings. GymSmith goes back to a fresh start.':'Removes every logged workout and the workout in progress. Routines, your own exercises, bodyweight, equipment and settings stay.'}</p>
   <div class="card spread nowrap" style="padding:10px 12px"><div style="min-width:0"><b>Back up first</b><div class="muted" style="font-size:13px">${age==null?'<b style="color:var(--warn)">No backup yet.</b>':age===0?'Last backup today.':`Last backup ${age} day${age===1?'':'s'} ago.`}</div></div><button type="button" class="btn" data-act="clear-backup">Back up</button></div>
   <div class="field"><label class="label" for="clear-confirm">Type DELETE to confirm</label><input id="clear-confirm" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>
   <button type="button" class="btn danger-fill big block" data-act="clear-go" id="clear-go" disabled>${what==='all'?'Clear everything':'Clear workout history'}</button>`;
@@ -2026,11 +2026,11 @@ document.addEventListener('input', ev=>{ if(ev.target&&ev.target.id==='clear-con
 
 /* ---------- first-run tour ---------- */
 const TOUR=[
-  {ic:'dumbbell', t:'Welcome to GymBook', b:'Log your workouts, follow routines and programmes, and track your progress. It works without signal and keeps everything on this phone.'},
+  {ic:'dumbbell', t:'Welcome to GymSmith', b:'Log your workouts, follow routines and programmes, and track your progress. It works without signal and keeps everything on this phone.'},
   {ic:'gear', t:'Tell it your equipment', b:'Pick what is in your gym, home setup or bar park. Exercises you can\'t do are hidden, and programmes swap in versions that fit your kit.', act:['equip','Choose equipment']},
   {ic:'list', t:'Routines and programmes', b:'Save your own routines, or add a ready-made programme or calisthenics skill from the Routines tab. Next up on the Workout screen shows what is due.'},
   {ic:'check', t:'Logging a workout', b:'Start a routine, type the weight and reps, and tick each set. Ticking starts the rest timer. Tap How to do it on any calisthenics exercise for form cues.'},
-  {ic:'shield', t:'Keep a backup', b:'Your log lives only on this phone. Back up now and then from Settings (the gear at the top right), and add GymBook to your home screen to use it like an app.'}
+  {ic:'shield', t:'Keep a backup', b:'Your log lives only on this phone. Back up now and then from Settings (the gear at the top right), and add GymSmith to your home screen to use it like an app.'}
 ];
 let tourShown=false;
 function maybeTour(){
@@ -2326,7 +2326,7 @@ function vStart(){
     : (S.loaded.r ? `<p class="note">No routines yet. Make one in the Routines tab to start it in one tap.</p>` : '');
   const last=S.workouts[0]; const nu=vNextUp();
   return `
-  ${isStandalone()?'':`<div class="card download"><div class="dl-txt"><b>Add GymBook to your home screen</b><span>${/iPhone|iPad|iPod/i.test(navigator.userAgent)?"Do this before logging workouts: on iPhone, workouts logged in Safari don't carry over to the app.":'It opens full screen and works with no signal.'}</span></div><button type="button" class="btn primary" data-act="install-help">Install</button></div>`}
+  ${isStandalone()?'':`<div class="card download"><div class="dl-txt"><b>Add GymSmith to your home screen</b><span>${/iPhone|iPad|iPod/i.test(navigator.userAgent)?"Do this before logging workouts: on iPhone, workouts logged in Safari don't carry over to the app.":'It opens full screen and works with no signal.'}</span></div><button type="button" class="btn primary" data-act="install-help">Install</button></div>`}
   <section class="hero-start">
     <div class="card stack">
       <div class="spread"><span class="label">This week</span><span class="muted num" style="font-size:14px">${thisWeek.length} workout${thisWeek.length===1?'':'s'} · ${fmtVol(thisWeek.reduce((a,w)=>a+workoutVolume(w),0))} kg</span></div>
@@ -3030,7 +3030,7 @@ function vPrograms(filter){
   return `<div class="section-h"><h2>Programmes</h2></div>
   <div class="seg seg-wide" role="group" aria-label="Programme type"><button type="button" data-act="prog-kind" data-v="goals" aria-pressed="${kind!=='skills'}">By goal</button><button type="button" data-act="prog-kind" data-v="skills" aria-pressed="${kind==='skills'}">Calisthenics skills</button></div>
   <!--chips-->
-  ${kind==='skills'?tip('skills','Pick your stage and GymBook builds the session, then tells you when to move on.'):tip('goals','Ready-made routines, adjusted to your equipment. Add one, then edit anything.')}
+  ${kind==='skills'?tip('skills','Pick your stage and GymSmith builds the session, then tells you when to move on.'):tip('goals','Ready-made routines, adjusted to your equipment. Add one, then edit anything.')}
   ${body}`;
 }
 function vSettings(){
@@ -3060,15 +3060,15 @@ function vSettings(){
     <div><b>Backups</b><div class="muted" style="font-size:13px">Your log lives on this phone. A backup file keeps it safe if you change phone, delete the app or clear your browser data. ${backupAge()==null?'<b style="color:var(--warn)">No backup yet.</b>':`Last backup ${backupAge()===0?'today':backupAge()===1?'yesterday':backupAge()+' days ago'}.`}</div></div>
     <div class="btn-grid"><button type="button" class="btn primary" data-act="export-json">Back up now</button><button type="button" class="btn" data-act="import">Import backup</button><button type="button" class="btn span2" data-act="export-csv">Spreadsheet (CSV)</button></div>
   </div>
-  <div class="card spread nowrap"><div style="min-width:0"><b>Add to home screen</b><div class="muted" style="font-size:13px">${isStandalone()?'Installed. You are using GymBook as an app.':'Open GymBook like an app, full screen and offline.'}</div></div>${isStandalone()?'':`<button type="button" class="btn" data-act="install-help">How</button>`}</div>
-  <div class="card spread nowrap"><div style="min-width:0"><b>App tour</b><div class="muted" style="font-size:13px">A quick look at how GymBook works</div></div><button type="button" class="btn" data-act="tour-open">Show</button></div>
+  <div class="card spread nowrap"><div style="min-width:0"><b>Add to home screen</b><div class="muted" style="font-size:13px">${isStandalone()?'Installed. You are using GymSmith as an app.':'Open GymSmith like an app, full screen and offline.'}</div></div>${isStandalone()?'':`<button type="button" class="btn" data-act="install-help">How</button>`}</div>
+  <div class="card spread nowrap"><div style="min-width:0"><b>App tour</b><div class="muted" style="font-size:13px">A quick look at how GymSmith works</div></div><button type="button" class="btn" data-act="tour-open">Show</button></div>
   <div class="card spread nowrap"><div style="min-width:0"><b>Clear data</b><div class="muted" style="font-size:13px">Remove workout history, or everything, from this phone</div></div><button type="button" class="btn danger" data-act="clear-open">Clear…</button></div>
   <p class="note">Everything is saved on this phone and works without signal. Nothing is sent anywhere.</p>
-  <p class="muted num" style="margin:0;font-size:12px;text-align:center">GymBook version ${APP_VERSION}</p>`;
+  <p class="muted num" style="margin:0;font-size:12px;text-align:center">GymSmith version ${APP_VERSION}</p>`;
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=53;
+const APP_VERSION=54;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const card=r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
@@ -3126,7 +3126,7 @@ function renderSheet(){
   const keepQ = document.getElementById('pick-q'); const q = keepQ? keepQ.value : (sheet.q||'');
   const oldB=root.querySelector('.sheet-b'); const keepTop = oldB && root.dataset.kind===sheet.kind+(sheet.id||'') ? oldB.scrollTop : 0;
   root.dataset.kind=sheet.kind+(sheet.id||'');
-  root.innerHTML=`<div class="scrim" data-act="scrim"><div class="sheet ${sheet.kind==='tour'?'sheet-tour':''}" role="dialog" aria-modal="true" aria-label="${esc(title||'GymBook tour')}">
+  root.innerHTML=`<div class="scrim" data-act="scrim"><div class="sheet ${sheet.kind==='tour'?'sheet-tour':''}" role="dialog" aria-modal="true" aria-label="${esc(title||'GymSmith tour')}">
     <div class="sheet-h"><h2>${esc(title)}</h2><button type="button" class="icon-btn" data-act="close" aria-label="Close">${ICON.x}</button></div>
     <div class="sheet-b">${body}</div></div></div>`;
   if(keepTop){ const nb=root.querySelector('.sheet-b'); if(nb) nb.scrollTop=keepTop; }
@@ -3238,10 +3238,10 @@ function sheetBwAll(){
 function isStandalone(){ return (window.matchMedia&&matchMedia('(display-mode: standalone)').matches) || navigator.standalone===true; }
 function sheetInstall(){
   const ios=/iPhone|iPad|iPod/i.test(navigator.userAgent);
-  return `${installPrompt?`<button type="button" class="btn primary block" data-act="install-now">Install GymBook</button>`:''}
+  return `${installPrompt?`<button type="button" class="btn primary block" data-act="install-now">Install GymSmith</button>`:''}
   <div class="stack" style="gap:6px"><b>iPhone</b><ol class="steps"><li>Open this page in <b>Safari</b>.</li><li>Tap the <b>Share</b> button (square with an arrow).</li><li>Scroll down and tap <b>Add to Home Screen</b>, then <b>Add</b>.</li></ol></div>
   <div class="stack" style="gap:6px"><b>Android</b><ol class="steps"><li>Open this page in <b>Chrome</b>.</li><li>Tap the <b>⋮</b> menu.</li><li>Tap <b>Install app</b> (or <b>Add to Home screen</b>).</li></ol></div>
-  <p class="note">${ios?'On iPhone, use the home-screen icon from now on: its data is kept separately from Safari tabs. Import your backup there.':'After installing, open GymBook from its icon.'}</p>`;
+  <p class="note">${ios?'On iPhone, use the home-screen icon from now on: its data is kept separately from Safari tabs. Import your backup there.':'After installing, open GymSmith from its icon.'}</p>`;
 }
 function sheetExport(){
   return `<p class="muted" style="margin:0;font-size:14px">Downloads aren't available in this view, so here is <b>${esc(sheet.name)}</b> as text. Copy it and paste it into a file or a spreadsheet.</p>
@@ -3578,15 +3578,15 @@ async function offerFile(name, data){
     setTimeout(()=>URL.revokeObjectURL(url), 5000); toast('Download started'); return true;
   }catch(e){ openSheet({kind:'export', name, data}); return false; }
 }
-function backupJson(){ return JSON.stringify({app:'GymBook', version:1, exported:new Date().toISOString(), workouts:S.workouts, routines:S.routines, bodyweight:S.bw, customExercises:S.custom, settings:S.settings}, null, 2); }
+function backupJson(){ return JSON.stringify({app:'GymSmith', version:1, exported:new Date().toISOString(), workouts:S.workouts, routines:S.routines, bodyweight:S.bw, customExercises:S.custom, settings:S.settings}, null, 2); }
 async function doBackup(){
-  const ok=await offerFile(`gymbook-backup-${todayISO()}.json`, backupJson());
+  const ok=await offerFile(`gymsmith-backup-${todayISO()}.json`, backupJson());
   if(ok){ S.settings.lastBackup=Date.now(); putSettings(); render(); }
 }
 /* ---------- import a backup (from the Claude version or this app) ---------- */
 function importBackup(text){
-  let d; try{ d=JSON.parse(text); }catch(e){ toast("That file isn't a GymBook backup."); return; }
-  if(!d || typeof d!=='object' || !(Array.isArray(d.workouts)||Array.isArray(d.routines))){ toast("That file isn't a GymBook backup."); return; }
+  let d; try{ d=JSON.parse(text); }catch(e){ toast("That file isn't a GymSmith backup."); return; }
+  if(!d || typeof d!=='object' || !(Array.isArray(d.workouts)||Array.isArray(d.routines))){ toast("That file isn't a GymSmith backup."); return; }
   const merge=(cur, inc, key)=>{ const map=new Map(cur.map(x=>[x[key],x])); let n=0; for(const x of (inc||[])){ if(x&&x[key]!=null){ if(!map.has(x[key])) n++; map.set(x[key], x); } } return [[...map.values()], n]; };
   let n1,n2,n3;
   [S.workouts,n1]=merge(S.workouts, (d.workouts||[]).filter(w=>w&&w.id&&isFinite(w.startedAt)), 'id');
@@ -3768,7 +3768,7 @@ document.addEventListener('click', async ev=>{
     case 'rt-ss-leave': unlink(sheet.r.exercises, +b.closest('.rt-ex').dataset.i); renderSheet(); break;
     case 'bw-all': openSheet({kind:'bw-all'}); break;
     case 'bw-del': { if(!armed(b,'Delete?')) break; await delBw(b.dataset.id); renderSheet(); render(); break; }
-    case 'export-csv': { if(!S.workouts.length){ toast('No workouts to export yet.'); break; } await offerFile(`gymbook-${todayISO()}.csv`, buildCsv()); break; }
+    case 'export-csv': { if(!S.workouts.length){ toast('No workouts to export yet.'); break; } await offerFile(`gymsmith-${todayISO()}.csv`, buildCsv()); break; }
     case 'export-json': await doBackup(); break;
     case 'import': pickImport(); break;
     case 'starters': addStarters(); break;
@@ -3910,7 +3910,7 @@ document.addEventListener('change', ev=>{
   if(ev.target.id!=='import-file') return; const f=ev.target.files&&ev.target.files[0]; ev.target.value='';
   if(!f) return; const rd=new FileReader(); rd.onload=()=>importBackup(String(rd.result)); rd.onerror=()=>toast("Couldn't read that file."); rd.readAsText(f);
 });
-function showUpdate(){ const r=document.getElementById('update-root'); r.innerHTML=`<div class="toast update" role="status"><span>A new version of GymBook is ready.</span><button type="button" class="btn" data-act="sw-reload">Reload</button></div>`; }
+function showUpdate(){ const r=document.getElementById('update-root'); r.innerHTML=`<div class="toast update" role="status"><span>A new version of GymSmith is ready.</span><button type="button" class="btn" data-act="sw-reload">Reload</button></div>`; }
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('sw.js').then(reg=>{
@@ -3918,7 +3918,7 @@ if('serviceWorker' in navigator && location.protocol!=='file:'){
       reg.addEventListener('updatefound', ()=>{ const nw=reg.installing; if(!nw) return;
         nw.addEventListener('statechange', ()=>{ if(nw.state==='installed' && navigator.serviceWorker.controller){ swWaiting=nw; showUpdate(); } }); });
       setInterval(()=>reg.update().catch(()=>{}), 60*60*1000);
-      /* iPhone home-screen apps usually resume rather than reload, so also check for updates each time GymBook comes back on screen */
+      /* iPhone home-screen apps usually resume rather than reload, so also check for updates each time GymSmith comes back on screen */
       let lastCheck=Date.now();
       document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible' && Date.now()-lastCheck>30000){ lastCheck=Date.now(); reg.update().catch(()=>{}); } });
     }).catch(e=>console.warn('Offline support unavailable', e));
