@@ -1,9 +1,10 @@
 /* GymBook service worker: keeps the app working with no signal.
    Bump VERSION whenever you upload changed files, so phones pick up the update. */
-const VERSION = 'gymbook-v57';
+const VERSION = 'gymbook-v58';
 const SHELL = [
   './',
   './index.html',
+  './privacy.html',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
@@ -59,6 +60,12 @@ self.addEventListener('fetch', event => {
   }
 
   if (url.origin !== self.location.origin) return;
+
+  // Other pages on the site (the privacy policy): fresh from the network, saved copy if offline
+  if (req.mode === 'navigate' && !/\/(index\.html)?$/.test(url.pathname)) {
+    event.respondWith(fetch(req).catch(() => fromCache(req).then(hit => hit || Response.error())));
+    return;
+  }
 
   // Opening the app: serve the saved copy instantly, so it starts with no signal
   if (req.mode === 'navigate') {
