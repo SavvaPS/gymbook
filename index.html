@@ -238,6 +238,13 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:.01em;margi
 .vbtn small{font-size:10px;font-weight:600}
 .vbtn[aria-pressed="true"]{background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent)}
 .vbtn:focus-visible{outline:2px solid var(--accent)}
+.policy{font-size:15px;line-height:1.55}
+.policy h2{font-family:inherit;font-size:17px;margin:18px 0 4px}
+.policy p,.policy li{margin:0 0 8px}.policy ul{padding-left:20px;margin:0 0 8px}
+.policy .card{padding:12px 14px 4px;margin:0 0 12px}.policy .warn{background:var(--warn-soft)}
+.policy table{border-collapse:collapse;width:100%;font-size:14px;margin:0 0 10px}
+.policy th,.policy td{text-align:left;vertical-align:top;padding:6px 6px 6px 0;border-bottom:1px solid var(--line)}
+.policy .muted:first-child{margin-top:0}
 .plan-row select.band-sel{width:100%;min-width:0;min-height:42px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font-size:16px;font-weight:600;text-align:center;text-align-last:center;color:var(--ink);-webkit-appearance:none;appearance:none}
 .set-row select{width:100%;min-width:0;min-height:44px;border:1px solid var(--line);border-radius:8px;background:var(--sunk);font-size:16px;font-weight:600;text-align:center;text-align-last:center;color:var(--ink);padding:0 2px;font-variant-numeric:tabular-nums}
 button.n{all:unset;box-sizing:border-box;cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-family:var(--f-display);font-weight:700;font-size:18px;color:var(--muted)}
@@ -3138,12 +3145,12 @@ function vSettings(){
   <div class="card spread nowrap"><div style="min-width:0"><b>Clear data</b><div class="muted" style="font-size:13px">Remove workout history, or everything, from this phone</div></div><button type="button" class="btn danger" data-act="clear-open">Clear…</button></div>
   <p class="note">Everything is saved on this phone and works without signal. Nothing is sent anywhere.</p>
   <p class="muted" style="margin:0;font-size:13px;text-align:center">GymSmith is a training log, not medical advice. Check with a professional if you have an injury or health condition.</p>
-  <p style="margin:0;font-size:14px;text-align:center"><a href="https://savvaps.github.io/gymbook/privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="https://savvaps.github.io/gymbook/privacy.html#health" target="_blank" rel="noopener">Health and safety</a> · <a href="mailto:gymsmith.app@gmail.com">Contact</a></p>
+  <p style="margin:0;font-size:14px;text-align:center"><a href="privacy.html" data-act="policy" data-v="privacy">Privacy policy</a> · <a href="privacy.html#health" data-act="policy" data-v="health">Health and safety</a> · <a href="mailto:gymsmith.app@gmail.com">Contact</a></p>
   <p class="muted num" style="margin:0;font-size:12px;text-align:center">GymSmith version ${APP_VERSION}</p>`;
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=58;
+const APP_VERSION=59;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const card=r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
@@ -3171,6 +3178,23 @@ function vRoutines(){
 /* ---------- sheet (modal) ---------- */
 let sheet=null; // {kind, ...}
 function openSheet(s){ sheet=s; renderSheet(); }
+/* privacy policy and health disclaimer: shown inside the app (a home-screen app has no back button), from the saved copy when offline */
+let policyHtml=null;
+function sheetPolicy(){
+  if(policyHtml==null){
+    fetch('privacy.html').then(r=>r.ok?r.text():Promise.reject()).then(t=>{
+      const d=new DOMParser().parseFromString(t,'text/html'); d.querySelectorAll('nav,.logo,script,style').forEach(n=>n.remove());
+      d.querySelectorAll('a[href^="http"]').forEach(a=>{ a.target='_blank'; a.rel='noopener'; });
+      policyHtml=(d.querySelector('main')||d.body).innerHTML;
+    }).catch(()=>{ policyHtml=''; }).then(()=>{ if(sheet&&sheet.kind==='policy') renderSheet(); });
+    return '<p class="muted">Loading…</p>';
+  }
+  if(!policyHtml) return '<p class="note">Couldn\'t load this right now. Connect to the internet and try again, or email <a href="mailto:gymsmith.app@gmail.com">gymsmith.app@gmail.com</a>.</p>';
+  const d=document.createElement('div'); d.innerHTML=policyHtml;
+  const keep=d.querySelector(sheet.v==='health'?'#health':'#privacy'); if(keep) keep.querySelector('h1')?.remove();
+  const contact=d.querySelector('#contact');
+  return `<div class="policy">${keep?keep.innerHTML:policyHtml}${contact?contact.innerHTML:''}</div>`;
+}
 function closeSheet(){ sheet=null; document.getElementById('sheet-root').innerHTML=''; }
 function renderSheet(){
   const root=document.getElementById('sheet-root'); if(!sheet){ root.innerHTML=''; return; }
@@ -3197,6 +3221,7 @@ function renderSheet(){
   if(sheet.kind==='bw-all'){ title='Bodyweight'; body=sheetBwAll(); }
   if(sheet.kind==='export'){ title='Your export'; body=sheetExport(); }
   if(sheet.kind==='install'){ title='Add to home screen'; body=sheetInstall(); }
+  if(sheet.kind==='policy'){ title=sheet.v==='health'?'Health and safety':'Privacy policy'; body=sheetPolicy(); }
   if(sheet.kind==='exercise'){ const m=exerciseStats().find(x=>x.exId===sheet.exId); title=m?m.name:'Exercise'; body=sheetExercise(m); }
   const keepQ = document.getElementById('pick-q'); const q = keepQ? keepQ.value : (sheet.q||'');
   const oldB=root.querySelector('.sheet-b'); const keepTop = oldB && root.dataset.kind===sheet.kind+(sheet.id||'') ? oldB.scrollTop : 0;
@@ -3747,6 +3772,7 @@ document.addEventListener('click', async ev=>{
   const act=b.dataset.act;
   if(act==='scrim'){ if(ev.target===b) closeSheet(); return; }
   if(act==='close'){ closeSheet(); return; }
+  if(act==='policy'){ ev.preventDefault(); openSheet({kind:'policy', v:b.dataset.v}); return; }
   const art=b.closest('.ex'); const e = art&&S.active ? S.active.exercises[+art.dataset.ex] : null;
 
   switch(act){
