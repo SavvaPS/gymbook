@@ -3137,11 +3137,13 @@ function vSettings(){
   <div class="card spread nowrap"><div style="min-width:0"><b>App tour</b><div class="muted" style="font-size:13px">A quick look at how GymSmith works</div></div><button type="button" class="btn" data-act="tour-open">Show</button></div>
   <div class="card spread nowrap"><div style="min-width:0"><b>Clear data</b><div class="muted" style="font-size:13px">Remove workout history, or everything, from this phone</div></div><button type="button" class="btn danger" data-act="clear-open">Clear…</button></div>
   <p class="note">Everything is saved on this phone and works without signal. Nothing is sent anywhere.</p>
+  <p class="muted" style="margin:0;font-size:13px;text-align:center">GymSmith is a training log, not medical advice. Check with a professional if you have an injury or health condition.</p>
+  <p style="margin:0;font-size:14px;text-align:center"><a href="https://savvaps.github.io/gymbook/privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="https://savvaps.github.io/gymbook/privacy.html#health" target="_blank" rel="noopener">Health and safety</a> · <a href="mailto:gymsmith.app@gmail.com">Contact</a></p>
   <p class="muted num" style="margin:0;font-size:12px;text-align:center">GymSmith version ${APP_VERSION}</p>`;
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=56;
+const APP_VERSION=57;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const card=r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
