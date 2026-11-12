@@ -1,6 +1,6 @@
 /* GymBook service worker: keeps the app working with no signal.
    Bump VERSION whenever you upload changed files, so phones pick up the update. */
-const VERSION = 'gymbook-v59';
+const VERSION = 'gymbook-v61';
 const SHELL = [
   './',
   './index.html',
@@ -11,7 +11,12 @@ const SHELL = [
   './icons/maskable-192.png',
   './icons/maskable-512.png',
   './icons/apple-touch-icon.png',
-  './icons/favicon-32.png'
+  './icons/favicon-32.png',
+  './fonts/barlow-latin-400-normal.woff2',
+  './fonts/barlow-latin-500-normal.woff2',
+  './fonts/barlow-latin-600-normal.woff2',
+  './fonts/barlow-condensed-latin-600-normal.woff2',
+  './fonts/barlow-condensed-latin-700-normal.woff2'
 ];
 const FONT_CACHE = 'gymbook-fonts';
 

@@ -16,10 +16,13 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
 <style>
+/* fonts ship with the app (Barlow and Barlow Condensed, SIL Open Font License), so nothing is fetched from Google */
+@font-face{font-family:"Barlow";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/barlow-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Barlow";font-style:normal;font-weight:500;font-display:swap;src:url(fonts/barlow-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Barlow";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/barlow-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Barlow Condensed";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/barlow-condensed-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Barlow Condensed";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/barlow-condensed-latin-700-normal.woff2) format("woff2")}
 /* base reset (the Claude version got this from its host page) */
 :root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
@@ -238,6 +241,7 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:.01em;margi
 .vbtn small{font-size:10px;font-weight:600}
 .vbtn[aria-pressed="true"]{background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent)}
 .vbtn:focus-visible{outline:2px solid var(--accent)}
+.rng{display:flex;align-items:center;gap:3px;min-width:0}.rng input{flex:1 1 0;min-width:0;padding:0 2px}.rng span{color:var(--muted);font-weight:600}
 .policy{font-size:15px;line-height:1.55}
 .policy h2{font-family:inherit;font-size:17px;margin:18px 0 4px}
 .policy p,.policy li{margin:0 0 8px}.policy ul{padding-left:20px;margin:0 0 8px}
@@ -1636,6 +1640,45 @@ let db = null;
 const LS_KEY = 'ironlog.v1';
 const LS_ACTIVE = 'ironlog.active';
 
+/* ---------- iPhone and Android app (Capacitor): a saved copy in the app's own storage, rest alerts, haptics, share sheet.
+   On the web none of this runs and the app behaves exactly as before. ---------- */
+const CAP = window.Capacitor;
+const NATIVE = !!(CAP && CAP.isNativePlatform && CAP.isNativePlatform());
+const natPlugins = {};
+function nat(n){ if(!NATIVE) return null; try{ return natPlugins[n] || (natPlugins[n] = (CAP.Plugins && CAP.Plugins[n]) || CAP.registerPlugin(n)); }catch(e){ return null; } }
+const NATIVE_FILE = 'gymsmith-data.json';
+let natTimer = null;
+/* every save is also written to a file in the app's Library folder (kept by iOS and included in the phone's backups) */
+function nativeSave(){
+  if(!NATIVE) return; clearTimeout(natTimer);
+  natTimer = setTimeout(()=>{ const fs=nat('Filesystem'); if(!fs) return;
+    const data = {savedAt: Date.now(), v1: localStorage.getItem(LS_KEY), active: localStorage.getItem(LS_ACTIVE), theme: localStorage.getItem('gymbook.theme')};
+    try{ localStorage.setItem('gymsmith.savedAt', String(data.savedAt)); }catch(e){}
+    fs.writeFile({path: NATIVE_FILE, directory: 'LIBRARY', encoding: 'utf8', data: JSON.stringify(data)}).catch(()=>{});
+  }, 400);
+}
+/* on launch: if the web storage was cleared or is older than the saved file, put the saved copy back */
+async function nativeRestore(){
+  if(!NATIVE) return; const fs=nat('Filesystem'); if(!fs) return;
+  try{
+    const r = await fs.readFile({path: NATIVE_FILE, directory: 'LIBRARY', encoding: 'utf8'}); const d = JSON.parse(r.data);
+    if(d && d.savedAt > +(localStorage.getItem('gymsmith.savedAt')||0)){
+      const put=(k,v)=>{ if(v==null) localStorage.removeItem(k); else localStorage.setItem(k,v); };
+      put(LS_KEY, d.v1); put(LS_ACTIVE, d.active); put('gymbook.theme', d.theme); localStorage.setItem('gymsmith.savedAt', String(d.savedAt));
+    }
+  }catch(e){ /* first launch: nothing saved yet */ }
+}
+function haptic(kind){ const h=nat('Haptics'); if(!h) return; (kind==='done' ? h.notification({type:'SUCCESS'}) : h.impact({style:'MEDIUM'})).catch(()=>{}); }
+/* rest alert: scheduled only while GymSmith is in the background, so it never doubles up with the in-app beep */
+async function restAlertsAllowed(){ const ln=nat('LocalNotifications'); if(!ln) return false;
+  try{ let p=await ln.checkPermissions(); if(p.display==='prompt'||p.display==='prompt-with-rationale') p=await ln.requestPermissions(); return p.display==='granted'; }catch(e){ return false; } }
+function restAlertSync(){ const ln=nat('LocalNotifications'); if(!ln) return;
+  ln.cancel({notifications:[{id:1}]}).catch(()=>{});
+  if(rest && document.visibilityState==='hidden' && rest.end>Date.now()+1000)
+    ln.schedule({notifications:[{id:1, title:'Rest over', body:'Time for your next set.', schedule:{at:new Date(rest.end), allowWhileIdle:true}}]}).catch(()=>{});
+}
+if(NATIVE) document.addEventListener('visibilitychange', ()=>restAlertSync());
+
 function allEx(){ return LIB.concat(S.custom); }
 function exById(id){ return allEx().find(e=>e.id===id); }
 function myEq(){ return new Set(Array.isArray(S.settings.equipment)?S.settings.equipment:EQ_ALL); }
@@ -1671,7 +1714,7 @@ function weekStart(t){ const d=new Date(t); d.setHours(0,0,0,0); const dow=(d.ge
    Every change goes into a small queue kept on this device first, then to the database.
    If the gym has no signal, the queue keeps it and retries until it gets through. */
 function lsGet(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
-function lsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+function lsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} nativeSave(); }
 function saveLocalAll(){ if(S.mode==='local') lsSet(LS_KEY,{workouts:S.workouts,routines:S.routines,custom:S.custom,settings:S.settings,bw:S.bw}); }
 function setSync(t){ document.getElementById('sync').textContent = t; }
 const LS_PENDING='ironlog.pending';
@@ -1864,6 +1907,8 @@ function applyTheme(){
   try{ if(t==='auto') localStorage.removeItem('gymbook.theme'); else localStorage.setItem('gymbook.theme',t); }catch(e){}
   const metas=document.querySelectorAll('meta[name="theme-color"]');
   metas.forEach(m=>{ if(!m.dataset.orig) m.dataset.orig=m.getAttribute('content'); m.setAttribute('content', t==='auto'?m.dataset.orig:(t==='dark'?'#0E1115':'#ECEEF1')); });
+  const sb=nat('StatusBar'), sbs=t==='dark'?'DARK':t==='light'?'LIGHT':'DEFAULT';
+  if(sb && applyTheme.sb!==sbs){ applyTheme.sb=sbs; sb.setStyle({style:sbs}).catch(()=>{}); }
 }
 function render(){
   applyTheme();
@@ -2122,7 +2167,7 @@ function vProgrammesScreen(){
 
 /* ---------- hold timer: counts a timed hold and fills in the next set ---------- */
 let holdT=null; // {i, ready, start, target, beeped}
-function holdTarget(e){ const s=e.sets.find(x=>!x.done); if(!s) return 0; return num(s.t2)||num(e.targetR)||0; }
+function holdTarget(e){ const s=e.sets.find(x=>!x.done); if(!s) return 0; return num(s.t2hi)||num(s.t2)||num(e.targetR)||0; }
 function vHoldTimer(e,i){
   if(!holdT||holdT.i!==i||!S.active||e.type!=='hold') return '';
   const tgt=holdT.target;
@@ -2546,6 +2591,7 @@ function vExercise(e,i,ssi,total){
     const p=s.wu ? {} : (ps[k-1]||ps[ps.length-1]||{});
     let ph1 = (s.t1!==undefined&&s.t1!=='') ? s.t1 : (f1==='w'&&vestOf(p) ? r2(num(p.w)-vestOf(p)) : (p[f1]??'')); let ph2 = (s.t2!==undefined&&s.t2!=='') ? s.t2 : (p[f2]??'');
     if((f2==='r'||f2==='sec') && ph2==='' && !s.wu) ph2=e.targetR??'';
+    if((f2==='r'||f2==='sec') && num(s.t2hi) && !s.wu) ph2=`${s.t2!==undefined&&s.t2!==''?s.t2:''}–${s.t2hi}`;
     if(f1==='w' && (bw||e.type==='hold') && (ph1===''||ph1===0)) ph1='0';
     if(f1==='w' && bc) ph1=toDisplay(bc, ph1);
     const vk=vestOf(s);
@@ -2615,7 +2661,7 @@ function hintFor(e, prevE){
     return {text:`Best hold last time: ${best} s. Aim for ${best+5} s.`};
   }
   const firstWork=e.sets.find(s=>!s.wu)||{};
-  const target=num(firstWork.t2)||num(e.targetR)||0;
+  const lo=num(firstWork.t2)||num(e.targetR)||0, top=num(firstWork.t2hi); const target=top||lo;
   if(ex.bw){
     const minR=Math.min(...ws.map(s=>num(s.r))); const tgt=target||12; const added=Math.max(...ws.map(s=>num(s.w)-vestOf(s)));
     if(minR>=tgt){ const h=nextLevel(ex);
@@ -2643,7 +2689,8 @@ function hintFor(e, prevE){
   const W=Math.max(...ws.map(s=>num(s.w))); if(!W) return null;
   const atW=ws.filter(s=>num(s.w)===W); const tgt=target||num(atW[0].r);
   if(atW.length>=Math.min(2,ws.length) && atW.every(s=>num(s.r)>=tgt)){ const nw=W+incFor(ex);
-    return {text:`You hit ${tgt} reps on every set at ${fmtKg(W)} kg. Try ${fmtKg(nw)} kg.`, w:r2(nw), from:W}; }
+    return {text:`You hit ${tgt} reps on every set at ${fmtKg(W)} kg. Try ${fmtKg(nw)} kg${top&&lo?` and aim for ${lo} reps`:''}.`, w:r2(nw), from:W}; }
+  if(top) return {text:`Stay at ${fmtKg(W)} kg and work up to ${top} reps on every set. Lowest set last time: ${Math.min(...atW.map(s=>num(s.r)))}.`};
   return {text:`Stay at ${fmtKg(W)} kg and aim for ${tgt} reps on every set.`};
 }
 function swapCount(r){ return (r.exercises||[]).filter(x=>{ const ex=exById(x.exId); return ex && !canDo(ex); }).length; }
@@ -3140,7 +3187,7 @@ function vSettings(){
     <div><b>Backups</b><div class="muted" style="font-size:13px">Your log lives on this phone. A backup file keeps it safe if you change phone, delete the app or clear your browser data. ${backupAge()==null?'<b style="color:var(--warn)">No backup yet.</b>':`Last backup ${backupAge()===0?'today':backupAge()===1?'yesterday':backupAge()+' days ago'}.`}</div></div>
     <div class="btn-grid"><button type="button" class="btn primary" data-act="export-json">Back up now</button><button type="button" class="btn" data-act="import">Import backup</button><button type="button" class="btn span2" data-act="export-csv">Spreadsheet (CSV)</button></div>
   </div>
-  <div class="card spread nowrap"><div style="min-width:0"><b>Add to home screen</b><div class="muted" style="font-size:13px">${isStandalone()?'Installed. You are using GymSmith as an app.':'Open GymSmith like an app, full screen and offline.'}</div></div>${isStandalone()?'':`<button type="button" class="btn" data-act="install-help">How</button>`}</div>
+  ${NATIVE?'':`<div class="card spread nowrap"><div style="min-width:0"><b>Add to home screen</b><div class="muted" style="font-size:13px">${isStandalone()?'Installed. You are using GymSmith as an app.':'Open GymSmith like an app, full screen and offline.'}</div></div>${isStandalone()?'':`<button type="button" class="btn" data-act="install-help">How</button>`}</div>`}
   <div class="card spread nowrap"><div style="min-width:0"><b>App tour</b><div class="muted" style="font-size:13px">A quick look at how GymSmith works</div></div><button type="button" class="btn" data-act="tour-open">Show</button></div>
   <div class="card spread nowrap"><div style="min-width:0"><b>Clear data</b><div class="muted" style="font-size:13px">Remove workout history, or everything, from this phone</div></div><button type="button" class="btn danger" data-act="clear-open">Clear…</button></div>
   <p class="note">Everything is saved on this phone and works without signal. Nothing is sent anywhere.</p>
@@ -3150,7 +3197,7 @@ function vSettings(){
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=59;
+const APP_VERSION=61;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const card=r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
@@ -3296,7 +3343,8 @@ function sheetRoutine(){
     <div style="min-width:0"><b>Rest between sets</b><div class="muted" style="font-size:13px">${r.rest?`Custom for this routine · <button type="button" class="swap-link" style="display:inline" data-act="rt-rest-reset">Use default (${fmtDur((S.settings.rest||90)*1000)})</button>`:'Using your default. Change it for this routine:'}</div></div>
     <div class="stepper"><button type="button" data-act="rt-rest" data-d="-15" aria-label="Less rest">−</button><span class="num">${fmtDur((r.rest||S.settings.rest||90)*1000)}</span><button type="button" data-act="rt-rest" data-d="15" aria-label="More rest">+</button></div>
   </div>
-  ${r.exercises.length?`<div class="spread rt-rest"><b>Estimated time</b><span class="big-est num" id="rt-est">${estText(r)||'—'}</span></div>`:''}
+  ${r.exercises.length?`<div class="spread rt-rest"><b>Estimated time</b><span class="big-est num" id="rt-est">${estText(r)||'—'}</span></div>
+  <p class="muted" style="margin:-4px 0 0;font-size:12px">${pace().n?`Adjusted to your pace from your last ${pace().n} workouts.`:'About 45 seconds a set plus rest. It adjusts to your pace after a couple of workouts.'}</p>`:''}
   ${r.exercises.length>1?(()=>{ const c=sheet.coll||{}; const all=r.exercises.every((_,k)=>c[k]); return `<div class="collapse-row"><button type="button" class="btn ghost small" data-act="rt-all" data-v="${all?'open':'close'}">${all?ICON.down+' Expand all':ICON.up+' Collapse all'}</button></div>`; })():''}
   <div class="stack" style="gap:10px">${r.exercises.length?r.exercises.map((x,i,arr)=>{ const coll=!!(sheet.coll||{})[i]; const ex=exById(x.exId); const bad=ex&&!canDo(ex); const ssR=ssInfo(arr);
     ensurePlan(x); const [f1,l1,f2,l2]=fieldsFor(x);
@@ -3308,7 +3356,9 @@ function sheetRoutine(){
         <div class="rtx-move">${i>0?`<button type="button" class="icon-btn" data-act="rt-ex-move" data-d="-1" aria-label="Move ${esc(x.name)} up">${ICON.up}</button>`:''}${i<arr.length-1?`<button type="button" class="icon-btn" data-act="rt-ex-move" data-d="1" aria-label="Move ${esc(x.name)} down">${ICON.down}</button>`:''}<button type="button" class="icon-btn" data-act="rt-ex-del" aria-label="Remove ${esc(x.name)}">${ICON.x}</button></div>
       </div>
       ${coll?'':`
-      ${barControl(x.exId)}${vestControl(x.exId)}
+      ${barControl(x.exId)}${vestControl(x.exId)}${x.type==='cardio'?'':`<div class="bar-ctl"><div class="seg" role="group" aria-label="${x.type==='hold'?'Target time':'Target reps'}">
+        <button type="button" data-act="rt-range" data-v="0" aria-pressed="${!x.range}">${x.type==='hold'?'Set time':'Set reps'}</button>
+        <button type="button" data-act="rt-range" data-v="1" aria-pressed="${!!x.range}">${x.type==='hold'?'Time range':'Rep range'}</button></div></div>`}
       <div class="plan-h ${hvx?'has-vest':''}"><span>Set</span>${hvx?'<span>Vest</span>':''}<span>${l1}</span><span>${l2}</span><span></span></div>
       ${x.plan.map((p,j)=>{ const bc=f1==='w'?barCfg(x.exId):null; return `<div class="plan-row ${hvx?'has-vest':''}" data-j="${j}">
         ${x.type==='cardio'?`<span class="n">${j+1}</span>`:`<button type="button" class="n ${p.wu?'is-wu':''}" data-act="rt-wu" aria-pressed="${!!p.wu}" aria-label="Set ${j+1}: ${p.wu?'warm-up, tap to make it a working set':'tap to mark as a warm-up'}">${p.wu?'W':j+1}</button>`}
@@ -3316,7 +3366,8 @@ function sheetRoutine(){
         ${bc?`<div class="wcell"><input inputmode="decimal" data-pf="w" value="${esc(toDisplay(bc,p.w))}" placeholder="${esc(BAR_LABEL[bc.mode])}" aria-label="${esc(x.name)} set ${j+1} weight, ${l1}"><small class="tot num" data-tot>${totText(bc,p.w)}</small></div>`
         :f1==='band'?bandSelect('pf', p.band, `${x.name} set ${j+1} band`)
         :`<input inputmode="decimal" data-pf="${f1}" value="${esc(p[f1]??'')}" placeholder="${f1==='w'?(isBw(x)||x.type==='hold'?'0':'kg'):'min'}" aria-label="${esc(x.name)} set ${j+1} ${l1}">`}
-        <input inputmode="decimal" data-pf="${f2}" value="${esc(p[f2]??'')}" placeholder="${esc(l2.toLowerCase())}" aria-label="${esc(x.name)} set ${j+1} ${l2}">
+        ${x.range&&x.type!=='cardio'?`<div class="rng"><input inputmode="decimal" data-pf="${f2}" value="${esc(p[f2]??'')}" placeholder="min" aria-label="${esc(x.name)} set ${j+1} ${l2}, lowest"><span aria-hidden="true">–</span><input inputmode="decimal" data-pf="hi" value="${esc(p.hi??'')}" placeholder="max" aria-label="${esc(x.name)} set ${j+1} ${l2}, highest"></div>`
+        :`<input inputmode="decimal" data-pf="${f2}" value="${esc(p[f2]??'')}" placeholder="${esc(l2.toLowerCase())}" aria-label="${esc(x.name)} set ${j+1} ${l2}">`}
         ${x.plan.length>1?`<button type="button" class="icon-btn" data-act="rt-set-del" aria-label="Remove set ${j+1}">${ICON.x}</button>`:'<span></span>'}
       </div>`; }).join('')}
       <div class="row" style="gap:2px">
@@ -3338,7 +3389,7 @@ function sheetBwAll(){
   if(!S.bw.length) return '<p class="note">No entries yet.</p>';
   return `<table class="sess"><thead><tr><th>Date</th><th>Weight</th><th></th></tr></thead><tbody>${[...S.bw].reverse().map(x=>`<tr><td>${shortDate(x.t)} ${new Date(x.t).getFullYear()}</td><td class="num">${fmtKg(num(x.kg))} kg</td><td style="text-align:right"><button type="button" class="btn ghost danger" data-act="bw-del" data-id="${esc(x.id)}">Delete</button></td></tr>`).join('')}</tbody></table>`;
 }
-function isStandalone(){ return (window.matchMedia&&matchMedia('(display-mode: standalone)').matches) || navigator.standalone===true; }
+function isStandalone(){ return NATIVE || (window.matchMedia&&matchMedia('(display-mode: standalone)').matches) || navigator.standalone===true; }
 function sheetInstall(){
   const ios=/iPhone|iPad|iPod/i.test(navigator.userAgent);
   return `${installPrompt?`<button type="button" class="btn primary block" data-act="install-now">Install GymSmith</button>`:''}
@@ -3471,7 +3522,7 @@ function newExerciseEntry(ex, opts={}){
   const entry={exId:ex.id,name:ex.name,type:ex.type,targetR:opts.reps||'',sets:Array.from({length:n},()=>blankSet(ex.type))};
   if(Array.isArray(opts.plan)&&opts.plan.length){
     const [f1,,f2]=fieldsFor(entry);
-    entry.sets=opts.plan.map(p=>Object.assign(blankSet(ex.type),{t1:p[f1]??'',t2:p[f2]??''},p.wu?{wu:true}:{}));
+    entry.sets=opts.plan.map(p=>Object.assign(blankSet(ex.type),{t1:p[f1]??'',t2:p[f2]??''},p.wu?{wu:true}:{},num(p.hi)?{t2hi:num(p.hi)}:{}));
     if(f1==='band') entry.sets.forEach((s,k)=>{ delete s.t1; if(num(opts.plan[k].band)) s.band=num(opts.plan[k].band); });
   }
   if(isBandEx(ex.id) && !entry.sets.some(s=>num(s.band))){ const last=lastSessionFor(ex.id); const ls=last?working(last.e.sets):[];
@@ -3513,13 +3564,14 @@ function planReps(x){ const p=(x.plan||[])[0]||{}; return String((x.type==='hold
 function planSummary(x){ ensurePlan(x); const n=x.plan.filter(p=>p.vest).length; return planSummary0(x)+(n?(n===x.plan.length?' · vest':` · vest on ${n} of ${x.plan.length}`):''); }
 function planSummary0(x){
   ensurePlan(x); const [f1,,f2]=fieldsFor(x); const unit=x.type==='hold'?'s':'';
+  const rtx=p=>num(p.hi)?`${p[f2]||'—'}–${p.hi}`:String(p[f2]||'—');
   if(x.type==='cardio'){ const p=x.plan[0]; return [p.min?`${p.min} min`:'',p.km?`${p.km} km`:''].filter(Boolean).join(' · '); }
   if(f1==='band'){ const bn=p=>num(p.band)?BAND_SHORT[num(p.band)]:'';
-    if(x.plan.every(p=>num(p.band)===num(x.plan[0].band)&&String(p[f2]||'')===String(x.plan[0][f2]||''))) return `${x.plan.length}×${x.plan[0][f2]||'—'}${unit}${bn(x.plan[0])?` · ${bn(x.plan[0]).toLowerCase()} band`:''}`;
-    return x.plan.map(p=>`${bn(p)?bn(p)+' ':''}${p[f2]||'—'}${unit}`).join(' · '); }
-  const fmt=p=>{ const a=num(p[f1]), b=p[f2]||'—'; return a?`${fmtKg(a)}×${b}${unit}`:`${b}${unit}`; };
-  const same=x.plan.every(p=>String(p[f1]||'')===String(x.plan[0][f1]||'')&&String(p[f2]||'')===String(x.plan[0][f2]||''));
-  if(same){ const p=x.plan[0]; const a=num(p[f1]); return `${x.plan.length}×${p[f2]||'—'}${unit}${a?` @ ${fmtKg(a)} kg`:''}`; }
+    if(x.plan.every(p=>num(p.band)===num(x.plan[0].band)&&rtx(p)===rtx(x.plan[0]))) return `${x.plan.length}×${rtx(x.plan[0])}${unit}${bn(x.plan[0])?` · ${bn(x.plan[0]).toLowerCase()} band`:''}`;
+    return x.plan.map(p=>`${bn(p)?bn(p)+' ':''}${rtx(p)}${unit}`).join(' · '); }
+  const fmt=p=>{ const a=num(p[f1]), b=rtx(p); return a?`${fmtKg(a)}×${b}${unit}`:`${b}${unit}`; };
+  const same=x.plan.every(p=>String(p[f1]||'')===String(x.plan[0][f1]||'')&&rtx(p)===rtx(x.plan[0]));
+  if(same){ const p=x.plan[0]; const a=num(p[f1]); return `${x.plan.length}×${rtx(p)}${unit}${a?` @ ${fmtKg(a)} kg`:''}`; }
   return x.plan.map(fmt).join(' · ');
 }
 function startWorkout(name, exercises, rest, src){
@@ -3565,6 +3617,7 @@ async function finishWorkout(){
   if(w.note&&w.note.trim()) done.note=w.note.trim();
   if(w.rest) done.rest=w.rest;
   if(w.src) done.src=w.src;
+  if(w.mode==='log' || w.past) done.past=1;
   const mode=w.mode;
   const skObj=w.src&&w.src.skill?SKILLS.find(x=>x.id===w.src.skill):null; const skPre=skObj?{wasMastered:skillMastery(skObj).done}:null;
   S.active=null; saveActive(); stopRest();
@@ -3577,24 +3630,47 @@ async function finishWorkout(){
 let rest=null; // {end, total}
 let audioCtx=null;
 /* rough session length: time under work per set, the routine's rest between sets, ~90 s to move between exercises */
-function estimateSec(r){
-  const rest=r.rest||S.settings.rest||90; let t=0, moves=0; const list=r.exercises||[];
-  list.forEach((x0,i)=>{
-    const x=ensurePlan(JSON.parse(JSON.stringify(x0)));
+/* time estimate: about 45 s per set (doing it plus setting up), the rest between sets, and 90 s to move between exercises.
+   Returns [cardio seconds, everything else]; cardio minutes are taken as planned. */
+function estParts(list, rest){
+  let c=0, t=0, moves=0;
+  list.forEach((x,i)=>{
     const linked = x.ss && list[i+1] && list[i+1].ss===x.ss;
     if(i<list.length-1 && !linked) moves++;
-    if(x.type==='cardio'){ t+=x.plan.reduce((a,p)=>a+(num(p.min)||20)*60,0); return; }
-    for(const p of x.plan) t += x.type==='hold' ? (num(p.sec)||30)+10 : Math.max(20,(num(p.r)||8)*3);
+    if(x.type==='cardio'){ c+=x.plan.reduce((a,p)=>a+(num(p.min)||20)*60,0); return; }
+    for(const p of x.plan) t += x.type==='hold' ? Math.max(45,(num(p.sec)||30)+20) : 45;
     if(!linked) t += x.plan.reduce((a,p,j)=>a+(j<x.plan.length-1?(p.wu?Math.min(60,rest):rest):0),0);
   });
-  return t + moves*90;
+  return [c, t + moves*90];
+}
+/* your pace: how long your recent workouts really took compared with the estimate (middle value of up to 10, needs 2) */
+let paceMemo=null;
+function pace(){
+  const key=S.workouts.length+':'+((S.workouts[0]||{}).id||'')+':'+(S.settings.rest||90);
+  if(paceMemo && paceMemo.key===key) return paceMemo;
+  const rs=[];
+  for(const w of [...S.workouts].sort((a,b)=>b.startedAt-a.startedAt)){
+    if(rs.length>=10) break; if(w.past) continue;
+    const dur=((w.endedAt||0)-(w.startedAt||0))/1000; if(dur<300 || dur>4*3600) continue;
+    const [c,o]=estParts((w.exercises||[]).map(e=>({type:e.type, ss:e.ss, plan:e.sets||[]})), w.rest||S.settings.rest||90);
+    if(o<120) continue; const r=(dur-c)/o; if(r>0) rs.push(r);
+  }
+  let f=1; if(rs.length>=2){ rs.sort((a,b)=>a-b); const m=rs.length>>1; f=rs.length%2?rs[m]:(rs[m-1]+rs[m])/2; f=Math.min(1.8,Math.max(0.7,f)); }
+  return paceMemo={key, f, n:rs.length>=2?rs.length:0};
+}
+function estimateSec(r){
+  const list=(r.exercises||[]).map(x0=>ensurePlan(JSON.parse(JSON.stringify(x0))));
+  const [c,o]=estParts(list, r.rest||S.settings.rest||90);
+  return Math.round(c + o*pace().f);
 }
 function estText(r){ const sec=estimateSec(r); if(!sec) return ''; const m=Math.max(5,Math.round(sec/300)*5); return m>=60?`~${Math.floor(m/60)}h${m%60?` ${m%60}m`:''}`:`~${m} min`; }
 /* this workout's rest: the routine's own if it has one, else the default */
 function restFor(){ return (S.active&&S.active.rest)||S.settings.rest||90; }
-function startRest(sec){ rest={end:Date.now()+sec*1000,total:sec,beeped:false}; document.getElementById('rest').hidden=false; document.body.classList.add('resting'); tick(); }
+function startRest(sec){ if(NATIVE && !S.settings.restAlertAsked){ S.settings.restAlertAsked=1; putSettings(); restAlertsAllowed(); }
+  rest={end:Date.now()+sec*1000,total:sec,beeped:false}; document.getElementById('rest').hidden=false; document.body.classList.add('resting'); tick(); }
 function stopRest(){ rest=null; const el=document.getElementById('rest'); el.hidden=true; el.classList.remove('over'); document.body.classList.remove('resting'); }
 function beep(){
+  haptic('done');
   try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){}
   try{ if(!audioCtx) return; const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.frequency.value=880; o.connect(g); g.connect(audioCtx.destination);
     g.gain.setValueAtTime(0.0001,audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.3,audioCtx.currentTime+0.02); g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.5);
@@ -3694,6 +3770,9 @@ function buildCsv(){
 }
 /* phones get the share sheet (Save to Files, Drive, email…); computers get a normal download */
 async function offerFile(name, data){
+  if(NATIVE){ const fs=nat('Filesystem'), sh=nat('Share');
+    if(fs && sh){ try{ const w=await fs.writeFile({path:name, directory:'CACHE', encoding:'utf8', data}); await sh.share({title:name, files:[w.uri]}); return true; }
+      catch(e){ if(/cancel/i.test(String(e&&e.message||e))) return false; } } }
   const type=name.endsWith('.csv')?'text/csv':'application/json';
   const blob=new Blob([data],{type});
   try{
@@ -3815,10 +3894,10 @@ document.addEventListener('click', async ev=>{
       try{ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); else if(audioCtx.state==='suspended') audioCtx.resume(); }catch(_){}
       const row=b.closest('.set-row'); const s=e.sets[+row.dataset.set];
       if(!s.done){
-        row.querySelectorAll('input').forEach(inp=>{ if(!inp.value && inp.placeholder){ inp.value=inp.placeholder; setField(e, s, inp.dataset.f, inp.placeholder, row); } });
+        row.querySelectorAll('input').forEach(inp=>{ if(!inp.value && inp.placeholder && !inp.placeholder.includes('–')){ inp.value=inp.placeholder; setField(e, s, inp.dataset.f, inp.placeholder, row); } });
         const ok = e.type==='cardio' ? (num(s.min)||num(s.km)) : e.type==='hold' ? num(s.sec)>0 : num(s.r)>0;
         if(!ok){ toast(e.type==='cardio'?'Enter the time or distance first.':e.type==='hold'?'Enter how many seconds you held it.':'Enter the reps first.'); (row.querySelectorAll('input')[1]||row.querySelector('input')).focus(); break; }
-        s.done=true;
+        s.done=true; haptic('tick');
         if(!S.active.mode){
           const i=+art.dataset.ex, nx=S.active.exercises[i+1];
           if(e.ss && nx && nx.ss===e.ss && !s.wu){ stopRest(); toast(`Superset: straight on to ${nx.name}`); }
@@ -3868,7 +3947,7 @@ document.addEventListener('click', async ev=>{
     case 'hist-edit': {
       if(S.active){ toast('Finish or discard the workout in progress first.'); location.hash='#workout'; break; }
       const w=S.workouts.find(x=>x.id===b.dataset.id); if(!w) break;
-      S.active={id:w.id, mode:'edit', name:w.name, startedAt:w.startedAt, durMin:Math.max(1,Math.round(((w.endedAt||w.startedAt)-w.startedAt)/60000)), note:w.note||'', updatedAt:Date.now(),
+      S.active={id:w.id, mode:'edit', past:w.past?1:undefined, name:w.name, startedAt:w.startedAt, durMin:Math.max(1,Math.round(((w.endedAt||w.startedAt)-w.startedAt)/60000)), note:w.note||'', updatedAt:Date.now(),
         exercises:clone(w.exercises||[]).map(e=>{ const v=num(e.vest); const old=v&&!e.sets.some(st=>vestOf(st)); if(old) delete e.vest;
           return Object.assign(e,{sets:e.sets.map(st=>Object.assign({},st,{done:true},old&&num(st.w)>=v?{vest:v}:{}))}); })};
       if(w.rest) S.active.rest=w.rest;
@@ -3900,6 +3979,10 @@ document.addEventListener('click', async ev=>{
       touch(); render(); break; }
     case 'hint-swap': { const ex=exById(b.dataset.id); if(ex){ swapEntry(e, ex); touch(); render(); } break; }
     case 'rt-vest': { const x=sheet.r.exercises[+b.closest('.rt-ex').dataset.i]; const p=x.plan[+b.closest('.plan-row').dataset.j]; if(p.vest) delete p.vest; else p.vest=true; renderSheet(); break; }
+    case 'rt-range': { const x=ensurePlan(sheet.r.exercises[+b.closest('.rt-ex').dataset.i]); const on=b.dataset.v==='1'; const [,,f2]=fieldsFor(x);
+      if(on){ x.range=true; for(const p of x.plan) if(!num(p.hi)){ const v=num(p[f2])||(x.type==='hold'?20:8); p[f2]=String(v); p.hi=String(v+(x.type==='hold'?10:4)); } }
+      else { delete x.range; for(const p of x.plan) delete p.hi; }
+      renderSheet(); break; }
     case 'rt-wu': { const x=sheet.r.exercises[+b.closest('.rt-ex').dataset.i]; const p=x.plan[+b.closest('.plan-row').dataset.j]; if(p.wu) delete p.wu; else p.wu=true; renderSheet(); break; }
     case 'rt-ss-link': linkNext(sheet.r.exercises, +b.closest('.rt-ex').dataset.i); renderSheet(); break;
     case 'rt-ss-leave': unlink(sheet.r.exercises, +b.closest('.rt-ex').dataset.i); renderSheet(); break;
@@ -4048,7 +4131,7 @@ document.addEventListener('change', ev=>{
   if(!f) return; const rd=new FileReader(); rd.onload=()=>importBackup(String(rd.result)); rd.onerror=()=>toast("Couldn't read that file."); rd.readAsText(f);
 });
 function showUpdate(){ const r=document.getElementById('update-root'); r.innerHTML=`<div class="toast update" role="status"><span>A new version of GymSmith is ready.</span><button type="button" class="btn" data-act="sw-reload">Reload</button></div>`; }
-if('serviceWorker' in navigator && location.protocol!=='file:'){
+if(!NATIVE && 'serviceWorker' in navigator && location.protocol!=='file:'){
   window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('sw.js').then(reg=>{
       if(reg.waiting && navigator.serviceWorker.controller){ swWaiting=reg.waiting; showUpdate(); }
@@ -4067,7 +4150,7 @@ if('serviceWorker' in navigator && location.protocol!=='file:'){
 /* ask the browser not to clear our data when storage runs low */
 try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persisted().then(p=>{ if(!p) navigator.storage.persist(); }); }catch(e){}
 
-boot();
+nativeRestore().then(boot, boot);
 })();
 </script>
 </body>
