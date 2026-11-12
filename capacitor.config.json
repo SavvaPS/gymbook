@@ -4,7 +4,8 @@
   "webDir": "www",
   "ios": {
     "contentInset": "never",
-    "backgroundColor": "#EEF0F4"
+    "backgroundColor": "#EEF0F4",
+    "allowsLinkPreview": false
   },
   "plugins": {
     "LocalNotifications": {
