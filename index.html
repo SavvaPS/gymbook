@@ -1692,6 +1692,62 @@ function restAlertSync(){ const ln=nat('LocalNotifications'); if(!ln) return;
 }
 if(NATIVE) document.addEventListener('visibilitychange', ()=>restAlertSync());
 
+/* ---------- automatic iCloud Drive backups (iPhone app): one dated backup a day, after each workout too, in the
+   person's own iCloud (Files > iCloud Drive > GymSmith). Last 30 days kept. Restoring merges, so nothing is lost. ---------- */
+const IOS = NATIVE && CAP.getPlatform && CAP.getPlatform()==='ios';
+const ICLOUD_KEEP = 30;
+const icloud = {available:null, files:null, busy:false, dirty:false};
+function icloudOn(){ return IOS && S.settings.icloud!==false; }
+async function icloudCheck(){ const p=nat('ICloudBackup'); if(!p){ icloud.available=false; return false; }
+  try{ const r=await p.status(); icloud.available=!!r.available; }catch(e){ icloud.available=false; } return icloud.available; }
+async function icloudBackup(force){
+  if(!icloudOn() || icloud.busy) return; const p=nat('ICloudBackup'); if(!p) return;
+  if(!force && !icloud.dirty && S.settings.icloudAt && Date.now()-S.settings.icloudAt < 20*3600e3) return;
+  if(!S.workouts.length && !S.routines.length && !S.bw.length){ if(force) toast('Nothing to back up yet.'); return; }
+  icloud.busy=true;
+  try{
+    await p.write({name:`gymsmith-backup-${todayISO()}.json`, data:backupJson()});
+    icloud.available=true; icloud.dirty=false; icloud.files=null;
+    S.settings.icloudAt=Date.now(); S.settings.lastBackup=Date.now(); putSettings();
+    try{ const r=await p.list(); const old=(r.files||[]).filter(f=>/^gymsmith-backup-\d{4}-\d{2}-\d{2}\.json$/.test(f.name)).sort((a,b)=>b.name.localeCompare(a.name)).slice(ICLOUD_KEEP);
+      for(const f of old) await p.remove({name:f.name}).catch(()=>{}); }catch(e){}
+    if(force) toast('Backed up to iCloud');
+  }catch(e){
+    if(e && e.code==='UNAVAILABLE') icloud.available=false;
+    if(force) toast(icloud.available===false ? 'iCloud Drive is off for GymSmith. Turn it on in the iPhone Settings app.' : "Couldn't back up to iCloud. Try again later.");
+  }
+  icloud.busy=false; if(tab()==='settings') render();
+}
+function icloudWhen(t){ const d=new Date(t), z=n=>String(n).padStart(2,'0'); const days=Math.floor((new Date().setHours(0,0,0,0)-new Date(t).setHours(0,0,0,0))/864e5);
+  return `${days===0?'today':days===1?'yesterday':shortDate(t)} at ${z(d.getHours())}:${z(d.getMinutes())}`; }
+function icloudCard(){
+  if(!IOS) return '';
+  if(icloud.available===null) icloudCheck().then(()=>{ if(tab()==='settings') render(); });
+  const on=icloudOn();
+  const sub = !on ? 'Off. Turn on to keep a daily copy of your log in your own iCloud.'
+    : icloud.available===false ? '<b style="color:var(--warn)">iCloud Drive is off for GymSmith.</b> Turn it on in the iPhone Settings app: tap your name, then iCloud, then make sure iCloud Drive and GymSmith are on.'
+    : `Automatic: once a day and after each workout, in Files › iCloud Drive › GymSmith. Only you can see it. ${S.settings.icloudAt?`Last backup ${icloudWhen(S.settings.icloudAt)}.`:'No backup yet.'}`;
+  return `<div class="card stack" style="gap:10px">
+    <div class="spread nowrap" style="align-items:flex-start"><div style="min-width:0"><b>iCloud backup</b><div class="muted" style="font-size:13px">${sub}</div></div>
+      <div class="seg" role="group" aria-label="iCloud backup" style="flex:none"><button type="button" data-act="icloud-on" data-v="0" aria-pressed="${!on}">Off</button><button type="button" data-act="icloud-on" data-v="1" aria-pressed="${on}">On</button></div></div>
+    ${on&&icloud.available!==false?`<div class="btn-grid"><button type="button" class="btn" data-act="icloud-now">Back up now</button><button type="button" class="btn" data-act="icloud-list">Restore</button></div>`:''}
+  </div>`;
+}
+function sheetICloud(){
+  const p=nat('ICloudBackup');
+  if(icloud.files==null){
+    if(p) p.list().then(r=>{ icloud.files=(r.files||[]).filter(f=>/\.json$/.test(f.name)).sort((a,b)=>b.name.localeCompare(a.name)); })
+      .catch(()=>{ icloud.files=[]; }).then(()=>{ if(sheet&&sheet.kind==='icloud') renderSheet(); });
+    else icloud.files=[];
+    if(icloud.files==null) return '<p class="muted">Looking in iCloud…</p>';
+  }
+  if(!icloud.files.length) return '<p class="note">No iCloud backups yet. Tap Back up now in Settings to make one.</p>';
+  return `<p class="muted" style="margin:0;font-size:14px">Restoring adds anything from the backup that isn't on this phone and updates matching entries. Nothing is deleted.</p>
+    <div class="stack" style="gap:8px">${icloud.files.map(f=>{ const m=f.name.match(/(\d{4})-(\d{2})-(\d{2})/); const label=m?`${+m[3]} ${MON[+m[2]-1]} ${m[1]}`:f.name;
+      return `<div class="card spread nowrap" style="padding:10px 12px"><div style="min-width:0"><b>${esc(label)}</b><div class="muted num" style="font-size:13px">${f.modified?icloudWhen(f.modified):''}${f.size?` · ${Math.max(1,Math.round(f.size/1024))} KB`:''}</div></div>
+        <button type="button" class="btn" data-act="icloud-restore" data-name="${esc(f.name)}">Restore</button></div>`; }).join('')}</div>`;
+}
+
 function allEx(){ return LIB.concat(S.custom); }
 function exById(id){ return allEx().find(e=>e.id===id); }
 function myEq(){ return new Set(Array.isArray(S.settings.equipment)?S.settings.equipment:EQ_ALL); }
@@ -3197,6 +3253,7 @@ function vSettings(){
     <div style="min-width:0"><b>Track effort (RPE)</b><div class="muted" style="font-size:13px">Rate sets 6 (easy) to 10 (max)</div></div>
     <label class="switch"><input type="checkbox" id="set-rpe" ${S.settings.rpe!==false?'checked':''}><span class="sr">Track effort</span></label>
   </div>
+  ${icloudCard()}
   <div class="card stack" style="gap:10px">
     <div><b>Backups</b><div class="muted" style="font-size:13px">Your log lives on this phone. A backup file keeps it safe if you change phone, delete the app or clear your browser data. ${backupAge()==null?'<b style="color:var(--warn)">No backup yet.</b>':`Last backup ${backupAge()===0?'today':backupAge()===1?'yesterday':backupAge()+' days ago'}.`}</div></div>
     <div class="btn-grid"><button type="button" class="btn primary" data-act="export-json">Back up now</button><button type="button" class="btn" data-act="import">Import backup</button><button type="button" class="btn span2" data-act="export-csv">Spreadsheet (CSV)</button></div>
@@ -3211,7 +3268,7 @@ function vSettings(){
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=62;
+const APP_VERSION=63;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const card=r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
@@ -3282,6 +3339,7 @@ function renderSheet(){
   if(sheet.kind==='bw-all'){ title='Bodyweight'; body=sheetBwAll(); }
   if(sheet.kind==='export'){ title='Your export'; body=sheetExport(); }
   if(sheet.kind==='install'){ title='Add to home screen'; body=sheetInstall(); }
+  if(sheet.kind==='icloud'){ title='Restore from iCloud'; body=sheetICloud(); }
   if(sheet.kind==='policy'){ title=sheet.v==='health'?'Health and safety':'Privacy policy'; body=sheetPolicy(); }
   if(sheet.kind==='exercise'){ const m=exerciseStats().find(x=>x.exId===sheet.exId); title=m?m.name:'Exercise'; body=sheetExercise(m); }
   const keepQ = document.getElementById('pick-q'); const q = keepQ? keepQ.value : (sheet.q||'');
@@ -3635,6 +3693,7 @@ async function finishWorkout(){
   const mode=w.mode;
   const skObj=w.src&&w.src.skill?SKILLS.find(x=>x.id===w.src.skill):null; const skPre=skObj?{wasMastered:skillMastery(skObj).done}:null;
   S.active=null; saveActive(); stopRest();
+  icloud.dirty=true; setTimeout(()=>icloudBackup(false), 1500);
   await putWorkout(done); recomputePRs();
   if(mode){ S.openHist=done.id; location.hash='#history'; render(); return; }
   render(); openSheet({kind:'summary',w:done,skill:skPre,dropped});
@@ -3937,6 +3996,12 @@ document.addEventListener('click', async ev=>{
     case 'ex-hist': openSheet({kind:'exercise',exId:b.dataset.id}); break;
     case 'add-set': { e.sets.push(blankSet(e.type, e.sets[e.sets.length-1])); touch(); render(); break; }
     case 'del-set': e.sets.pop(); touch(); render(); break;
+    case 'icloud-on': S.settings.icloud = b.dataset.v==='1' ? true : false; putSettings(); render(); if(icloudOn()) icloudCheck().then(()=>{ icloudBackup(false); render(); }); break;
+    case 'icloud-now': icloudBackup(true); break;
+    case 'icloud-list': icloud.files=null; openSheet({kind:'icloud'}); break;
+    case 'icloud-restore': { if(!armed(b,'Tap again')) break; const p=nat('ICloudBackup'); if(!p) break; b.disabled=true; b.textContent='Restoring…';
+      try{ const r=await p.read({name:b.dataset.name}); closeSheet(); importBackup(r.data); }catch(e){ b.disabled=false; b.textContent='Restore'; toast("Couldn't open that backup. Check you're online and try again."); }
+      break; }
     case 'set-del-one': { const j=+b.closest('.set-row').dataset.set; if(e.sets.length>1){ e.sets.splice(j,1); haptic('heavy'); touch(); render(); } break; }
     case 'ex-del': { if(!armed(b,'Remove?')) break; holdT=null; S.active.exercises.splice(+art.dataset.ex,1); touch(); render(); break; }
     case 'ex-down': { holdT=null; const i=+art.dataset.ex; const a=S.active.exercises; if(i<a.length-1){ [a[i+1],a[i]]=[a[i],a[i+1]]; touch(); render(); requestAnimationFrame(()=>document.querySelector(`.ex[data-ex="${i+1}"]`)?.scrollIntoView({block:'nearest'})); } break; }
@@ -4226,7 +4291,7 @@ function gestureEnd(){
 document.addEventListener('touchend', gestureEnd, {passive:true});
 document.addEventListener('touchcancel', ()=>{ if(GS.mode==='edge') edgeHint(0); if(GS.el){ GS.el.style.transition=''; if(GS.mode==='sheet') GS.el.style.transform=''; } GS.mode=null; }, {passive:true});
 
-nativeRestore().then(boot, boot);
+nativeRestore().then(boot, boot).then(()=>{ if(IOS) setTimeout(()=>icloudBackup(false), 4000); });
 })();
 </script>
 </body>

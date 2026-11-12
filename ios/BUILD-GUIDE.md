@@ -5,6 +5,10 @@ The `ios/` folder is the Xcode project. GitHub builds it on a Mac, so no Mac is 
 
 App ID (bundle ID): `com.gymsmith.app` (permanent, never change it).
 
+## 0. Add the build file (once)
+
+The build instructions live in `.github/workflows/ios.yml`. In File Explorer, inside the `gymbook` folder, create a folder `.github`, inside it a folder `workflows`, and move `ios.yml` into it. Then push.
+
 ## 1. Check it builds (works now, no Apple account needed)
 
 1. Push to GitHub.
@@ -17,7 +21,10 @@ App ID (bundle ID): `com.gymsmith.app` (permanent, never change it).
 **a. Team ID.** developer.apple.com, then **Account**, then **Membership details**. Copy the 10-character Team ID.
 
 **b. Register the app ID.** developer.apple.com, then **Certificates, Identifiers & Profiles**, then **Identifiers**, then **+**.
-Choose **App IDs**, then **App**. Description `GymSmith`, Bundle ID **Explicit** `com.gymsmith.app`. No extra capabilities are needed. Register.
+Choose **App IDs**, then **App**. Description `GymSmith`, Bundle ID **Explicit** `com.gymsmith.app`. Register (iCloud is switched on in the next step).
+
+**b2. Set up iCloud (for automatic iCloud backups).** Still in **Identifiers**, press **+**, choose **iCloud Containers**, Description `GymSmith`, Identifier `iCloud.com.gymsmith.app`, then Register.
+Then open the `com.gymsmith.app` App ID, tick **iCloud**, choose **Include CloudKit support** if asked, press **Edit** (or Configure) next to iCloud, tick `iCloud.com.gymsmith.app`, Continue and Save.
 
 **c. Create the app in App Store Connect.** appstoreconnect.apple.com, then **Apps**, then **+**, then **New App**.
 Platform iOS, Name `GymSmith: Workout Tracker`, Primary language English (U.K.), Bundle ID `com.gymsmith.app`, SKU `gymsmith-ios`, User access Full access.
