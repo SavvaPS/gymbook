@@ -1,0 +1,78 @@
+# Builds the GymSmith Android app on GitHub's Linux machines.
+# Run it from the repo's Actions tab: "Android build" > "Run workflow".
+#   - Leave "Signed release for Google Play" unticked to build a test app (APK) you can install on any Android phone.
+#   - Tick it to build the signed bundle (.aab) to upload to Google Play (needs the four Android secrets, see android/BUILD-GUIDE.md).
+# The finished file appears under "Artifacts" at the bottom of the run's page.
+name: Android build
+
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Signed release for Google Play
+        type: boolean
+        default: false
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Install
+        run: npm ci
+
+      - name: Copy the web app into the Android project
+        run: |
+          npm run build
+          npx cap sync android
+          chmod +x android/gradlew
+
+      - name: Build a test app (APK)
+        if: ${{ !inputs.release }}
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon
+          mv app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/GymSmith-test-$BUILD_NUMBER.apk"
+
+      - name: Build the signed bundle for Google Play (AAB)
+        if: ${{ inputs.release }}
+        env:
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          GYMSMITH_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          GYMSMITH_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          GYMSMITH_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          set -eo pipefail
+          for v in ANDROID_KEYSTORE_B64 GYMSMITH_KEYSTORE_PASSWORD GYMSMITH_KEY_ALIAS GYMSMITH_KEY_PASSWORD; do
+            if [ -z "${!v}" ]; then echo "Missing secret for $v. See android/BUILD-GUIDE.md."; exit 1; fi
+          done
+          echo "$ANDROID_KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/upload.p12"
+          export GYMSMITH_KEYSTORE="$RUNNER_TEMP/upload.p12"
+          cd android
+          ./gradlew bundleRelease --no-daemon
+          mv app/build/outputs/bundle/release/app-release.aab "$RUNNER_TEMP/GymSmith-$BUILD_NUMBER.aab"
+          rm -f "$RUNNER_TEMP/upload.p12"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: GymSmith-android-${{ github.run_number }}
+          path: |
+            ${{ runner.temp }}/*.apk
+            ${{ runner.temp }}/*.aab
+          if-no-files-found: error

@@ -24,7 +24,7 @@
 @font-face{font-family:"Barlow Condensed";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/barlow-condensed-latin-600-normal.woff2) format("woff2")}
 @font-face{font-family:"Barlow Condensed";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/barlow-condensed-latin-700-normal.woff2) format("woff2")}
 /* base reset (the Claude version got this from its host page) */
-:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{color-scheme:light;padding-top:max(env(safe-area-inset-top,0px),var(--safe-area-inset-top,0px));padding-bottom:max(env(safe-area-inset-bottom,0px),var(--safe-area-inset-bottom,0px))}
 html{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-size:14px}
 img{max-width:100%}
@@ -52,9 +52,9 @@ input,select,textarea{font-size:16px}
 
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
-  padding-block:0 calc(96px + env(safe-area-inset-bottom,0px))}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+  padding-left:max(16px,max(env(safe-area-inset-left,0px),var(--safe-area-inset-left,0px)));padding-right:max(16px,max(env(safe-area-inset-right,0px),var(--safe-area-inset-right,0px)));
+  padding-block:0 calc(96px + max(env(safe-area-inset-bottom,0px),var(--safe-area-inset-bottom,0px)))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:max(env(safe-area-inset-top,0px),var(--safe-area-inset-top,0px));z-index:10;background:var(--bg)}
 .app{max-width:560px;margin:0 auto}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -63,14 +63,14 @@ button{cursor:pointer}
 h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:.01em;margin:0;text-wrap:balance}
 
 /* header */
-.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-block:14px 10px}
+.top{position:sticky;top:max(env(safe-area-inset-top,0px),var(--safe-area-inset-top,0px));z-index:5;background:var(--bg);display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-block:14px 10px}
 .brand{font-family:var(--f-display);font-weight:700;font-size:26px;text-transform:uppercase;letter-spacing:.04em}
 .brand span{color:var(--accent)}
 .sync{font-size:13px;color:var(--muted)}
 
 /* tabs */
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);
-  padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+  padding:6px max(8px,max(env(safe-area-inset-right,0px),var(--safe-area-inset-right,0px))) calc(6px + max(env(safe-area-inset-bottom,0px),var(--safe-area-inset-bottom,0px))) max(8px,max(env(safe-area-inset-left,0px),var(--safe-area-inset-left,0px)))}
 .tabs nav{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
 .tabs a{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;min-height:52px;border-radius:10px;text-decoration:none;color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
 .tabs a[aria-current="page"]{color:var(--accent);background:var(--accent-soft)}
@@ -139,8 +139,8 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:.01em;margi
 .icon-btn svg{width:20px;height:20px}
 
 /* rest strip */
-.rest{position:fixed;left:0;right:0;bottom:calc(66px + env(safe-area-inset-bottom,0px));z-index:7;
-  padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+.rest{position:fixed;left:0;right:0;bottom:calc(66px + max(env(safe-area-inset-bottom,0px),var(--safe-area-inset-bottom,0px)));z-index:7;
+  padding-left:max(12px,max(env(safe-area-inset-left,0px),var(--safe-area-inset-left,0px)));padding-right:max(12px,max(env(safe-area-inset-right,0px),var(--safe-area-inset-right,0px)))}
 .rest-in{max-width:560px;margin:0 auto;background:var(--ink);color:var(--bg);border-radius:14px;padding:8px 8px 8px 16px;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);position:relative;overflow:hidden}
 .rest-bar{position:absolute;left:0;bottom:0;height:4px;background:var(--accent)}
 .rest-t{font-family:var(--f-display);font-weight:700;font-size:30px;min-width:76px}
@@ -187,8 +187,8 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:.01em;margi
 
 /* sheet */
 .scrim{position:fixed;inset:0;background:rgba(10,12,16,.5);z-index:20;display:flex;align-items:flex-start;justify-content:center;
-  padding:calc(env(safe-area-inset-top,0px) + 64px) max(10px,env(safe-area-inset-right,0px)) 0 max(10px,env(safe-area-inset-left,0px))}
-.sheet{background:var(--surface);width:100%;max-width:560px;max-height:calc(100% - 96px - env(safe-area-inset-bottom,0px));border-radius:18px;display:flex;flex-direction:column;box-shadow:0 12px 32px rgba(0,0,0,.25);
+  padding:calc(max(env(safe-area-inset-top,0px),var(--safe-area-inset-top,0px)) + 64px) max(10px,max(env(safe-area-inset-right,0px),var(--safe-area-inset-right,0px))) 0 max(10px,max(env(safe-area-inset-left,0px),var(--safe-area-inset-left,0px)))}
+.sheet{background:var(--surface);width:100%;max-width:560px;max-height:calc(100% - 96px - max(env(safe-area-inset-bottom,0px),var(--safe-area-inset-bottom,0px)));border-radius:18px;display:flex;flex-direction:column;box-shadow:0 12px 32px rgba(0,0,0,.25);
   padding:0 16px 16px}
 .sheet-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 0 10px;border-bottom:1px solid var(--line)}
 .sheet-h h2{font-size:24px;text-transform:uppercase;letter-spacing:.03em}
@@ -286,7 +286,7 @@ textarea{font:inherit;color:var(--ink);width:100%;min-width:0;border:1px solid v
 .bw-form input{min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--sunk);padding:0 10px;width:100%;min-width:0}
 @media (max-width:420px){ .bw-form{grid-template-columns:1fr 1fr} .bw-form .btn{grid-column:1/-1} }
 .steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:15px}
-.toast.update{display:flex;align-items:center;gap:12px;pointer-events:auto;top:calc(10px + env(safe-area-inset-top,0px));bottom:auto;width:max-content;z-index:60}
+.toast.update{display:flex;align-items:center;gap:12px;pointer-events:auto;top:calc(10px + max(env(safe-area-inset-top,0px),var(--safe-area-inset-top,0px)));bottom:auto;width:max-content;z-index:60}
 .toast.update .btn{min-height:36px;background:var(--surface);color:var(--ink)}
 .seg-wide{display:flex;width:100%}.seg-wide button{flex:1}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:10px}
@@ -579,7 +579,7 @@ a.btn svg{width:18px;height:18px}
 .more-b p{margin:0}
 .callout .more summary{color:var(--warn)}
 .callout .more-b{color:var(--ink);padding-top:0}
-.wk-btns.pinned{position:sticky;bottom:calc(74px + env(safe-area-inset-bottom,0px));z-index:5;margin-top:8px;padding:8px;border-radius:16px;background:var(--surface);border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.14)}
+.wk-btns.pinned{position:sticky;bottom:calc(74px + max(env(safe-area-inset-bottom,0px),var(--safe-area-inset-bottom,0px)));z-index:5;margin-top:8px;padding:8px;border-radius:16px;background:var(--surface);border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.14)}
 .rt{display:flex;flex-direction:column;gap:4px;padding-block:12px}
 .rt-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .rt-tg{align-items:center;min-width:0;flex:1}
@@ -601,7 +601,7 @@ a.btn svg{width:18px;height:18px}
 .cx-notes{display:flex;flex-direction:column;gap:6px;font-size:16px;line-height:1.45}
 .cx-notes p{margin:0}
 /* keep room so the rest timer never covers the last buttons on the page */
-body.resting{padding-bottom:calc(190px + env(safe-area-inset-bottom,0px))}
+body.resting{padding-bottom:calc(190px + max(env(safe-area-inset-bottom,0px),var(--safe-area-inset-bottom,0px)))}
 /* draw the focus ring inside text boxes, so scrolling panels can't clip its edges */
 input:not([type="checkbox"]):not([type="radio"]):focus,input:not([type="checkbox"]):not([type="radio"]):focus-visible,select:focus,select:focus-visible,textarea:focus,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .dt:focus-within{outline-offset:-2px}
@@ -718,7 +718,7 @@ input:not([type="checkbox"]):not([type="radio"]):focus,input:not([type="checkbox
 .cal-grid{gap:3px}
 .cal-grid>span,.cal-grid>button{height:30px;font-size:13px;border-radius:8px}
 .cal-h span{height:auto!important;font-size:10px}
-.toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top,0px));bottom:auto;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + max(env(safe-area-inset-top,0px),var(--safe-area-inset-top,0px)));bottom:auto;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
 table.sess{width:100%;border-collapse:collapse;font-size:14px}
 table.sess th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
 table.sess td{padding:8px 4px;border-bottom:1px solid var(--line);vertical-align:top}
@@ -1688,13 +1688,32 @@ async function restAlertsAllowed(){ const ln=nat('LocalNotifications'); if(!ln) 
 function restAlertSync(){ const ln=nat('LocalNotifications'); if(!ln) return;
   ln.cancel({notifications:[{id:1}]}).catch(()=>{});
   if(rest && document.visibilityState==='hidden' && rest.end>Date.now()+1000)
-    ln.schedule({notifications:[{id:1, title:'Rest over', body:'Time for your next set.', schedule:{at:new Date(rest.end), allowWhileIdle:true}}]}).catch(()=>{});
+    ln.schedule({notifications:[{id:1, title:'Rest over', body:'Time for your next set.', schedule:{at:new Date(rest.end), allowWhileIdle:true}, isExactNotification:!ANDROID||exactAlarm.ok}]}).catch(()=>{});
 }
 if(NATIVE) document.addEventListener('visibilitychange', ()=>restAlertSync());
 
 /* ---------- automatic iCloud Drive backups (iPhone app): one dated backup a day, after each workout too, in the
    person's own iCloud (Files > iCloud Drive > GymSmith). Last 30 days kept. Restoring merges, so nothing is lost. ---------- */
 const IOS = NATIVE && CAP.getPlatform && CAP.getPlatform()==='ios';
+const ANDROID = NATIVE && CAP.getPlatform && CAP.getPlatform()==='android';
+/* Android: exact rest alerts need the "Alarms & reminders" permission; without it they can arrive a little late */
+const exactAlarm = {ok:true};
+async function exactAlarmCheck(){ const ln=nat('LocalNotifications'); if(!ANDROID || !ln) return; try{ const r=await ln.checkExactNotificationSetting(); exactAlarm.ok = r.exact_alarm==='granted'; }catch(e){ exactAlarm.ok=false; } }
+function androidAlertsCard(){
+  if(!ANDROID || exactAlarm.ok) return '';
+  return `<div class="card spread nowrap"><div style="min-width:0"><b>Rest alerts on time</b><div class="muted" style="font-size:13px">Let GymSmith set alarms so the "Rest over" alert arrives exactly when your rest ends, even with the screen off.</div></div><button type="button" class="btn" data-act="exact-alarm">Allow</button></div>`;
+}
+/* Android back button or gesture: step back inside GymSmith instead of closing it */
+if(ANDROID){ const app=nat('App'); if(app){ try{ app.addListener('backButton', ()=>{
+  if(document.querySelector('.set-row.swiped')){ closeSwiped(); return; }
+  if(sheet){ const hb=document.querySelector('#sheet-root [data-act="how-back"]'); if(hb) hb.click(); else closeSheet(); return; }
+  const bl=document.querySelector('main .back-link'); if(bl){ bl.click(); return; }
+  if(tab()!=='workout'){ location.hash='#workout'; return; }
+  app.minimizeApp().catch(()=>{});
+}); }catch(e){} }
+  document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') exactAlarmCheck().then(()=>{ if(tab()==='settings') render(); }); });
+  exactAlarmCheck();
+}
 const ICLOUD_KEEP = 30;
 const icloud = {available:null, files:null, busy:false, dirty:false};
 function icloudOn(){ return IOS && S.settings.icloud!==false; }
@@ -3253,7 +3272,7 @@ function vSettings(){
     <div style="min-width:0"><b>Track effort (RPE)</b><div class="muted" style="font-size:13px">Rate sets 6 (easy) to 10 (max)</div></div>
     <label class="switch"><input type="checkbox" id="set-rpe" ${S.settings.rpe!==false?'checked':''}><span class="sr">Track effort</span></label>
   </div>
-  ${icloudCard()}
+  ${androidAlertsCard()}${icloudCard()}
   <div class="card stack" style="gap:10px">
     <div><b>Backups</b><div class="muted" style="font-size:13px">Your log lives on this phone. A backup file keeps it safe if you change phone, delete the app or clear your browser data. ${backupAge()==null?'<b style="color:var(--warn)">No backup yet.</b>':`Last backup ${backupAge()===0?'today':backupAge()===1?'yesterday':backupAge()+' days ago'}.`}</div></div>
     <div class="btn-grid"><button type="button" class="btn primary" data-act="export-json">Back up now</button><button type="button" class="btn" data-act="import">Import backup</button><button type="button" class="btn span2" data-act="export-csv">Spreadsheet (CSV)</button></div>
@@ -3268,7 +3287,7 @@ function vSettings(){
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=63;
+const APP_VERSION=64;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const card=r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
@@ -3998,6 +4017,7 @@ document.addEventListener('click', async ev=>{
     case 'del-set': e.sets.pop(); touch(); render(); break;
     case 'icloud-on': S.settings.icloud = b.dataset.v==='1' ? true : false; putSettings(); render(); if(icloudOn()) icloudCheck().then(()=>{ icloudBackup(false); render(); }); break;
     case 'icloud-now': icloudBackup(true); break;
+    case 'exact-alarm': { const ln=nat('LocalNotifications'); if(ln) ln.changeExactNotificationSetting().then(r=>{ exactAlarm.ok=r.exact_alarm==='granted'; render(); }).catch(()=>{}); break; }
     case 'icloud-list': icloud.files=null; openSheet({kind:'icloud'}); break;
     case 'icloud-restore': { if(!armed(b,'Tap again')) break; const p=nat('ICloudBackup'); if(!p) break; b.disabled=true; b.textContent='Restoring…';
       try{ const r=await p.read({name:b.dataset.name}); closeSheet(); importBackup(r.data); }catch(e){ b.disabled=false; b.textContent='Restore'; toast("Couldn't open that backup. Check you're online and try again."); }
@@ -4249,7 +4269,7 @@ function edgeHint(dx){ let el=document.getElementById('edge-back');
 document.addEventListener('touchstart', ev=>{
   GS.mode=null; if(ev.touches.length!==1) return;
   const t=ev.touches[0], tg=ev.target; GS.x0=t.clientX; GS.y0=t.clientY; GS.t0=Date.now(); GS.dx=0;
-  if(GS.x0<24 && isStandalone() && canGoBack()){ GS.mode='edge?'; return; }
+  if(GS.x0<24 && isStandalone() && !/Android/i.test(navigator.userAgent) && canGoBack()){ GS.mode='edge?'; return; }
   const sh=tg.closest && tg.closest('#sheet-root .sheet');
   if(sh){ const body=sh.querySelector('.sheet-b'); GS.inHead=!!tg.closest('.sheet-h');
     if(!tg.closest('input,textarea,select') && (GS.inHead || !body || body.scrollTop<=0)){ GS.mode='sheet?'; GS.el=sh; GS.body=body; }

@@ -1,3 +1,7 @@
 node_modules/
 www/
 .DS_Store
+# signing keys never go in the repo
+*.p12
+*.jks
+*.keystore
