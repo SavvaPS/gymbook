@@ -57,3 +57,22 @@ Each run gets a new build number automatically. To change the version people see
 ## Updating the app
 
 Change `index.html` as usual. The web version updates when you push. For the iPhone app, run the workflow with upload ticked.
+
+## 4. In-app purchases (trial and unlock)
+
+The app code is ready (StorePlugin in `SceneDelegate.swift`, access logic in `index.html`). It needs iOS 16 or later.
+
+1. In App Store Connect, finish **Agreements, Tax and Banking** (the Paid Apps agreement). Purchases don't work until it's active.
+2. Open the app, then **Monetization → In-App Purchases**, and create two **Non-Consumable** products:
+   - **Trial**: product ID `com.gymsmith.app.trial`, price **Free** (Price Tier 0), display name "3-week Trial" (Apple asks for this naming).
+   - **Unlock**: product ID `com.gymsmith.app.unlock`, price **£5.99**, display name "Unlock GymSmith".
+   Turn on **Family Sharing** for both. Each needs a short description and a review screenshot (a screenshot of the trial panel is fine).
+3. Add both products to the app version when you submit it, so Apple reviews them together.
+
+### Testing in TestFlight
+- TestFlight purchases are free and use Apple's test system. Nothing is charged.
+- While `launch.json` on savvaps.github.io says `"foundingCutoff": null`, every install counts as a founding member. To test the trial and unlock, open **Settings** in the app and tap **Test as a new customer** (only shown in TestFlight builds).
+- **Restore purchase** is in Settings.
+
+### At launch
+When the App Store version goes live, set the founding-member cut-off in `launch.json` (repo SavvaPS.github.io), for example `"foundingCutoff": "2026-12-31T23:59:59Z"`, then commit and push. Move it later to extend the window; never earlier.

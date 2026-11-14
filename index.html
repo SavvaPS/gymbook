@@ -723,6 +723,13 @@ table.sess{width:100%;border-collapse:collapse;font-size:14px}
 table.sess th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
 table.sess td{padding:8px 4px;border-bottom:1px solid var(--line);vertical-align:top}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* access: trial, unlock and founding member */
+.pw{gap:12px}
+.pw-lead{font-size:18px;font-weight:600;margin:0}
+.pw-list{margin:0;padding-left:20px;display:grid;gap:6px;font-size:15px}
+.pw-badge{display:inline-flex;align-self:center;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-weight:700;letter-spacing:.02em}
+.pw-badge svg,.pw-chip svg{width:18px;height:18px}
+.pw-chip{display:inline-flex;align-items:center;gap:6px;margin-left:8px;padding:2px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:700;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -1767,6 +1774,141 @@ function sheetICloud(){
         <button type="button" class="btn" data-act="icloud-restore" data-name="${esc(f.name)}">Restore</button></div>`; }).join('')}</div>`;
 }
 
+/* ---------- access (iPhone app): founding members, the free trial and the one-off unlock.
+   Founding members: anyone whose Apple ID first got GymSmith before the cut-off date is free forever. The date is read from
+   savvaps.github.io/launch.json (null = window still open), so it can be set or extended without an app update.
+   Everyone else starts a free 3-week trial (a zero-price in-app purchase, so reinstalling doesn't reset it), then unlocks
+   once. Without the unlock the app is read-only: history, progress, backups and export keep working; new logging stops.
+   The web version and Android (for now) are always fully open. ---------- */
+const STORE_ON = IOS;
+const PROD = {unlock:'com.gymsmith.app.unlock', trial:'com.gymsmith.app.trial'};
+const TRIAL_DAYS = 21;
+const LAUNCH_URL = 'https://savvaps.github.io/launch.json';
+const ACC_KEY = 'gymsmith.access';
+const acc = Object.assign({orig:null, env:null, cutoff:undefined, founder:false, owned:{}, prices:{}, checked:0}, lsGet(ACC_KEY)||{});
+acc.busy = false;
+function saveAcc(){ try{ const {busy, ...keep}=acc; localStorage.setItem(ACC_KEY, JSON.stringify(keep)); }catch(e){} }
+function unlockPrice(){ return acc.prices[PROD.unlock] || '£5.99'; }
+function accTesting(){ return !!acc.env && acc.env!=='Production'; }
+/* state: full (web, Android, or not checked yet), founder, unlocked, trial, new (trial not started), expired */
+function access(){
+  if(!STORE_ON) return {state:'full'};
+  const t = accTesting() ? acc.testAs : null;
+  if(acc.owned.unlock && t!=='nf') return {state:'unlocked'};
+  if(acc.founder && !t) return {state:'founder'};
+  if(acc.owned.trial){ const end=acc.owned.trial+TRIAL_DAYS*864e5;
+    return Date.now()<end ? {state:'trial', end, days:Math.max(1,Math.ceil((end-Date.now())/864e5))} : {state:'expired'}; }
+  if(!t && (acc.orig==null || acc.cutoff===undefined)) return {state:'full'}; // haven't heard from the App Store or the website yet: never block
+  return {state:'new'};
+}
+function canLog(){ const s=access().state; return s!=='new' && s!=='expired'; }
+/* call before starting or editing a workout; shows the trial / unlock panel instead when logging is closed */
+function logGate(){ if(canLog()) return true; openSheet({kind:'paywall'}); return false; }
+function applyEnt(items){ const o={}; (items||[]).forEach(x=>{ if(x.id===PROD.unlock) o.unlock=x.date||1; if(x.id===PROD.trial) o.trial=x.date||Date.now(); }); acc.owned=o; }
+let accRun=null;
+async function accessCheck(){
+  if(!STORE_ON) return; const st=nat('Store'); if(!st) return;
+  if(accRun) return accRun;
+  accRun=(async()=>{
+    try{ const a=await st.appInfo(); if(a && a.originalDate){ acc.orig=a.originalDate; acc.env=a.environment||null; } }catch(e){}
+    try{ const r=await st.entitlements(); applyEnt(r.items); }catch(e){}
+    try{ const res=await fetch(LAUNCH_URL+'?t='+Date.now(), {cache:'no-store'});
+      if(res.ok){ const j=await res.json(); if(j && 'foundingCutoff' in j){ const c=j.foundingCutoff ? Date.parse(j.foundingCutoff) : null; if(c===null || isFinite(c)) acc.cutoff=c; } } }catch(e){}
+    let fresh=false;
+    if(!acc.founder && acc.orig!=null && acc.cutoff!==undefined && (acc.cutoff===null || acc.orig<acc.cutoff)){ acc.founder=true; fresh=true; }
+    try{ const p=await st.products({ids:[PROD.unlock]}); (p.products||[]).forEach(x=>{ acc.prices[x.id]=x.price; }); }catch(e){}
+    acc.checked=Date.now(); saveAcc();
+    if(sheet && sheet.kind==='paywall') renderSheet(); softRender();
+    if(fresh && !acc.welcomed && !sheet && !S.active){ acc.welcomed=1; saveAcc(); openSheet({kind:'founder'}); }
+  })();
+  try{ await accRun; } finally { accRun=null; }
+}
+if(STORE_ON){
+  setTimeout(accessCheck, 1200);
+  document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible' && Date.now()-acc.checked>6*3600e3) accessCheck(); });
+  try{ nat('Store')?.addListener('entitlementsChanged', ()=>accessCheck()); }catch(e){}
+}
+async function buy(id){
+  const st=nat('Store'); if(!st || acc.busy) return;
+  acc.busy=true; if(sheet) renderSheet(); render();
+  try{
+    const r=await st.purchase({id});
+    if(r.status==='purchased'){ acc.owned=Object.assign({}, acc.owned, {[id===PROD.unlock?'unlock':'trial']: r.date||Date.now()}); saveAcc(); haptic('done');
+      closeSheet(); toast(id===PROD.unlock?'GymSmith is unlocked. Thank you!':`Your free trial has started: ${TRIAL_DAYS} days with everything unlocked.`, 3500); }
+    else if(r.status==='pending') toast('Waiting for approval. GymSmith unlocks as soon as it\'s approved.', 3500);
+  }catch(e){ toast('That didn\'t go through. Check your connection and try again.', 3000); }
+  acc.busy=false; if(sheet) renderSheet(); render();
+}
+async function restorePurchase(){
+  const st=nat('Store'); if(!st || acc.busy) return;
+  acc.busy=true; if(sheet) renderSheet(); render();
+  try{
+    const r=await st.restore();
+    if(r.status==='ok'){ applyEnt(r.items); saveAcc();
+      toast(acc.owned.unlock?'Your unlock has been restored.':acc.owned.trial?'No unlock found for this Apple ID. Your trial is restored.':'No purchases found for this Apple ID.', 3500); }
+  }catch(e){ toast('Couldn\'t reach the App Store. Try again in a moment.', 3000); }
+  acc.busy=false; if(sheet && sheet.kind==='paywall' && canLog() && access().state!=='trial') closeSheet(); else if(sheet) renderSheet(); render();
+  accessCheck();
+}
+const PW_KEEP='Your history, progress, backups and export always stay available.';
+function sheetPaywall(){
+  const a=access(), dis=acc.busy?'disabled':'', price=esc(unlockPrice());
+  const restore=`<button type="button" class="btn ghost block" data-act="acc-restore" ${dis}>Restore purchase</button>`;
+  const unlock=(primary)=>`<button type="button" class="btn ${primary?'primary big':''} block" data-act="acc-unlock" ${dis}>Unlock GymSmith · ${price}</button>`;
+  if(a.state==='new') return `<div class="pw stack">
+    <p class="pw-lead">Everything is unlocked for ${TRIAL_DAYS/7} weeks, free.</p>
+    <ul class="pw-list"><li>Log workouts, follow programmes and skills, and see your progress</li><li>When the trial ends, logging new workouts needs a one-off unlock for ${price}</li><li>${PW_KEEP}</li><li>No subscription. Nothing is charged when the trial ends</li></ul>
+    <button type="button" class="btn primary big block" data-act="acc-trial" ${dis}>Start free trial</button>
+    ${unlock(false)}${restore}</div>`;
+  if(a.state==='trial') return `<div class="pw stack">
+    <p class="pw-lead">${a.days} day${a.days===1?'':'s'} left of your free trial.</p>
+    <p class="muted" style="margin:0">Unlock once for ${price} to keep logging after ${fullDate(a.end)}. No subscription. ${PW_KEEP}</p>
+    ${unlock(true)}${restore}</div>`;
+  if(a.state==='expired') return `<div class="pw stack">
+    <p class="pw-lead">Your free trial has ended.</p>
+    <p class="muted" style="margin:0">Unlock once for ${price} to keep logging workouts. No subscription. ${PW_KEEP}</p>
+    ${unlock(true)}${restore}</div>`;
+  if(a.state==='founder') return `<p>You're a founding member, so GymSmith is free for you, forever.</p>`;
+  return `<p>GymSmith is unlocked. Thank you for your support!</p>${restore}`;
+}
+function paywallTitle(){ const s=access().state; return s==='new'?'Try GymSmith free':s==='expired'?'Unlock GymSmith':s==='trial'?'Free trial':'GymSmith'; }
+function sheetFounder(){
+  return `<div class="pw stack" style="text-align:center"><div class="pw-badge">${ICON.shield}<span>Founding member</span></div>
+    <p class="pw-lead">Thanks for joining GymSmith early.</p>
+    <p class="muted" style="margin:0">As a founding member, everything is free for you, forever. It's linked to your Apple ID, so it stays with you if you reinstall or change phone.</p>
+    <button type="button" class="btn primary big block" data-act="close">Let's train</button></div>`;
+}
+/* Workout screen: a line about the trial, or what to do when logging is closed */
+function accessBanner(){
+  const a=access();
+  if(a.state==='trial') return `<div class="hint"><span>Free trial: <b>${a.days} day${a.days===1?'':'s'} left</b>.</span><button type="button" class="btn" data-act="paywall">Unlock</button></div>`;
+  if(a.state==='new') return `<div class="card stack" style="gap:8px"><b style="font-size:17px">Try everything free for ${TRIAL_DAYS/7} weeks</b><p class="muted" style="margin:0;font-size:14px">Then unlock once for ${esc(unlockPrice())} to keep logging. No subscription.</p><div><button type="button" class="btn primary" data-act="paywall">Start free trial</button></div></div>`;
+  if(a.state==='expired') return `<div class="card stack" style="gap:8px"><b style="font-size:17px">Your free trial has ended</b><p class="muted" style="margin:0;font-size:14px">Unlock once for ${esc(unlockPrice())} to keep logging. Your history and progress are all still here.</p><div><button type="button" class="btn primary" data-act="paywall">Unlock</button></div></div>`;
+  return '';
+}
+/* Settings card */
+function accessCard(){
+  if(!STORE_ON) return '';
+  const a=access(), dis=acc.busy?'disabled':'';
+  const line = a.state==='founder' ? `<span class="pw-chip">${ICON.shield} Founding member</span><div class="muted" style="font-size:13px;margin-top:6px">GymSmith is free for you, forever.</div>`
+    : a.state==='unlocked' ? `<div class="muted" style="font-size:13px">Unlocked. Thank you for your support!</div>`
+    : a.state==='trial' ? `<div class="muted" style="font-size:13px">Free trial: ${a.days} day${a.days===1?'':'s'} left (until ${fullDate(a.end)}).</div>`
+    : a.state==='expired' ? `<div class="muted" style="font-size:13px">Free trial ended. Unlock to keep logging.</div>`
+    : a.state==='new' ? `<div class="muted" style="font-size:13px">Try everything free for ${TRIAL_DAYS/7} weeks.</div>`
+    : `<div class="muted" style="font-size:13px">Everything is open. Your access is checked next time you're online.</div>`;
+  const main = (a.state==='trial'||a.state==='expired') ? `<button type="button" class="btn primary" data-act="paywall">Unlock · ${esc(unlockPrice())}</button>`
+    : a.state==='new' ? `<button type="button" class="btn primary" data-act="paywall">Start free trial</button>` : '';
+  const test = accTesting() ? `<div class="muted" style="font-size:12px;border-top:1px solid var(--line);padding-top:8px">TestFlight only: <button type="button" class="btn ghost small" data-act="acc-test">${acc.testAs==='nf'?'Testing as a new customer (tap to switch back)':'Test as a new customer'}</button></div>` : '';
+  return `<div class="card stack" style="gap:10px"><div><b>GymSmith</b>${line}</div>
+    <div class="row">${main}<button type="button" class="btn" data-act="acc-restore" ${dis}>Restore purchase</button></div>${test}</div>`;
+}
+/* Apple's rating prompt, once, after the 5th workout */
+function maybeReview(){
+  if(!IOS || S.settings.reviewAsked || S.workouts.filter(w=>!w.past).length<5) return;
+  S.settings=Object.assign({}, S.settings, {reviewAsked:Date.now()}); putSettings(); saveLocalAll();
+  setTimeout(()=>{ nat('Store')?.review().catch(()=>{}); }, 2500);
+}
+
 function allEx(){ return LIB.concat(S.custom); }
 function exById(id){ return allEx().find(e=>e.id===id); }
 function myEq(){ return new Set(Array.isArray(S.settings.equipment)?S.settings.equipment:EQ_ALL); }
@@ -2499,6 +2641,7 @@ function vStart(){
     : (S.loaded.r ? `<p class="note">No routines yet. Make one in the Routines tab to start it in one tap.</p>` : '');
   const last=S.workouts[0]; const nu=vNextUp();
   return `
+  ${accessBanner()}
   ${isStandalone()?'':`<div class="card download"><div class="dl-txt"><b>Add GymSmith to your home screen</b><span>${/iPhone|iPad|iPod/i.test(navigator.userAgent)?"Do this before logging workouts: on iPhone, workouts logged in Safari don't carry over to the app.":'It opens full screen and works with no signal.'}</span></div><button type="button" class="btn primary" data-act="install-help">Install</button></div>`}
   <section class="hero-start">
     <div class="card stack">
@@ -3252,6 +3395,7 @@ function vPrograms(filter){
 function vSettings(){
   const rest=S.settings.rest||90;
   return `<div class="section-h"><h2>Settings</h2></div>
+  ${accessCard()}
   <div class="card spread">
     <div style="min-width:0"><b>My equipment</b><div class="muted" style="font-size:13px">${Array.isArray(S.settings.equipment)?(S.settings.equipment.length?`${S.settings.equipment.length} items · ${LIB.filter(x=>canDo(x)).length} of ${LIB.length} exercises available`:`Bodyweight only · ${LIB.filter(x=>canDo(x)).length} exercises available`):'Not set: showing every exercise'}</div></div>
     <button type="button" class="btn" data-act="equip-open">Edit</button>
@@ -3287,7 +3431,7 @@ function vSettings(){
 }
 if(!S.rtOpen) S.rtOpen=new Set();
 /* keep in step with VERSION in sw.js, so you can see which version is running */
-const APP_VERSION=64;
+const APP_VERSION=65;
 function vRoutines(){
   const rest=S.settings.rest||90;
   const card=r=>{ const open=S.rtOpen.has(r.id); return `<div class="card rt ${open?'open':''}">
@@ -3359,6 +3503,8 @@ function renderSheet(){
   if(sheet.kind==='export'){ title='Your export'; body=sheetExport(); }
   if(sheet.kind==='install'){ title='Add to home screen'; body=sheetInstall(); }
   if(sheet.kind==='icloud'){ title='Restore from iCloud'; body=sheetICloud(); }
+  if(sheet.kind==='paywall'){ title=paywallTitle(); body=sheetPaywall(); }
+  if(sheet.kind==='founder'){ title=''; body=sheetFounder(); }
   if(sheet.kind==='policy'){ title=sheet.v==='health'?'Health and safety':'Privacy policy'; body=sheetPolicy(); }
   if(sheet.kind==='exercise'){ const m=exerciseStats().find(x=>x.exId===sheet.exId); title=m?m.name:'Exercise'; body=sheetExercise(m); }
   const keepQ = document.getElementById('pick-q'); const q = keepQ? keepQ.value : (sheet.q||'');
@@ -3666,6 +3812,7 @@ function planSummary0(x){
   return x.plan.map(fmt).join(' · ');
 }
 function startWorkout(name, exercises, rest, src){
+  if(!logGate()) return;
   holdT=null;
   S.active={id:uid(),name:name||defaultName(),startedAt:null,updatedAt:Date.now(),exercises:exercises||[]};
   if(rest) S.active.rest=rest;
@@ -3716,6 +3863,7 @@ async function finishWorkout(){
   await putWorkout(done); recomputePRs();
   if(mode){ S.openHist=done.id; location.hash='#history'; render(); return; }
   render(); openSheet({kind:'summary',w:done,skill:skPre,dropped});
+  maybeReview();
 }
 
 /* rest timer */
@@ -3948,6 +4096,11 @@ document.addEventListener('click', async ev=>{
   const art=b.closest('.ex'); const e = art&&S.active ? S.active.exercises[+art.dataset.ex] : null;
 
   switch(act){
+    case 'paywall': openSheet({kind:'paywall'}); break;
+    case 'acc-trial': buy(PROD.trial); break;
+    case 'acc-unlock': buy(PROD.unlock); break;
+    case 'acc-restore': restorePurchase(); break;
+    case 'acc-test': acc.testAs = acc.testAs==='nf' ? null : 'nf'; saveAcc(); render(); break;
     case 'start-empty': startWorkout(); break;
     case 'start-routine': {
       if(S.active){ toast('Finish or discard your current workout first.'); location.hash='#workout'; break; }
@@ -4047,6 +4200,7 @@ document.addEventListener('click', async ev=>{
 
     case 'hist-edit': {
       if(S.active){ toast('Finish or discard the workout in progress first.'); location.hash='#workout'; break; }
+      if(!logGate()) break;
       const w=S.workouts.find(x=>x.id===b.dataset.id); if(!w) break;
       S.active={id:w.id, mode:'edit', past:w.past?1:undefined, name:w.name, startedAt:w.startedAt, durMin:Math.max(1,Math.round(((w.endedAt||w.startedAt)-w.startedAt)/60000)), note:w.note||'', updatedAt:Date.now(),
         exercises:clone(w.exercises||[]).map(e=>{ const v=num(e.vest); const old=v&&!e.sets.some(st=>vestOf(st)); if(old) delete e.vest;
@@ -4056,6 +4210,7 @@ document.addEventListener('click', async ev=>{
     }
     case 'log-past': {
       if(S.active){ toast('Finish or discard the workout in progress first.'); location.hash='#workout'; break; }
+      if(!logGate()) break;
       const t=new Date(); t.setHours(t.getHours()-2,0,0,0);
       S.active={id:uid(), mode:'log', name:'Workout', startedAt:t.getTime(), durMin:'60', note:'', updatedAt:Date.now(), exercises:[]};
       saveActive(); location.hash='#workout'; render(); window.scrollTo(0,0); break;
